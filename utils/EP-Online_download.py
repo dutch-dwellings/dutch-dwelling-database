@@ -1,8 +1,9 @@
 import os
-from zipfile import ZipFile
 
 from dotenv import dotenv_values
 import requests
+
+from utils import save_to_file, unzip, prefix_path
 
 
 env = dotenv_values(".env")
@@ -30,65 +31,11 @@ def handle_request(r):
 	else:
 		raise Exception(f'Unexpected error trying to connect to EP-Online API. Status code: {r.status_code}.')
 
-
-def save_to_file(url, path, expected_size=None):
-
-	filename = os.path.basename(path)
-
-	if os.path.isfile(path):
-		confirmation = input(f'File {filename} already exists, do you want to redownload it? (y/n)\n')
-		if confirmation.lower() != 'y':
-			# skip download, still go on with the rest of processing
-			return
-
-	if expected_size:
-		confirmation = input(f'Preparing download of {filename}, expected size {expected_size}... do you want to continue? (y/n)\n')
-		if confirmation.lower() != 'y':
-			raise ConfirmationError('Aborting program on users request')
-
-	os.makedirs(os.path.dirname(path), exist_ok=True)
-	with open(path, "wb") as file:
-		print('Starting download...')
-		response = requests.get(url)
-		print('finished download.')
-		file.write(response.content)
-
-
-def unzip(path, expected_size=None, prefix=None):
-
-	with ZipFile(path, 'r') as zip_ref:
-		filename = zip_ref.namelist()[0]
-
-		unzipped_path = os.path.join(os.path.dirname(path), filename)
-		prefixed_path = prefix_path(unzipped_path, prefix)
-
-		if os.path.exists(unzipped_path) or os.path.exists(prefixed_path):
-			confirmation = input(f'File has already been unzipped at either {unzipped_path} or {prefixed_path}. Do you want to redo unzipping? (y/n)\n')
-			if confirmation.lower() != 'y':
-				return
-
-		print('Starting unzipping...')
-		zip_ref.extractall(os.path.dirname(path))
-		print('finished unzipping.')
-
-	os.rename(unzipped_path, prefixed_path)
-
-
-def prefix_path(path, prefix):
-	# allow prefix=None
-	if prefix:
-		filename = os.path.basename(path)
-		dirname = os.path.dirname(path)
-		return os.path.join(dirname, f'{prefix}{filename}')
-	else:
-		return path
-
 def main():
 
 	r = requests.get(EP_ONLINE_API_MUTATIONFILE, headers={'Authorization': env['EP_ONLINE_API_KEY']})
 	filename, downloadUrl = handle_request(r)
 
-	print(downloadUrl)
 	prefix = 'EP-Online_'
 	prefixed_filename = f'{prefix}{filename}'
 	project_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
