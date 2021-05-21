@@ -3,7 +3,7 @@ import os
 from dotenv import dotenv_values
 import requests
 
-from utils import save_to_file, unzip, prefix_path
+from utils import prefix_path, data_dir, save_to_file,unzip
 
 
 env = dotenv_values(".env")
@@ -16,8 +16,6 @@ EP_ONLINE_API_MUTATIONFILE = EP_ONLINE_API_ENDPOINT + "Mutatiebestand/DownloadIn
 EP_ONLINE_API_PING = EP_ONLINE_API_ENDPOINT + "Ping"
 
 class AuthenticationError(Exception):
-	pass
-class ConfirmationError(Exception):
 	pass
 
 
@@ -37,9 +35,8 @@ def main():
 	filename, downloadUrl = handle_request(r)
 
 	prefix = 'EP-Online_'
-	prefixed_filename = f'{prefix}{filename}'
-	project_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
-	path = os.path.join(project_dir, 'data', prefixed_filename)
+	prefixed_filename = prefix_path(filename, prefix)
+	path = os.path.join(data_dir, prefixed_filename)
 
 	save_to_file(downloadUrl, path, expected_size='120MB')
 

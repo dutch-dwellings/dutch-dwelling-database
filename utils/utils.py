@@ -1,7 +1,13 @@
 import os
 from zipfile import ZipFile
 
-def save_to_file(url, path, expected_size=None):
+import requests
+
+
+class ConfirmationError(Exception):
+	pass
+
+def save_to_file(url, path, expected_size=None, method='GET', data={}, cookies={}):
 	'''
 	Download the file at 'url' and save it at 'path'.
 	Warn and ask confirmation for downloading when
@@ -25,7 +31,12 @@ def save_to_file(url, path, expected_size=None):
 	os.makedirs(os.path.dirname(path), exist_ok=True)
 	with open(path, "wb") as file:
 		print('Starting download...')
-		response = requests.get(url)
+		if method == 'GET':
+			response = requests.get(url)
+		elif method == 'POST':
+			response = requests.post(url, data=data, cookies=cookies)
+		else:
+			raise ValueError(f'Unexpected method {method}, try GET or POST')
 		print('finished download.')
 		file.write(response.content)
 
@@ -69,3 +80,6 @@ def prefix_path(path, prefix):
 		return os.path.join(dirname, f'{prefix}{filename}')
 	else:
 		return path
+
+project_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+data_dir = os.path.join(project_dir, 'data')
