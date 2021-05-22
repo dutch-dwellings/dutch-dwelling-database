@@ -52,7 +52,7 @@ def main():
 
 	save_to_file(DOWNLOAD_URL, path, method="POST", data={"__RequestVerificationToken":RequestVerificationToken, "ApiKey": API_KEY, "id": csv_id}, cookies=cookies, expected_size='80MB')
 
-	unzip(path, expected_size='3860MB', prefix=prefix)
+	unzip(path, expected_size='880MB', prefix=prefix)
 
 if __name__ == "__main__":
 	main()
