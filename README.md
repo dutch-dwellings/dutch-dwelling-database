@@ -43,9 +43,9 @@ Make sure that a valid API-key is present in `.env` (available from the [RVO-sit
 Download the dataset, create the table in Postgres and load in the data ():
 
 ```
-python utils/EP-Online_download_XML.py
+python utils/EP-Online_download.py
 python utils/EP-Online_create_table.py
-python utils/EP-Online_load_XML.py
+python utils/EP-Online_load.py
 ```
 
 **Warning:** downloading the XML uses quite some disk space – roughly 4GB. Loading the dataset can take a while - roughly 15min. The scripts should warn you for this.
