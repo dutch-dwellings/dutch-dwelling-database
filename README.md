@@ -27,7 +27,14 @@ pip install python-dotenv psycopg2-binary requests
 
 ## Datasets
 
-**First:** fill `.env` with the required values (see `.env.template` for the structure), and create a Postgres database called `dutch-dwellings`.
+**First:** fill `.env` with the required values (see `.env.template` for the structure).
+
+Create a Postgres database:
+
+```
+python utils/create_database.py
+```
+
 
 ### Energy labels (EP-Online)
 
@@ -47,5 +54,4 @@ python utils/EP-Online_load_XML.py
 
 ## TODO
 
-- automate database creation
 - collapse the three scripts for the Energy Labels into one
