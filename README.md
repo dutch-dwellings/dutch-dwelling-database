@@ -29,30 +29,15 @@ pip install python-dotenv psycopg2-binary requests
 
 **First:** fill `.env` with the required values (see `.env.template` for the structure).
 
-Create a Postgres database:
+Then run the setup tool:
 
 ```
-python utils/create_database.py
+python setup.py
 ```
 
-
-### Energy labels (EP-Online)
-
-Make sure that a valid API-key is present in `.env` (available from the [RVO-site](https://epbdwebservices.rvo.nl/)).
-
-Download the dataset, create the table in Postgres and load in the data ():
-
-```
-python utils/EP-Online_download.py
-python utils/EP-Online_create_table.py
-python utils/EP-Online_load.py
-```
-
-**Warning:** downloading the XML uses quite some disk space – roughly 4GB. Loading the dataset can take a while - roughly 15min. The scripts should warn you for this.
-
-**Note:** development started with the CSV file (see files `EP-Online_(down)load_CSV.py`), but that isn't reliable since it uses `;` as a delimiter but also has values that contain `;`, messing up the parsing. Therefore we have to use the bulkier XML.
+You will have to confirm a time/space/internet-consuming activity once in a while by typing `y` and then pressing Enter.
 
 ## TODO
 
-- collapse the three scripts for the Energy Labels into one
 - check if there energycertificates that have multiple BagPandIds (e.g. did I miss something when parsing the XML, or does every certicate have only one PandId?)
+- make an option to have setup.py run without any input (and possibly without output, the UNIX-way)

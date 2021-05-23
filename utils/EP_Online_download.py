@@ -1,9 +1,13 @@
 import os
+import sys
 
 from dotenv import dotenv_values
 import requests
 
-from utils import prefix_path, data_dir, save_to_file,unzip
+# Required for relative imports to also work when called
+# from project root directory.
+sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+from file_utils import prefix_path, data_dir, save_to_file, unzip
 
 
 env = dotenv_values(".env")
@@ -13,7 +17,6 @@ env = dotenv_values(".env")
 # - response file documentation: https://www.rvo.nl/sites/default/files/2021/01/handleiding-ep-online-opvragen-van-bestanden-en-webservice-januari-2021.pdf
 EP_ONLINE_API_ENDPOINT = "https://public.ep-online.nl/api/v2/"
 EP_ONLINE_API_MUTATIONFILE = EP_ONLINE_API_ENDPOINT + "Mutatiebestand/DownloadInfo"
-EP_ONLINE_API_PING = EP_ONLINE_API_ENDPOINT + "Ping"
 
 class AuthenticationError(Exception):
 	pass
@@ -34,7 +37,7 @@ def main():
 	r = requests.get(EP_ONLINE_API_MUTATIONFILE, headers={'Authorization': env['EP_ONLINE_API_KEY']})
 	filename, downloadUrl = handle_request(r)
 
-	prefix = 'EP-Online_'
+	prefix = 'EP_Online_'
 	prefixed_filename = prefix_path(filename, prefix)
 	path = os.path.join(data_dir, prefixed_filename)
 
@@ -46,6 +49,6 @@ if __name__ == "__main__":
 	main()
 
 # TODO:
-# - try to download the smaller CSV file (880MB) instead of the XML file (3860MB)
 # - consider deleting the ZIP file after unzipping (but might be useful to prevent re-downloading)
 # - give a warning before unzipping the file that it can take quite a lot of disk scape
+# - return filename to be used later on
