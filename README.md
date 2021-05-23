@@ -27,7 +27,7 @@ pip install python-dotenv psycopg2-binary requests
 
 ## Datasets
 
-First: fill `.env` with the required values (see `.env.template` for the structure).
+**First:** fill `.env` with the required values (see `.env.template` for the structure), and create a Postgres database called `dutch-dwellings`.
 
 ### Energy labels (EP-Online)
 
@@ -44,3 +44,8 @@ python utils/EP-Online_load_XML.py
 **Warning:** downloading the XML uses quite some disk space – roughly 4GB. Loading the dataset can take a while - roughly 15min. The scripts should warn you for this.
 
 **Note:** development started with the CSV file (see files `EP-Online_(down)load_CSV.py`), but that isn't reliable since it uses `;` as a delimiter but also has values that contain `;`, messing up the parsing. Therefore we have to use the bulkier XML.
+
+## TODO
+
+- automate database creation
+- collapse the three scripts for the Energy Labels into one
