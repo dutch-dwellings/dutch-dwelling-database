@@ -79,12 +79,9 @@ for event, elem in ET.iterparse(path, tag='Pandcertificaat'):
 	certificate = empty_certificate.copy()
 
 	for entry in elem:
-		tag = entry.tag.lower()
-		# We need to check whether the key is actually one of the default
-		# 37 keys (sometimes, extra data is offered, which we don't want to use,
-		# and which would mess up the INSERT statement)
-		if tag in certificate:
-			certificate[tag] = entry.text
+		# lowercase first letter to match Postgres columns
+		tag = entry.tag[0].lower() + entry.tag[1:]
+		certificate[tag] = entry.text
 
 	# no need to use the element anymore,
 	# we delete it to free up memory
@@ -120,7 +117,6 @@ print(f'\nProcessed {i:,} records in {(time.time() - start_time):.2f} seconds.')
 print(f'Max memory usage: {(resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1000000):.3f} (MB on macOS; probably GB on Linux).')
 
 # TODO:
-# - check how many times a non-default key is offered (outside of the 37 parameters)
 # - put into functions
 # - get database-name from .env
 # - improve on progress bar
