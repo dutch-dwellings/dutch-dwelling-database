@@ -1,41 +1,49 @@
 -- use IF NOT EXISTS to make the statement idempotent
 CREATE TABLE IF NOT EXISTS energy_labels
-(
-pand_opnamedatum date,
-pand_opnametype varchar,
-pand_status varchar,
-pand_berekeningstype varchar,
-pand_energieprestatieindex varchar,
-pand_energieklasse varchar,
-pand_energielabel_is_prive varchar,
-pand_is_op_basis_van_referentie_gebouw varchar,
-pand_gebouwklasse varchar,
-meting_geldig_tot varchar,
-pand_registratiedatum varchar,
-pand_postcode varchar,
-pand_huisnummer varchar,
-pand_huisnummer_toev varchar,
-pand_detailaanduiding varchar,
-pand_bagverblijfsobjectid varchar,
-pand_bagligplaatsid varchar,
-pand_bagstandplaatsid varchar,
-pand_bagpandid varchar,
-pand_gebouwtype varchar,
-pand_gebouwsubtype varchar,
+( -- related names are from the Swagger docs: https://public.ep-online.nl/swagger/index.html?urls.primaryName=EP-Online%20Public%20REST%20API%20v2
+pand_opnamedatum date, -- opnamedatum
+pand_opnametype varchar, -- opnametype
+pand_status varchar, -- status
+pand_berekeningstype varchar, -- berekeningstype
+pand_energieprestatieindex double precision, -- energieprestatieindex
+pand_energieklasse varchar, -- labelLetter ?
+pand_energielabel_is_prive boolean, -- reverse of: isOpenbaarLabel ?
+pand_is_op_basis_van_referentie_gebouw boolean, -- isOpBasisVanReferentiegebouw
+pand_gebouwklasse varchar, -- gebouwklasse (W or U)
+meting_geldig_tot date, -- metingGeldigTot
+pand_registratiedatum date, -- registratiedatum
+pand_postcode varchar, -- postcode
+pand_huisnummer int, -- huisnummer
+pand_huisnummer_toev varchar, -- huisnummerToevoeging
+pand_detailaanduiding varchar, -- detailaanduiding
+pand_bagverblijfsobjectid varchar, -- bagVerblijfsobjectId
+pand_bagligplaatsid varchar, -- bagLigplaatsobjectId
+pand_bagstandplaatsid varchar, -- bagStandplaatsobjectId
+pand_bagpandid varchar, -- bagPandIds ---> could be array? In practice it seems not to be
+pand_gebouwtype varchar, -- gebouwtype
+pand_gebouwsubtype varchar, -- gebouwsubtype
 pand_projectnaam varchar,
 pand_projectobject varchar,
-pand_SBIcode varchar,
-pand_gebruiksoppervlakte varchar,
-pand_energiebehoefte varchar,
-pand_eis_energiebehoefte varchar,
-pand_primaire_fossiele_energie varchar,
-pand_eis_primaire_fossiele_energie varchar,
-pand_primaire_fossiele_energie_EMG_forfaitair varchar,
-pand_aandeel_hernieuwbare_energie varchar,
-pand_eis_aandeel_hernieuwbare_energie varchar,
-pand_aandeel_hernieuwbare_energie_EMG_forfaitair varchar,
-pand_temperatuuroverschrijding varchar,
-pand_eis_temperatuuroverschrijding varchar,
-pand_warmtebehoefte varchar,
-pand_forfaitaire varchar
+pand_SBIcode varchar, -- sbIcode
+pand_gebruiksoppervlakte double precision, -- gebruiksoppervlakte
+pand_energiebehoefte double precision, -- energiebehoefte
+pand_eis_energiebehoefte double precision, -- eisEnergiebehoefte
+pand_primaire_fossiele_energie double precision, -- primaireFossieleEnergie
+pand_eis_primaire_fossiele_energie double precision, -- eisPrimaireFossieleEnergie
+pand_primaire_fossiele_energie_EMG_forfaitair double precision, -- primaireFossieleEnergieEMGForfaitair
+pand_aandeel_hernieuwbare_energie double precision, -- aandeelHernieuwbareEnergie
+pand_eis_aandeel_hernieuwbare_energie double precision, -- eisAandeelHernieuwbareEnergie
+pand_aandeel_hernieuwbare_energie_EMG_forfaitair double precision, -- aandeelHernieuwbareEnergieEMGForfaitair
+pand_temperatuuroverschrijding double precision,
+pand_eis_temperatuuroverschrijding double precision,
+pand_warmtebehoefte double precision, -- nettoWarmtevraagTbvEPV ?
+pand_forfaitaire double precision -- energieprestatieForfaitair ? then double precision
 );
+
+-- Missing:
+-- isVereenvoudigdLabel
+-- toJuli
+-- eisTOJuli
+-- toJuliGTO
+-- eisTOJuliGTO
+-- afschrift

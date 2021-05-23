@@ -55,3 +55,4 @@ python utils/EP-Online_load.py
 ## TODO
 
 - collapse the three scripts for the Energy Labels into one
+- check if there energycertificates that have multiple BagPandIds (e.g. did I miss something when parsing the XML, or does every certicate have only one PandId?)

@@ -11,7 +11,7 @@ env = dotenv_values(".env")
 # EP-Online:
 # - API documentation: https://public.ep-online.nl/swagger/index.html
 # - response file documentation: https://www.rvo.nl/sites/default/files/2021/01/handleiding-ep-online-opvragen-van-bestanden-en-webservice-januari-2021.pdf
-EP_ONLINE_API_ENDPOINT = "https://public.ep-online.nl/api/v1/"
+EP_ONLINE_API_ENDPOINT = "https://public.ep-online.nl/api/v2/"
 EP_ONLINE_API_MUTATIONFILE = EP_ONLINE_API_ENDPOINT + "Mutatiebestand/DownloadInfo"
 EP_ONLINE_API_PING = EP_ONLINE_API_ENDPOINT + "Ping"
 
