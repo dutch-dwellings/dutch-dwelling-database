@@ -6,8 +6,8 @@ pand_opnametype varchar, -- opnametype
 pand_status varchar, -- status
 pand_berekeningstype varchar, -- berekeningstype
 pand_energieprestatieindex double precision, -- energieprestatieindex
-pand_energieklasse varchar, -- labelLetter ?
-pand_energielabel_is_prive boolean, -- reverse of: isOpenbaarLabel ?
+pand_energieklasse varchar, -- labelLetter
+pand_energielabel_is_prive boolean, -- reverse of: isOpenbaarLabel
 pand_is_op_basis_van_referentie_gebouw boolean, -- isOpBasisVanReferentiegebouw
 pand_gebouwklasse varchar, -- gebouwklasse (W or U)
 meting_geldig_tot date, -- metingGeldigTot
@@ -34,16 +34,14 @@ pand_primaire_fossiele_energie_EMG_forfaitair double precision, -- primaireFossi
 pand_aandeel_hernieuwbare_energie double precision, -- aandeelHernieuwbareEnergie
 pand_eis_aandeel_hernieuwbare_energie double precision, -- eisAandeelHernieuwbareEnergie
 pand_aandeel_hernieuwbare_energie_EMG_forfaitair double precision, -- aandeelHernieuwbareEnergieEMGForfaitair
-pand_temperatuuroverschrijding double precision,
-pand_eis_temperatuuroverschrijding double precision,
-pand_warmtebehoefte double precision, -- nettoWarmtevraagTbvEPV ?
-pand_forfaitaire double precision -- energieprestatieForfaitair ? then double precision
+pand_temperatuuroverschrijding double precision, -- toJuli
+pand_eis_temperatuuroverschrijding double precision, -- eisTOJuli
+pand_warmtebehoefte double precision, -- nettoWarmtevraagTbvEPV
+pand_forfaitaire double precision -- energieprestatieForfaitair
 );
 
 -- Missing:
--- isVereenvoudigdLabel
--- toJuli
--- eisTOJuli
--- toJuliGTO
+-- isVereenvoudigdLabel (simplified label)
+-- toJuliGTO (Gewogen TemperatuurOverschrijding = weighted temperature exceedance)
 -- eisTOJuliGTO
 -- afschrift
