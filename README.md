@@ -53,3 +53,4 @@ Currently, this only uses a small sample of the BAG, for testing purposes.
 - make an option to have setup.py run without any input (and possibly without output, the UNIX-way)
 - make setup.py run idempotently
 - take table names used in the creation of tables from .env
+- normalize the database tables, and improve naming
