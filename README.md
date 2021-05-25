@@ -27,9 +27,9 @@ pip install python-dotenv psycopg2-binary requests
 
 ## Datasets
 
-**First:** fill `.env` with the required values (see `.env.template` for the structure).
+**First:** fill `.env` with the required values (see `.env.template` for the structure). You can get the required EP-Online API key with [this form from the RVO](https://epbdwebservices.rvo.nl/).
 
-Then run the setup tool:
+To download and load all the datasets, run the setup tool:
 
 ```
 python setup.py
@@ -41,3 +41,4 @@ You will have to confirm a time/space/internet-consuming activity once in a whil
 
 - check if there energycertificates that have multiple BagPandIds (e.g. did I miss something when parsing the XML, or does every certicate have only one PandId?)
 - make an option to have setup.py run without any input (and possibly without output, the UNIX-way)
+- make setup.py run idempotently
