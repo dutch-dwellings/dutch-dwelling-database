@@ -37,6 +37,16 @@ python setup.py
 
 You will have to confirm a time/space/internet-consuming activity once in a while by typing `y` and then pressing Enter.
 
+### Running the date pipeline
+
+To run the data pipeline and populate the `results` table, first make sure that all required datasets have been loaded via the setup command above. Then:
+
+```
+python pipeline.py
+```
+
+Currently, this only uses a small sample of the BAG, for testing purposes.
+
 ## TODO
 
 - check if there energycertificates that have multiple BagPandIds (e.g. did I miss something when parsing the XML, or does every certicate have only one PandId?)
