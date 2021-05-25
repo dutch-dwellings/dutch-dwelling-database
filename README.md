@@ -2,7 +2,7 @@
 *A database of energy characteristics of individual Dutch dwellings*
 
 
-### Installation
+## Installation
 
 Make sure you have Python3 and [PostgreSQL](https://www.postgresql.org/download/) installed. On macOS you can use [Homebrew](https://brew.sh/):
 `brew install postgresql`, or use the [PostgreSQL installer](https://www.enterprisedb.com/downloads/postgres-postgresql-downloads).
@@ -25,7 +25,7 @@ psql (PostgreSQL) 12.6
 pip install python-dotenv psycopg2-binary requests
 ```
 
-## Datasets
+## Downloading and loading the datasets
 
 **First:** fill `.env` with the required values (see `.env.template` for the structure). You can get the required EP-Online API key with [this form from the RVO](https://epbdwebservices.rvo.nl/).
 
@@ -36,6 +36,16 @@ python setup.py
 ```
 
 You will have to confirm a time/space/internet-consuming activity once in a while by typing `y` and then pressing Enter.
+
+## Running the date pipeline
+
+To run the data pipeline and populate the `results` table, first make sure that all required datasets have been loaded via the setup command above. Then:
+
+```
+python pipeline.py
+```
+
+Currently, this only uses a small sample of the BAG, for testing purposes.
 
 ## TODO
 

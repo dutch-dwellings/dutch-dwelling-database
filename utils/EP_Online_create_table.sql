@@ -13,7 +13,7 @@ pand_gebouwklasse varchar, -- gebouwklasse (W or U)
 meting_geldig_tot date, -- metingGeldigTot
 pand_registratiedatum date, -- registratiedatum
 pand_postcode varchar, -- postcode
-pand_huisnummer int, -- huisnummer
+pand_huisnummer integer, -- huisnummer
 pand_huisnummer_toev varchar, -- huisnummerToevoeging
 pand_detailaanduiding varchar, -- detailaanduiding
 pand_bagverblijfsobjectid varchar, -- bagVerblijfsobjectId

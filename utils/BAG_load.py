@@ -14,7 +14,9 @@ from file_utils import data_dir
 FILE_NAME = 'BAG_Invoer_RuimtelijkeData_BAG_vbo_woonfunctie_studiegebied_Export.csv'
 TABLE_NAME = 'bag'
 
-load_statement = sql.SQL("COPY {dbname} FROM %s WITH DELIMITER AS ';' NULL AS 'null' CSV HEADER;")
+# note: '''' means: use the character ' as quote character.
+# It is escaped by the preceding ' and then included in ' ', hence the 4 ''''.
+load_statement = sql.SQL("COPY {dbname} FROM %s WITH DELIMITER AS ';' NULL AS 'null' QUOTE '''' CSV HEADER;")
 
 
 def main():
