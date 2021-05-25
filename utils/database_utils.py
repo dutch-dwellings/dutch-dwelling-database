@@ -38,3 +38,15 @@ def create_database(dbname=env['POSTGRES_DBNAME']):
 		pass
 	cursor.close()
 	connection.close()
+
+def execute_file(path):
+
+	connection = get_connection()
+	cursor = connection.cursor()
+
+	with open(path, 'r') as file:
+		cursor.execute(file.read())
+
+	cursor.close()
+	connection.commit()
+	connection.close()
