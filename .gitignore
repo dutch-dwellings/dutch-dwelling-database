@@ -1,3 +1,9 @@
-*.sublime-project
 .env
 data
+
+# Sublime Text
+*.sublime-project
+
+# Python caches
+__pycache__
+*.pyc
