@@ -36,11 +36,18 @@ class Dwelling:
 
 		cursor.close()
 
+	# This defines the default outputs irrespective of which
+	# modules are active. Specify the outputs for specific modules
+	# within the class definition of that module.
+	#
 	# This has to match the default 'results'
 	# table layout as defined in utils/create_results_table.sql.
 	# In other words: columns have to exist for all the
 	# default_outputs.
-	default_outputs = ['identificatie', 'buurt_id', 'district_heating']
+	#
+	# As of now, we can only assume that BAG-data is always present,
+	# so only use BAG column_names here.
+	default_outputs = ['identificatie']
 
 
 def main():
@@ -49,7 +56,6 @@ def main():
 	create_results_table()
 	sample = get_bag_sample(connection)
 	district_heating_module = DistrictHeatingModule(connection)
-	district_heating_module.load_data(connection)
 
 	for entry in sample:
 		dwelling = Dwelling(dict(entry))
