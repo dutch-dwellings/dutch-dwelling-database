@@ -1,3 +1,5 @@
+import time
+
 from psycopg2 import sql
 
 from utils.database_utils import get_connection, get_bag_sample, insert_dict
@@ -53,18 +55,25 @@ class Dwelling:
 
 def main():
 
+	start_time = time.time()
+	i = 0
+
 	connection = get_connection()
 	create_results_table()
-	sample = get_bag_sample(connection)
+	sample = get_bag_sample(connection, n=1000)
 	district_heating_module = DistrictHeatingModule(connection)
 
 	for entry in sample:
 		dwelling = Dwelling(dict(entry), connection)
 		district_heating_module.process(dwelling)
 		dwelling.save()
+		i += 1
 
 	connection.commit()
 	connection.close()
+
+	print(f'Processed {i:,} records in {(time.time() - start_time):.2f} seconds.')
+
 
 if __name__ == "__main__":
 	main()
