@@ -49,7 +49,6 @@ def main():
 	create_results_table()
 	sample = get_bag_sample(connection)
 	district_heating_module = DistrictHeatingModule(connection)
-
 	district_heating_module.load_data(connection)
 
 	for entry in sample:
@@ -59,7 +58,6 @@ def main():
 
 	connection.commit()
 	connection.close()
-
 
 if __name__ == "__main__":
 	main()
