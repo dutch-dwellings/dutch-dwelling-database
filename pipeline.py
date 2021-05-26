@@ -7,8 +7,9 @@ from modules.district_heating_module import DistrictHeatingModule
 
 class Dwelling:
 
-	def __init__(self, attributes):
+	def __init__(self, attributes, connection):
 		self.attributes = attributes
+		self.connection = connection
 		# We copy the list so we get an instance variable
 		# instead of a class variable.
 		self.outputs = self.default_outputs.copy()
@@ -20,12 +21,12 @@ class Dwelling:
 		'''
 		return {key: val for (key, val) in self.attributes.items() if key in self.outputs}
 
-	def save(self, connection):
+	def save(self):
 		'''
 		INSERT the generated Dwelling object
 		into the 'results' database.
 		'''
-		cursor = connection.cursor()
+		cursor = self.connection.cursor()
 
 		row_dict = self.get_filtered_attributes()
 		insert_dict(
@@ -58,9 +59,9 @@ def main():
 	district_heating_module = DistrictHeatingModule(connection)
 
 	for entry in sample:
-		dwelling = Dwelling(dict(entry))
+		dwelling = Dwelling(dict(entry), connection)
 		district_heating_module.process(dwelling)
-		dwelling.save(connection)
+		dwelling.save()
 
 	connection.commit()
 	connection.close()
