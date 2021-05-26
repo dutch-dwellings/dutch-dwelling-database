@@ -51,5 +51,4 @@ Currently, this only uses a small sample of the BAG, for testing purposes.
 
 - check if there energycertificates that have multiple BagPandIds (e.g. did I miss something when parsing the XML, or does every certicate have only one PandId?)
 - make an option to have setup.py run without any input (and possibly without output, the UNIX-way)
-- make setup.py run idempotently
-- take table names used in the creation of tables from .env
+- make setup.py run idempotently. Make sure that datasets won't be loaded into PostgreSQL multiple times.
