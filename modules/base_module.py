@@ -1,4 +1,9 @@
-from database_utils import add_column
+import os
+import sys
+
+# Necessary to import modules from parent folder
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from utils.database_utils import add_column
 
 class BaseModule:
 

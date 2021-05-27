@@ -47,6 +47,16 @@ python pipeline.py
 
 Currently, this only uses a small sample of the BAG, for testing purposes.
 
+## Tests
+
+There are unittests for the behaviour of the modules. They do not rely on the database, so you can run these without having PostgreSQL installed or the databases loaded.
+
+To run all tests:
+
+```
+python -m unittest -v
+```
+
 ## TODO
 
 - check if there energycertificates that have multiple BagPandIds (e.g. did I miss something when parsing the XML, or does every certicate have only one PandId?)
