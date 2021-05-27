@@ -12,6 +12,8 @@ from utils.EP_Online_create_table import main as create_energy_labels_table
 from utils.EP_Online_download import main as download_energy_labels_data
 from utils.EP_Online_load import load_energy_labels_data
 
+from utils.CBS_load_tables import main as cbs
+
 def bag():
 	print('Creating table for BAG...')
 	create_BAG_table()
@@ -72,6 +74,9 @@ def main():
 
 	print('====== Energy labels (EP-Online) ======')
 	energy_labels()
+
+	print('====== CBS ======')
+	cbs()
 
 	print('Finished with the setup.')
 

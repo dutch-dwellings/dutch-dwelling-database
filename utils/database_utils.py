@@ -107,3 +107,30 @@ def insert_dict(table_name, row_dict, cursor):
 	)
 
 	cursor.execute(insert_statement, (AsIs(', '.join(columns)), tuple(values)))
+
+def create_table(table_name, columns):
+	'''
+	Create a new table (will not create if table
+	already exists) with name 'table_name',
+	and columns defined in a list with tuples
+	(column_name, data_type).
+	E.g.
+		columns = [('id', 'int'), ('neighbourhood', 'character varying')]
+	'''
+	connection = get_connection()
+	cursor = connection.cursor()
+
+	# use IF NOT EXISTS to make the statement idempotent
+	create_statement = sql.SQL("CREATE TABLE IF NOT EXISTS {table_name} (%s);").format(
+		table_name=sql.Identifier(table_name),
+		# columns=sql.Identifier(columns_sql)
+		)
+
+	# TODO: check whether we can do this more
+	# elegantly using e.g. psycopg2.sql
+	columns_sql = ', '.join([' '.join(column) for column in columns])
+
+	cursor.execute(create_statement, (AsIs(columns_sql),))
+	cursor.close()
+	connection.commit()
+	connection.close()
