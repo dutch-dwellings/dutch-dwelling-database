@@ -2,9 +2,13 @@ import os
 import pdb
 import pprint
 import re
+import sys
 
 import cbsodata
 
+# Required for relative imports to also work when called
+# from project root directory.
+sys.path.append(os.path.dirname(__file__))
 from file_utils import data_dir
 from database_utils import create_table, get_connection, insert_dict
 
@@ -86,6 +90,9 @@ def get_sanitized_cbs_table_title(table_id):
 	return f'CBS_{table_id}_{table_sanitized_title}'.lower()
 
 def get_cbs_table_columns(table_id):
+	# TODO: this can go wrong when multiple column names
+	# get sanitized to the same name.
+
 	properties = cbsodata.get_meta(table_id, 'DataProperties')
 	columns = [
 		(
