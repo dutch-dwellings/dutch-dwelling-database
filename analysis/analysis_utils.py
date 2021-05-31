@@ -1,6 +1,5 @@
 import os
 import sys
-import pprint
 
 # Necessary to import modules from parent folder
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
