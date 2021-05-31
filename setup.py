@@ -14,6 +14,9 @@ from utils.EP_Online_load import load_energy_labels_data
 
 from utils.CBS_utils import load_cbs_table
 
+from utils.CBS_PC6_2019_energy_use_create_table import main as create_CBS_PC6_2019_energy_use_table
+from utils.CBS_PC6_2019_energy_use_load import main as load_CBS_PC6_2019_energy_use
+
 def bag():
 	print('Creating table for BAG...')
 	create_BAG_table()
@@ -21,6 +24,15 @@ def bag():
 
 	print('Loading the data into Postgres...')
 	load_BAG()
+	print('Done.\n')
+
+def CBS_PC6():
+	print('Creating table for BAG...')
+	create_CBS_PC6_2019_energy_use_table()
+	print('Done.\n')
+
+	print('Loading the data into Postgres...')
+	load_CBS_PC6_2019_energy_use()
 	print('Done.\n')
 
 def rvo_warmtenetten():
@@ -54,7 +66,10 @@ def cbs():
 	cbs_tables = [
 		# Energieverbruik particuliere woningen; woningtype, wijken en buurten, 2018
 		# https://opendata.cbs.nl/statline/portal.html?_la=nl&_catalog=CBS&tableId=84585NED&_theme=279
-		"84585NED"
+		"84585NED",
+		# Woningen; hoofdverwarmings; buurt 2019
+		# https://opendata.cbs.nl/statline/portal.html?_la=nl&_catalog=CBS&tableId=84983NED&_theme=126
+		load_cbs_table("84983NED")
 	]
 	for table in cbs_tables:
 		load_cbs_table(table)
@@ -87,6 +102,8 @@ def main():
 	print('====== CBS ======')
 	cbs()
 
+	print('====== CBS Energy Use ======')
+	CBS_PC6()
 	print('Finished with the setup.')
 
 if __name__ == "__main__":
