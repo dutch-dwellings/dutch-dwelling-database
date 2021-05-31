@@ -12,7 +12,7 @@ from utils.EP_Online_create_table import main as create_energy_labels_table
 from utils.EP_Online_download import main as download_energy_labels_data
 from utils.EP_Online_load import load_energy_labels_data
 
-from utils.CBS_load_tables import main as cbs
+from utils.CBS_utils import load_cbs_table
 
 def bag():
 	print('Creating table for BAG...')
@@ -49,6 +49,15 @@ def energy_labels():
 	print('Loading the data into Postgres...')
 	load_energy_labels_data()
 	print('Done.\n')
+
+def cbs():
+	cbs_tables = [
+		# Energieverbruik particuliere woningen; woningtype, wijken en buurten, 2018
+		# https://opendata.cbs.nl/statline/portal.html?_la=nl&_catalog=CBS&tableId=84585NED&_theme=279
+		"84585NED"
+	]
+	for table in cbs_tables:
+		load_cbs_table(table)
 
 def main():
 

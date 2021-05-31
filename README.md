@@ -37,6 +37,16 @@ python setup.py
 
 You will have to confirm a time/space/internet-consuming activity once in a while by typing `y` and then pressing Enter.
 
+### CBS datasets
+
+To manually download extra CBS-datasets for evaluation / exploration, get their table ID (e.g. from the [CBS Open Data Portal](https://opendata.cbs.nl/portal.html), find the 'Identifier' that is usually of the form '12345NED') and then:
+
+```
+python utils/CBS_load_tables.py $tableID
+```
+
+If these datasets are required for the pipeline to run, make sure to include them in the `cbs()` function within `setup.py` so these will download during the setup.
+
 ## Running the date pipeline
 
 To run the data pipeline and populate the `results` table, first make sure that all required datasets have been loaded via the setup command above. Then:
