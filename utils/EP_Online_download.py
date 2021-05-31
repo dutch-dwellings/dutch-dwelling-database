@@ -48,7 +48,4 @@ def main():
 if __name__ == "__main__":
 	main()
 
-# TODO:
-# - consider deleting the ZIP file after unzipping (but might be useful to prevent re-downloading)
-# - give a warning before unzipping the file that it can take quite a lot of disk scape
-# - return filename to be used later on
+

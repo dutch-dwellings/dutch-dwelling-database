@@ -64,3 +64,11 @@ python -m unittest -v
 - make setup.py run idempotently. Make sure that datasets won't be loaded into PostgreSQL multiple times.
 - take table names used in the creation of tables from .env
 - normalize the database tables, and improve naming
+- `utils/CBS_utils`:
+	- check for existence of table: if exists, then abort (helps for idempotency)
+	- speed up insertion by bundling INSERT statements. Probably need to build some kind of 'insert buffer' for this.
+	- `get_cbs_table_columns`: this can go wrong when multiple column names get sanitized to the same name. Example: kerncijfers buurten en wijken.
+- `utils/EP_Online_download`:
+	- consider deleting the ZIP file after unzipping (but might be useful to prevent re-downloading)
+	- give a warning before unzipping the file that it can take quite a lot of disk space
+	- return filename to be used later on

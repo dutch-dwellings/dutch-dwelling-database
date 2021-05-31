@@ -90,9 +90,6 @@ def get_sanitized_cbs_table_title(table_id):
 	return f'CBS_{table_id}_{table_sanitized_title}'.lower()
 
 def get_cbs_table_columns(table_id):
-	# TODO: this can go wrong when multiple column names
-	# get sanitized to the same name.
-
 	properties = cbsodata.get_meta(table_id, 'DataProperties')
 	columns = [
 		(
@@ -163,8 +160,3 @@ def load_cbs_table(table_id):
 	connection.commit()
 	connection.close()
 	print('Done.\n')
-
-	# TODO: check for existence of table: if exists, then abort
-	# (helps for idempotency)
-	# TODO: speed up insertion by bundling INSERT statements.
-	# Probably need to build some kind of 'insert buffer' for this.
