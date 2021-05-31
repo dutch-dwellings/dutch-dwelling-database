@@ -5,6 +5,7 @@ from psycopg2 import sql
 from utils.database_utils import get_connection, get_bag_sample, insert_dict
 from utils.create_results_table import main as create_results_table
 from modules.district_heating_module import DistrictHeatingModule
+from modules.gas_boiler_module import GasBoilerModule
 
 
 class Dwelling:
@@ -62,10 +63,12 @@ def main():
 	create_results_table()
 	sample = get_bag_sample(connection, n=1000)
 	district_heating_module = DistrictHeatingModule(connection)
+	gas_boiler_module = GasBoilerModule(connection)
 
 	for entry in sample:
 		dwelling = Dwelling(dict(entry), connection)
 		district_heating_module.process(dwelling)
+		gas_boiler_module.process(dwelling)
 		dwelling.save()
 		i += 1
 

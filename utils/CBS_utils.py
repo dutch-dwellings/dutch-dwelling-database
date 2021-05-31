@@ -9,7 +9,7 @@ from file_utils import data_dir
 from database_utils import create_table, get_connection, insert_dict
 
 # CBS Open Data Services manual at:
-# https://opendata.cbs.nl/statline/portal.html?_la=nl&_catalog=CBS&tableId=84585NED&_theme=279#
+# https://www.cbs.nl/nl-nl/onze-diensten/open-data/hulpmiddel-voor-het-gebruik-van-odata-in-r-en-python
 
 def sanitize_cbs_title(title):
 	# First replace all special character with a space:

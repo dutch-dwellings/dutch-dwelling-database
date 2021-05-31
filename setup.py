@@ -14,6 +14,9 @@ from utils.EP_Online_load import load_energy_labels_data
 
 from utils.CBS_load_tables import main as cbs
 
+from utils.CBS_PC6_2019_energy_use_create_table import main as create_CBS_PC6_2019_energy_use_table
+from utils.CBS_PC6_2019_energy_use_load import main as load_CBS_PC6_2019_energy_use
+
 def bag():
 	print('Creating table for BAG...')
 	create_BAG_table()
@@ -21,6 +24,15 @@ def bag():
 
 	print('Loading the data into Postgres...')
 	load_BAG()
+	print('Done.\n')
+
+def CBS_PC6():
+	print('Creating table for BAG...')
+	create_CBS_PC6_2019_energy_use_table()
+	print('Done.\n')
+
+	print('Loading the data into Postgres...')
+	load_CBS_PC6_2019_energy_use()
 	print('Done.\n')
 
 def rvo_warmtenetten():
@@ -61,7 +73,7 @@ def main():
 		print('You need to create an .env file and populate it with the desired information. Check .env.template for an example.')
 		print('Aborting.')
 		return
-
+		'''
 	print('Creating database...')
 	create_database()
 	print('Done.\n')
@@ -77,7 +89,9 @@ def main():
 
 	print('====== CBS ======')
 	cbs()
-
+	'''
+	print('====== CBS Energy Use ======')
+	CBS_PC6()
 	print('Finished with the setup.')
 
 if __name__ == "__main__":
