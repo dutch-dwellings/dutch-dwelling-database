@@ -75,7 +75,6 @@ python -m unittest -v
 - take table names used in the creation of tables from .env
 - normalize the database tables, and improve naming
 - `utils/CBS_utils`:
-	- check for existence of table: if exists, then abort (helps for idempotency)
 	- speed up insertion by bundling INSERT statements. Probably need to build some kind of 'insert buffer' for this.
 - `utils/EP_Online_download`:
 	- consider deleting the ZIP file after unzipping (but might be useful to prevent re-downloading)
