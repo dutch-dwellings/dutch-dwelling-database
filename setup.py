@@ -63,13 +63,20 @@ def energy_labels():
 	print('Done.\n')
 
 def cbs():
+	# Include a tuple with (table_id, typed_data_set),
+	# with the second value indicating whether you want the
+	# table to not 'expand' IDs (such as Buurten en Wijken, this
+	# can be helpful when you need the raw buurt_id)
 	cbs_tables = [
 		# Energieverbruik particuliere woningen; woningtype, wijken en buurten, 2018
 		# https://opendata.cbs.nl/statline/portal.html?_la=nl&_catalog=CBS&tableId=84585NED&_theme=279
 		("84585NED", False),
 		# Woningen; hoofdverwarmings; buurt 2019
 		# https://opendata.cbs.nl/statline/portal.html?_la=nl&_catalog=CBS&tableId=84983NED&_theme=126
-		("84983NED", True)
+		("84983NED", True),
+		# Kerncijfers wijken en buurten 2020
+		# https://opendata.cbs.nl/portal.html?_la=nl&_catalog=CBS&tableId=84799NED&_theme=235
+		("84799NED", False)
 	]
 	for table in cbs_tables:
 		load_cbs_table(table[0], typed_data_set=table[1])

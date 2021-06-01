@@ -1,3 +1,4 @@
+import collections
 import os
 import pdb
 import pprint
@@ -57,7 +58,39 @@ def convert_to_postgres_data_type(data_type):
 	else:
 		raise Exception(f'Unknown data_type {data_type}')
 
-def sanitize_column_title(title):
+def get_sanitize_key_dict(table_id):
+	'''
+	Returns a lookup dict to match CBS-style keys
+	to 'sanitized' keys
+	'''
+	properties = cbsodata.get_meta(table_id, 'DataProperties')
+	keys = [prop['Key'] for prop in properties if prop['Key'] != '']
+	# The DataProperties don't include the key 'ID',
+	# although it is used. So we have to add that manually.
+	keys.append('ID')
+	return sanitize_keys(keys)
+
+def sanitize_keys(keys):
+	'''
+	Does the sanitizing of the keys.
+	'''
+	# Do a first pass, which we later have to check for
+	# duplicate values. We can't do it one-by-one, since
+	# the sanitized keys might clash.
+	sanitize_key_dict = {
+		key: sanitize_column_title(key) for key in keys
+	}
+	values = sanitize_key_dict.values()
+	c = collections.Counter(values)
+	duplicate_values = set([x for x in values if c[x] > 1])
+
+	for key in keys:
+		if sanitize_key_dict[key] in duplicate_values:
+			sanitize_key_dict[key] = sanitize_column_title(key, strip_digits=False)
+
+	return sanitize_key_dict
+
+def sanitize_column_title(title, strip_digits=True):
 	'''
 	Make column titles suited for Postgres,
 	e.g. from
@@ -71,14 +104,17 @@ def sanitize_column_title(title):
 	if title == 'ID':
 		return 'id'
 
-	# Some tables have _1, _2, ... appended
-	# to the column names: strip those.
-	title = re.sub('_[0-9]*$', '', title)
+	# Only strip when told, because else keys
+	# might clash.
+	if strip_digits:
+		# Some tables have _1, _2, ... appended
+		# to the column names: strip those.
+		title = re.sub('_[0-9]*$', '', title)
 
 	# Split words on upper case, then lower fragment
 	# and stitch together with '_'.
-	# via https://stackoverflow.com/a/2277363/7770056
-	words = re.findall('[A-Z][^A-Z]*', title)
+	# via https://stackoverflow.com/questions/2277352/split-a-string-at-uppercase-letters/2277363#comment71487355_2277363
+	words = re.findall('[a-zA-Z][^A-Z]*', title)
 	return '_'.join([word.lower() for word in words])
 
 def get_sanitized_cbs_table_title(table_id):
@@ -91,9 +127,10 @@ def get_sanitized_cbs_table_title(table_id):
 
 def get_cbs_table_columns(table_id):
 	properties = cbsodata.get_meta(table_id, 'DataProperties')
+	sanitize_key_dict = get_sanitize_key_dict(table_id)
 	columns = [
 		(
-			sanitize_column_title(prop['Key']),
+			sanitize_key_dict[prop['Key']],
 			convert_to_postgres_data_type(get_data_type(prop))
 		)
 		for prop in properties
@@ -148,15 +185,20 @@ def load_cbs_table(table_id, typed_data_set=False):
 	cursor = connection.cursor()
 
 	print('Inserting data...')
+
+	sanitize_key_dict = get_sanitize_key_dict(table_id)
 	for row in data:
 		# Before we can insert the data, we have to manipulate
 		# the key so it matches the columns in the created
 		# Postgres table, and we might need to trim the white space
 		# from the values.
 		row_dict = {
-			sanitize_column_title(key): sanitize_data(value)
+			sanitize_key_dict[key]: sanitize_data(value)
 			for key, value in row.items()
 		}
+		# TODO: it's probably more efficient to just pass a list,
+		# I think the required keys are always there. And then we can
+		# more easily batch these INSERTs.
 		insert_dict(table_name, row_dict, cursor)
 
 	cursor.close()
