@@ -1,0 +1,125 @@
+Dwellings without buurt_id:
+0
+
+Dwellings without pand_id:
+0
+
+Dwellings without postcode:
+183
+
+Number of dwellings per buurt_id:
+
+  count: 13246
+
+    min: 1
+average: 600
+    max: 14265
+
+    low: 4
+ median: 319
+   high: 2748
+
+
+Number of dwellings per postcode:
+
+  count: 437901
+
+    min: 1
+average: 18
+    max: 1049
+
+    low: 2
+ median: 16
+   high: 51
+
+
+Number of postcode per buurt_id:
+
+  count: 13246
+
+    min: 1
+average: 35
+    max: 523
+
+    low: 1
+ median: 21
+   high: 148
+
+
+Number of dwellings per pand_id:
+
+  count: 5487293
+
+    min: 1
+average: 1
+    max: 17157
+
+    low: 1
+ median: 1
+   high: 4
+
+
+Surface area (m^2) per dwelling:
+
+  count: 7951730
+
+    min: 10
+average: 117
+    max: 999
+
+    low: 37
+ median: 106
+   high: 274
+
+
+Surface area (ha) per buurt:
+
+  count: 13808
+
+    min: 0
+average: 244
+    max: 12813
+
+    low: 7
+ median: 57
+   high: 1683
+
+
+Surface area (ha) per wijk:
+
+  count: 3177
+
+    min: 4
+average: 1060
+    max: 24723
+
+    low: 35
+ median: 600
+   high: 4597
+
+
+Surface area (ha) per gemeente:
+
+  count: 355
+
+    min: 703
+average: 9485
+    max: 52301
+
+    low: 1111
+ median: 7035
+   high: 33518
+
+
+Surface area (ha) per NL:
+
+  count: 1
+
+    min: 3367109
+average: 3367109
+    max: 3367109
+
+    low: 3367109
+ median: 3367109
+   high: 3367109
+
