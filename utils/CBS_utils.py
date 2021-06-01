@@ -6,12 +6,13 @@ import re
 import sys
 
 import cbsodata
+from psycopg2.errors import UndefinedColumn
 
 # Required for relative imports to also work when called
 # from project root directory.
 sys.path.append(os.path.dirname(__file__))
 from file_utils import data_dir
-from database_utils import create_table, get_connection, insert_dict
+from database_utils import create_table, get_connection, insert_dict, make_primary_key, add_index
 
 # CBS Open Data Services manual at:
 # https://www.cbs.nl/nl-nl/onze-diensten/open-data/hulpmiddel-voor-het-gebruik-van-odata-in-r-en-python
@@ -172,14 +173,13 @@ def load_cbs_table(table_id, typed_data_set=False):
 	table_name = get_sanitized_cbs_table_title(table_id)
 
 	print(f'Loading CBS table {table_name}:')
+	print('Creating table...')
 	create_table_for_cbs_table(table_id)
-	print('Created table.')
 	print('Downloading data...')
 	if typed_data_set:
 		data = cbsodata.get_meta(table_id, 'TypedDataSet')
 	else:
 		data = cbsodata.get_data(table_id)
-	print('Done.')
 
 	connection = get_connection()
 	cursor = connection.cursor()
@@ -204,4 +204,28 @@ def load_cbs_table(table_id, typed_data_set=False):
 	cursor.close()
 	connection.commit()
 	connection.close()
+
+	print('Adding indexes...')
+
+	# TODO: check whether there is a cleaner option than
+	# try...exists-blocks.
+
+	# All (?) tables come with a column ID which we can make
+	# the primary key.
+	try:
+		make_primary_key(table_name, sanitize_column_title('ID'))
+	except UndefinedColumn as e:
+		print(e)
+
+	# The column 'codering' -- if it exists -- contains the
+	# Buurten en Wijken code. Adding an index to that column
+	# speeds up queries on that column, which are frequent.
+	# TODO: check whether there is no other use for the table
+	# 'codering', or whether this column also comes under a different
+	# name.
+	try:
+		add_index(table_name, 'codering')
+	except UndefinedColumn as e:
+		print(e)
+
 	print('Done.\n')

@@ -134,3 +134,29 @@ def create_table(table_name, columns):
 	cursor.close()
 	connection.commit()
 	connection.close()
+
+def add_index(table_name, column_name):
+	index_name = f'{column_name}_idx'
+	statement = sql.SQL("CREATE INDEX IF NOT EXISTS {index_name} ON {table_name} ({column_name})").format(
+			index_name = sql.Identifier(index_name),
+			table_name = sql.Identifier(table_name),
+			column_name = sql.Identifier(column_name)
+		)
+	connection = get_connection()
+	cursor = connection.cursor()
+	cursor.execute(statement)
+	cursor.close()
+	connection.commit()
+	connection.close()
+
+def make_primary_key(table_name, column_name):
+	statement = sql.SQL("ALTER TABLE {table_name} ADD PRIMARY KEY ({column_name})").format(
+			table_name = sql.Identifier(table_name),
+			column_name = sql.Identifier(column_name)
+		)
+	connection = get_connection()
+	cursor = connection.cursor()
+	cursor.execute(statement)
+	cursor.close()
+	connection.commit()
+	connection.close()

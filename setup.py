@@ -1,6 +1,7 @@
 from dotenv import dotenv_values
 
 from utils.database_utils import create_database
+
 from utils.BAG_create_table import main as create_BAG_table
 from utils.BAG_load import main as load_BAG
 
@@ -13,7 +14,6 @@ from utils.EP_Online_download import main as download_energy_labels_data
 from utils.EP_Online_load import load_energy_labels_data
 
 from utils.CBS_utils import load_cbs_table
-
 from utils.CBS_PC6_2019_energy_use_create_table import main as create_CBS_PC6_2019_energy_use_table
 from utils.CBS_PC6_2019_energy_use_load import main as load_CBS_PC6_2019_energy_use
 
