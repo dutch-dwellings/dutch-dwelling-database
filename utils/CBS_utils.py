@@ -27,7 +27,29 @@ def sanitize_cbs_title(title):
 	return "_".join(escaped_title.split())
 
 def get_data_type(prop):
+	'''
+	Gives the Datatype if it hasn't been
+	specified, which is the case for included
+	'tables' that are references by foreign key,
+	and that will be included by cbsodata.
+	Example: regions, neighbourhoods, time periods.
+	'''
+	# Note: finding the corresponding value
+	# is a bit of trial and error, but usually
+	# just a string. To get this: try
+	# 	> cbsodata.get_meta(table_id, prop_key)
+	# where prop_key is the key of the property
+	# that you are investigating.
+	# Then: the 'Title's in those values
+	# are what will be outputted, so match
+	# that type.
+
 	odata_type = prop['odata.type']
+
+	# TopicGroup won't be outputting any data,
+	# it is the description of the parent of
+	# different topics. CBS uses it for the hierarchy
+	# in filtering etc.
 	if odata_type == 'Cbs.OData.TopicGroup':
 		return None
 	elif odata_type == 'Cbs.OData.Dimension':
@@ -35,8 +57,12 @@ def get_data_type(prop):
 		return 'String'
 	elif odata_type == 'Cbs.OData.GeoDetail':
 		return 'String'
+	elif odata_type == 'Cbs.OData.GeoDimension':
+		return 'String'
 	elif odata_type == 'Cbs.OData.TimeDimension':
 		return 'String'
+	# Here is the real content, which has its own
+	# type already specified.
 	elif odata_type == 'Cbs.OData.Topic':
 		return prop['Datatype']
 	else:
@@ -240,3 +266,12 @@ def load_cbs_table(table_id, typed_data_set=False):
 	add_indices(table_name)
 
 	print('Done.\n')
+
+# TODO:
+# improve the naming of columns with clashing keys,
+# by prefixing the key with its parent group (TopicGroup).
+# This is more elegant and gives more descriptive columns.
+# Doing this for every key would give very long keys.
+# Note: there may be multiple layers above,
+# and it might be necessary to add all those titles before
+# having no clashing titles again.
