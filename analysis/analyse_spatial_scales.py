@@ -70,6 +70,7 @@ run_includes = {
 	'pand': False,
 	'buurt': False,
 	'postcode': False,
+	'postcode4': True,
 	'wijk': False,
 	'woonplaats': False,
 	'gemeente': False,
@@ -135,6 +136,11 @@ if run_includes['postcode']:
 	print("\nNumber of dwellings per postcode:")
 	dwelling_postcode_count_query = "SELECT postcode, COUNT(postcode) FROM bag GROUP BY postcode ORDER BY COUNT(postcode)"
 	get_ranges(dwelling_postcode_count_query)
+
+if run_includes['postcode4']:
+	print("\nNumber of dwellings per PC4:")
+	dwelling_pc4_count_query = "SELECT SUBSTRING(postcode, 1, 4), COUNT(SUBSTRING(postcode, 1, 4)) FROM bag WHERE postcode != '' GROUP BY SUBSTRING(postcode, 1, 4) ORDER BY COUNT(SUBSTRING(postcode, 1, 4))"
+	get_ranges(dwelling_pc4_count_query)
 
 
 if run_includes['wijk']:
