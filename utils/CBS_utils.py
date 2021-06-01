@@ -6,13 +6,13 @@ import re
 import sys
 
 import cbsodata
-from psycopg2.errors import UndefinedColumn
+from psycopg2.errors import UndefinedColumn, InvalidTableDefinition
 
 # Required for relative imports to also work when called
 # from project root directory.
 sys.path.append(os.path.dirname(__file__))
 from file_utils import data_dir
-from database_utils import create_table, get_connection, insert_dict, make_primary_key, add_index
+from database_utils import create_table, get_connection, insert_dict, make_primary_key, add_index, table_exists
 
 # CBS Open Data Services manual at:
 # https://www.cbs.nl/nl-nl/onze-diensten/open-data/hulpmiddel-voor-het-gebruik-van-odata-in-r-en-python
@@ -164,6 +164,33 @@ def sanitize_data(value):
 	else:
 		return value
 
+def add_indices(table_name):
+	'''
+	Add primary key for 'id' column (should always be present),
+	and add index on 'codering' column (if present), which contains
+	the Buurt- and Wijk-code. This will speed up access.
+	'''
+	print('Adding indexes...')
+
+	# TODO: check whether there is a cleaner option than
+	# try...exists-blocks.
+	try:
+		make_primary_key(table_name, sanitize_column_title('ID'))
+	except UndefinedColumn as e:
+		print("Could not add primary key on column 'id' since it does not exist")
+	# Happens when we already added a primary key,
+	# so we catch it and do nothing, makes it idempotent.
+	except InvalidTableDefinition as e:
+		print("Column 'id' already has a primary key")
+
+	# TODO: check whether there is no other use for the table
+	# 'codering', or whether this column also comes under a different
+	# name.
+	try:
+		add_index(table_name, 'codering')
+	except UndefinedColumn as e:
+		print("Could not add primary key on column 'codering' since it does not exist")
+
 def load_cbs_table(table_id, typed_data_set=False):
 	'''
 	Create a Postgres table with the required structure,
@@ -171,61 +198,45 @@ def load_cbs_table(table_id, typed_data_set=False):
 	and loads the data into the Postgres table.
 	'''
 	table_name = get_sanitized_cbs_table_title(table_id)
-
 	print(f'Loading CBS table {table_name}:')
-	print('Creating table...')
-	create_table_for_cbs_table(table_id)
-	print('Downloading data...')
-	if typed_data_set:
-		data = cbsodata.get_meta(table_id, 'TypedDataSet')
+
+	# Do not load data
+	if table_exists(table_name):
+		print('Table already exists, skipping downloading and loading.')
+
 	else:
-		data = cbsodata.get_data(table_id)
+		print('Creating table...')
+		create_table_for_cbs_table(table_id)
 
-	connection = get_connection()
-	cursor = connection.cursor()
+		print('Downloading data...')
+		if typed_data_set:
+			data = cbsodata.get_meta(table_id, 'TypedDataSet')
+		else:
+			data = cbsodata.get_data(table_id)
 
-	print('Inserting data...')
+		print('Inserting data...')
+		sanitize_key_dict = get_sanitize_key_dict(table_id)
+		connection = get_connection()
+		cursor = connection.cursor()
 
-	sanitize_key_dict = get_sanitize_key_dict(table_id)
-	for row in data:
-		# Before we can insert the data, we have to manipulate
-		# the key so it matches the columns in the created
-		# Postgres table, and we might need to trim the white space
-		# from the values.
-		row_dict = {
-			sanitize_key_dict[key]: sanitize_data(value)
-			for key, value in row.items()
-		}
-		# TODO: it's probably more efficient to just pass a list,
-		# I think the required keys are always there. And then we can
-		# more easily batch these INSERTs.
-		insert_dict(table_name, row_dict, cursor)
+		for row in data:
+			# Before we can insert the data, we have to manipulate
+			# the key so it matches the columns in the created
+			# Postgres table, and we might need to trim the white space
+			# from the values.
+			row_dict = {
+				sanitize_key_dict[key]: sanitize_data(value)
+				for key, value in row.items()
+			}
+			# TODO: it's probably more efficient to just pass a list,
+			# I think the required keys are always there. And then we can
+			# more easily batch these INSERTs.
+			insert_dict(table_name, row_dict, cursor)
 
-	cursor.close()
-	connection.commit()
-	connection.close()
+		cursor.close()
+		connection.commit()
+		connection.close()
 
-	print('Adding indexes...')
-
-	# TODO: check whether there is a cleaner option than
-	# try...exists-blocks.
-
-	# All (?) tables come with a column ID which we can make
-	# the primary key.
-	try:
-		make_primary_key(table_name, sanitize_column_title('ID'))
-	except UndefinedColumn as e:
-		print(e)
-
-	# The column 'codering' -- if it exists -- contains the
-	# Buurten en Wijken code. Adding an index to that column
-	# speeds up queries on that column, which are frequent.
-	# TODO: check whether there is no other use for the table
-	# 'codering', or whether this column also comes under a different
-	# name.
-	try:
-		add_index(table_name, 'codering')
-	except UndefinedColumn as e:
-		print(e)
+	add_indices(table_name)
 
 	print('Done.\n')

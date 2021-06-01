@@ -111,6 +111,7 @@ def main():
 
 	print('====== CBS Energy Use ======')
 	CBS_PC6()
+
 	print('Finished with the setup.')
 
 if __name__ == "__main__":
