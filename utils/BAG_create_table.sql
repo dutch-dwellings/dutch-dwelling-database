@@ -1,7 +1,7 @@
 -- use IF NOT EXISTS to make the statement idempotent
 CREATE TABLE IF NOT EXISTS bag
 (
-identificatie varchar,
+identificatie varchar PRIMARY KEY,
 geometry varchar,
 postcode varchar,
 adres varchar,
