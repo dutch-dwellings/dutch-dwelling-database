@@ -1,6 +1,6 @@
 from dotenv import dotenv_values
 
-from utils.database_utils import create_database
+from utils.database_utils import create_database, add_index
 
 from utils.BAG_create_table import main as create_BAG_table
 from utils.BAG_load import main as load_BAG
@@ -26,8 +26,12 @@ def bag():
 	load_BAG()
 	print('Done.\n')
 
+	print('Creating indexes...')
+	add_index('bag', 'postcode')
+	print('Done.\n')
+
 def CBS_PC6():
-	print('Creating table for BAG...')
+	print('Creating table for CBS PC6...')
 	create_CBS_PC6_2019_energy_use_table()
 	print('Done.\n')
 
