@@ -132,3 +132,10 @@ plt.show()
 # in the same building.
 #
 # Related: doing this not for dwellings in the same building, but dwellings neighbouring each other, or within a certain radius of each other, or within the same block.
+#
+# Note: this might no be so useful since a majority of dwellings is in it's own building (5 133 559), see:
+# SELECT pand_count, COUNT(pand_count) FROM (
+# 	SELECT pand_id, COUNT(pand_id) as pand_count FROM bag GROUP BY pand_id
+# ) s
+# GROUP BY pand_count
+# ORDER BY pand_count DESC
