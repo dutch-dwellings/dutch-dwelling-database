@@ -66,13 +66,13 @@ def cbs():
 	cbs_tables = [
 		# Energieverbruik particuliere woningen; woningtype, wijken en buurten, 2018
 		# https://opendata.cbs.nl/statline/portal.html?_la=nl&_catalog=CBS&tableId=84585NED&_theme=279
-		"84585NED",
+		("84585NED", False),
 		# Woningen; hoofdverwarmings; buurt 2019
 		# https://opendata.cbs.nl/statline/portal.html?_la=nl&_catalog=CBS&tableId=84983NED&_theme=126
-		load_cbs_table("84983NED")
+		("84983NED", True)
 	]
 	for table in cbs_tables:
-		load_cbs_table(table)
+		load_cbs_table(table[0], typed_data_set=table[1])
 
 def main():
 

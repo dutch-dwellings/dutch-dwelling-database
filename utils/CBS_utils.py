@@ -126,7 +126,7 @@ def sanitize_data(value):
 	else:
 		return value
 
-def load_cbs_table(table_id):
+def load_cbs_table(table_id, typed_data_set=False):
 	'''
 	Create a Postgres table with the required structure,
 	downloads the data from CBS,
@@ -138,7 +138,10 @@ def load_cbs_table(table_id):
 	create_table_for_cbs_table(table_id)
 	print('Created table.')
 	print('Downloading data...')
-	data = cbsodata.get_data(table_id)
+	if typed_data_set:
+		data = cbsodata.get_meta(table_id, 'TypedDataSet')
+	else:
+		data = cbsodata.get_data(table_id)
 	print('Done.')
 
 	connection = get_connection()
