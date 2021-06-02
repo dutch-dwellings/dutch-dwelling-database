@@ -66,17 +66,3 @@ To run all tests:
 ```
 python -m unittest -v
 ```
-
-## TODO
-
-- check if there energycertificates that have multiple BagPandIds (e.g. did I miss something when parsing the XML, or does every certicate have only one PandId?)
-- make an option to have setup.py run without any input (and possibly without output, the UNIX-way)
-- make setup.py run idempotently. Make sure that datasets won't be loaded into PostgreSQL multiple times.
-- take table names used in the creation of tables from .env
-- normalize the database tables, and improve naming
-- `utils/CBS_utils`:
-	- speed up insertion by bundling INSERT statements. Probably need to build some kind of 'insert buffer' for this.
-- `utils/EP_Online_download`:
-	- consider deleting the ZIP file after unzipping (but might be useful to prevent re-downloading)
-	- give a warning before unzipping the file that it can take quite a lot of disk space
-	- return filename to be used later on
