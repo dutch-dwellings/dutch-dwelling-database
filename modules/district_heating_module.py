@@ -40,7 +40,7 @@ class DistrictHeatingModule(BaseModule):
 		# in the RVO dataset) to between 0 and 1.
 		district_heating_p = self.RVO_data.get(buurt_id, 0) / 100
 		dwelling.attributes['district_heating_p'] = district_heating_p
-
+		
 	outputs = {
 		'district_heating_p': 'double precision'
 	}

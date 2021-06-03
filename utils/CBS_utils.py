@@ -54,6 +54,8 @@ def convert_to_postgres_data_type(data_type):
 		return 'bigint'
 	elif data_type == 'Integer':
 		return 'int'
+	elif data_type == 'Float':
+		return 'double precision'
 	else:
 		raise Exception(f'Unknown data_type {data_type}')
 

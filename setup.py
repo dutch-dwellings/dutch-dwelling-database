@@ -69,7 +69,10 @@ def cbs():
 		("84585NED", False),
 		# Woningen; hoofdverwarmings; buurt 2019
 		# https://opendata.cbs.nl/statline/portal.html?_la=nl&_catalog=CBS&tableId=84983NED&_theme=126
-		("84983NED", True)
+		("84983NED", True),
+		# Aardgaslevering vanuit het openbare net; woningkenmerken
+		# https://opendata.cbs.nl/#/CBS/nl/dataset/83878NED/table?ts=1622538878903
+		("83878NED", False)
 	]
 	for table in cbs_tables:
 		load_cbs_table(table[0], typed_data_set=table[1])
@@ -89,7 +92,7 @@ def main():
 	print('Creating database...')
 	create_database()
 	print('Done.\n')
-
+	
 	print('====== BAG ======')
 	bag()
 
@@ -104,6 +107,7 @@ def main():
 
 	print('====== CBS Energy Use ======')
 	CBS_PC6()
+
 	print('Finished with the setup.')
 
 if __name__ == "__main__":
