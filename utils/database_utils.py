@@ -134,3 +134,53 @@ def create_table(table_name, columns):
 	cursor.close()
 	connection.commit()
 	connection.close()
+
+def add_index(table_name, column_name):
+	'''
+	Create index on 'column_name' in
+	'table_name'. Check whether index already
+	exists to make it idempotent.
+	'''
+	index_name = f'{column_name}_idx'
+	statement = sql.SQL("CREATE INDEX IF NOT EXISTS {index_name} ON {table_name} ({column_name})").format(
+			index_name = sql.Identifier(index_name),
+			table_name = sql.Identifier(table_name),
+			column_name = sql.Identifier(column_name)
+		)
+	connection = get_connection()
+	cursor = connection.cursor()
+	cursor.execute(statement)
+	cursor.close()
+	connection.commit()
+	connection.close()
+
+def make_primary_key(table_name, column_name):
+	'''
+	Make 'column_name' the primary key for 'table_name'.
+	Note: will throw error psycopg2.errors.InvalidTableDefinition
+	if there is already a primary key defined for this table.
+	'''
+	statement = sql.SQL("ALTER TABLE {table_name} ADD PRIMARY KEY ({column_name})").format(
+			table_name = sql.Identifier(table_name),
+			column_name = sql.Identifier(column_name)
+		)
+	connection = get_connection()
+	cursor = connection.cursor()
+	cursor.execute(statement)
+	cursor.close()
+	connection.commit()
+	connection.close()
+
+def table_exists(table_name, dbname=env['POSTGRES_DBNAME']):
+	'''
+	Check whether a table with name 'table_name' exists.
+	Return True or False.
+	'''
+	# Adapted from https://stackoverflow.com/a/1874268/7770056
+	query = "SELECT exists(SELECT * FROM information_schema.tables WHERE table_catalog = %s AND table_name = %s)"
+
+	connection = get_connection()
+	cursor = connection.cursor()
+	cursor.execute(query, (dbname, table_name))
+	return cursor.fetchone()[0]
+	connection.close()

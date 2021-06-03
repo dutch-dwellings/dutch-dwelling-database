@@ -110,6 +110,12 @@ plt.show()
 
 
 # TODO:
+# check boundaries of energieprestatieindex:
+# SELECT pand_energieklasse, MIN(pand_energieprestatieindex), MAX(pand_energieprestatieindex) FROM energy_labels WHERE pand_energieklasse IS NOT NULL AND pand_energieprestatieindex IS NOT NULL GROUP BY pand_energieklasse;
+# it doesn't seem to be very useful, ranges are all over the place
+
+
+# TODO:
 # check internal correlation in a pand with multiple verblijfsobjecten.
 # Helpful concept:
 # Intraclass correlation: https://en.wikipedia.org/wiki/Intraclass_correlation
@@ -126,3 +132,10 @@ plt.show()
 # in the same building.
 #
 # Related: doing this not for dwellings in the same building, but dwellings neighbouring each other, or within a certain radius of each other, or within the same block.
+#
+# Note: this might no be so useful since a majority of dwellings is in it's own building (5 133 559), see:
+# SELECT pand_count, COUNT(pand_count) FROM (
+# 	SELECT pand_id, COUNT(pand_id) as pand_count FROM bag GROUP BY pand_id
+# ) s
+# GROUP BY pand_count
+# ORDER BY pand_count DESC

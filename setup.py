@@ -1,6 +1,7 @@
 from dotenv import dotenv_values
 
-from utils.database_utils import create_database
+from utils.database_utils import create_database, add_index
+
 from utils.BAG_create_table import main as create_BAG_table
 from utils.BAG_load import main as load_BAG
 
@@ -13,7 +14,6 @@ from utils.EP_Online_download import main as download_energy_labels_data
 from utils.EP_Online_load import load_energy_labels_data
 
 from utils.CBS_utils import load_cbs_table
-
 from utils.CBS_PC6_2019_energy_use_create_table import main as create_CBS_PC6_2019_energy_use_table
 from utils.CBS_PC6_2019_energy_use_load import main as load_CBS_PC6_2019_energy_use
 
@@ -26,8 +26,12 @@ def bag():
 	load_BAG()
 	print('Done.\n')
 
+	print('Creating indexes...')
+	add_index('bag', 'postcode')
+	print('Done.\n')
+
 def CBS_PC6():
-	print('Creating table for BAG...')
+	print('Creating table for CBS PC6...')
 	create_CBS_PC6_2019_energy_use_table()
 	print('Done.\n')
 
@@ -63,6 +67,10 @@ def energy_labels():
 	print('Done.\n')
 
 def cbs():
+	# Include a tuple with (table_id, typed_data_set),
+	# with the second value indicating whether you want the
+	# table to not 'expand' IDs (such as Buurten en Wijken, this
+	# can be helpful when you need the raw buurt_id)
 	cbs_tables = [
 		# Energieverbruik particuliere woningen; woningtype, wijken en buurten, 2018
 		# https://opendata.cbs.nl/statline/portal.html?_la=nl&_catalog=CBS&tableId=84585NED&_theme=279
@@ -70,9 +78,18 @@ def cbs():
 		# Woningen; hoofdverwarmings; buurt 2019
 		# https://opendata.cbs.nl/statline/portal.html?_la=nl&_catalog=CBS&tableId=84983NED&_theme=126
 		("84983NED", True),
+<<<<<<< HEAD
 		# Aardgaslevering vanuit het openbare net; woningkenmerken
 		# https://opendata.cbs.nl/#/CBS/nl/dataset/83878NED/table?ts=1622538878903
 		("83878NED", False)
+=======
+		# Kerncijfers wijken en buurten 2020
+		# https://opendata.cbs.nl/portal.html?_la=nl&_catalog=CBS&tableId=84799NED&_theme=235
+		("84799NED", False),
+		# Woonplaatsen in Nederland 2020
+		# https://www.cbs.nl/nl-nl/cijfers/detail/84734NED
+		("84734NED", False)
+>>>>>>> cf611b81481b14fd7bb51298bb84a15b418926fe
 	]
 	for table in cbs_tables:
 		load_cbs_table(table[0], typed_data_set=table[1])
