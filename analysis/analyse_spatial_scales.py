@@ -66,15 +66,15 @@ def get_ranges(query):
 
 
 run_includes = {
-	'dwelling': False,
-	'pand': False,
-	'buurt': False,
-	'postcode': False,
+	'dwelling': True,
+	'pand': True,
+	'buurt': True,
+	'postcode': True,
 	'postcode4': True,
-	'wijk': False,
-	'woonplaats': False,
-	'gemeente': False,
-	'country': False
+	'wijk': True,
+	'woonplaats': True,
+	'gemeente': True,
+	'country': True
 }
 
 
@@ -103,6 +103,10 @@ if run_includes['pand']:
 	# Note that this is an error: this is a large area of non-related buildings around Weert.
 	# The next number is ~900, and that is plausible since it is a large cluster of connected
 	# flats. (Europaplein Utrecht)
+
+	print("\nSurface area (m^2) per pand_id:")
+	pand_surface_query = "SELECT pand_id, SUM(oppervlakte) FROM bag GROUP BY pand_id ORDER BY SUM(oppervlakte)"
+	get_ranges(pand_surface_query)
 
 if run_includes['buurt']:
 	print('Dwellings without buurt_id:')
