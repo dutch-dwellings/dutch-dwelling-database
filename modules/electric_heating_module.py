@@ -13,11 +13,34 @@ class ElectricHeatingModule(BaseModule):
 
 	def __init__(self, connection):
 		super().__init__(connection)
+		self.load_installation_type_data()
 		self.load_elec_use_data()
 		self.load_cbs_kerncijfers_data()
 
+	def load_installation_type_data(self):
+        # create dictionary with buurt_id and percentage of gas boilers
+		cursor = self.connection.cursor()
+		query = '''
+		SELECT wijken_en_buurten, SUM(woningen) as woningen
+		FROM cbs_84983ned_woningen_hoofdverwarmings_buurt_2019
+		WHERE (wijken_en_buurten LIKE 'BU%')
+		AND (type_verwarmingsinstallatie LIKE 'A050117'
+		OR type_verwarmingsinstallatie LIKE 'A050118'
+		OR type_verwarmingsinstallatie LIKE 'A050119')
+		AND woningen IS NOT null
+		GROUP BY wijken_en_buurten;
+		'''
+		cursor.execute(query)
+		results = cursor.fetchall()
+		self.buurten_verwarming_data = {
+		buurt_id: percentage_elec_heating
+		for (buurt_id, percentage_elec_heating)
+		in results
+		}
+		cursor.close()
+
 	def load_elec_use_data(self):
-		# Create dictionary whcih relates the postal code of a dwelling and the electricity use of that postal code
+		# Create dictionary which relates the postal code of a dwelling and the electricity use of that postal code
 		cursor = self.connection.cursor()
 		query = "SELECT postcode6, gemiddelde_elektriciteitslevering_woningen FROM cbs_pc6_2019_energy_use WHERE gemiddelde_elektriciteitslevering_woningen IS NOT NULL;"
 		cursor.execute(query)
@@ -47,6 +70,10 @@ class ElectricHeatingModule(BaseModule):
 	def process(self, dwelling):
 		super().process(dwelling)
 
+		# Base probability of having electric heating
+		buurt_id = dwelling.attributes['buurt_id']
+		elec_heating_p_base = self.buurten_verwarming_data.get(buurt_id, 0) / 100
+
 		# Electricity use in postal code
 		postal_code = dwelling.attributes['postcode']
 		postal_code_elec_use = self.postcode_elec_use_data.get(postal_code, 0)
@@ -60,6 +87,7 @@ class ElectricHeatingModule(BaseModule):
 			household_size =1
 		household_size_string = str(household_size) + '%'
 
+		# Get electricity use per person for comparison
 		dwelling_elec_use_per_person = postal_code_elec_use / household_size
 
 		# Harmonize building type terminology between bag and CBS

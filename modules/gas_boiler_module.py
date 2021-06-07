@@ -214,6 +214,8 @@ class GasBoilerModule(BaseModule):
                 #print(dwelling_gas_use_percentile)
                 else:
                     pass
+
+        boiler_p = boiler_p_base
         dwelling_gas_use_percentile = round(dwelling_gas_use_percentile,2)
         dwelling.attributes['dwelling_gas_use_percentile'] = dwelling_gas_use_percentile
 
