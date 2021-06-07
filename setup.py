@@ -17,6 +17,12 @@ from utils.CBS_utils import load_cbs_table
 from utils.CBS_PC6_2019_energy_use_create_table import main as create_CBS_PC6_2019_energy_use_table
 from utils.CBS_PC6_2019_energy_use_load import main as load_CBS_PC6_2019_energy_use
 
+from utils.CBS_PC6_2017_kerncijfers_create_table import main as create_CBS_PC6_2017_kerncijfers_table
+from utils.CBS_PC6_2017_kerncijfers_load import main as load_CBS_PC6_2017_kerncijfers
+
+from utils.elec_consumption_hh_create_table import main as create_elec_consumption_hosueholds_table
+from utils.elec_consumption_hh_load import main as load_elec_consumption_households
+
 def bag():
 	print('Creating table for BAG...')
 	create_BAG_table()
@@ -37,6 +43,24 @@ def CBS_PC6():
 
 	print('Loading the data into Postgres...')
 	load_CBS_PC6_2019_energy_use()
+	print('Done.\n')
+
+def CBS_kerncijfers():
+	print('Creating table for CBS PC6...')
+	create_CBS_PC6_2017_kerncijfers_table()
+	print('Done.\n')
+
+	print('Loading the data into Postgres...')
+	load_CBS_PC6_2017_kerncijfers()
+	print('Done.\n')
+
+def elec_consumption_households():
+	print('Creating table for CBS PC6...')
+	create_elec_consumption_hosueholds_table()
+	print('Done.\n')
+
+	print('Loading the data into Postgres...')
+	load_elec_consumption_households()
 	print('Done.\n')
 
 def rvo_warmtenetten():
@@ -78,18 +102,18 @@ def cbs():
 		# Woningen; hoofdverwarmings; buurt 2019
 		# https://opendata.cbs.nl/statline/portal.html?_la=nl&_catalog=CBS&tableId=84983NED&_theme=126
 		("84983NED", True),
-<<<<<<< HEAD
-		# Aardgaslevering vanuit het openbare net; woningkenmerken
-		# https://opendata.cbs.nl/#/CBS/nl/dataset/83878NED/table?ts=1622538878903
-		("83878NED", False)
-=======
 		# Kerncijfers wijken en buurten 2020
 		# https://opendata.cbs.nl/portal.html?_la=nl&_catalog=CBS&tableId=84799NED&_theme=235
 		("84799NED", False),
 		# Woonplaatsen in Nederland 2020
 		# https://www.cbs.nl/nl-nl/cijfers/detail/84734NED
-		("84734NED", False)
->>>>>>> cf611b81481b14fd7bb51298bb84a15b418926fe
+		("84734NED", False),
+		# Elektriciteitslevering vanuit het openbare net; woningkenmerken, bewoners
+		# https://opendata.cbs.nl/#/CBS/nl/dataset/83882NED/table?ts=1622540319896
+		("83882NED", False),
+		# Aardgaslevering vanuit het openbare net; woningkenmerken
+		# https://opendata.cbs.nl/#/CBS/nl/dataset/83878NED/table
+		("83878NED", False)
 	]
 	for table in cbs_tables:
 		load_cbs_table(table[0], typed_data_set=table[1])
@@ -105,11 +129,11 @@ def main():
 		print('You need to create an .env file and populate it with the desired information. Check .env.template for an example.')
 		print('Aborting.')
 		return
-
+	'''
 	print('Creating database...')
 	create_database()
 	print('Done.\n')
-	
+
 	print('====== BAG ======')
 	bag()
 
@@ -124,7 +148,13 @@ def main():
 
 	print('====== CBS Energy Use ======')
 	CBS_PC6()
-
+	'''
+	print('====== CBS Demographics ======')
+	CBS_kerncijfers()
+	'''
+	print('====== Electricity consumption households ======')
+	elec_consumption_households()
+	'''
 	print('Finished with the setup.')
 
 if __name__ == "__main__":

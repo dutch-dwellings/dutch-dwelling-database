@@ -24,7 +24,7 @@ class GasBoilerModule(BaseModule):
 
         cursor = self.connection.cursor()
         # create dictionary with buurt_id and percentage of gas boilers
-        query = "SELECT wijken_en_buurten, woningen FROM  cbs_84983ned_woningen_hoofdverwarmings_buurt_2019 WHERE wijken_en_buurten LIKE 'BU%' AND type_verwarmingsinstallatie LIKE 'A050112';"
+        query = "SELECT wijken_en_buurten, woningen FROM  cbs_84983ned_woningen_hoofdverwarmings_buurt_2019 WHERE wijken_en_buurten LIKE 'BU%' AND type_verwarmingsinstallatie LIKE 'A050112'AND woningen IS NOT null;"
         # A050112 is the code for a gas boiler
         cursor.execute(query)
         results = cursor.fetchall()
@@ -38,7 +38,7 @@ class GasBoilerModule(BaseModule):
     def load_gas_use_data(self):
         # Create list of tuples with postal code, buurt_id, amount of dwellings in the postal code and the average gas use of the dwellings
         cursor = self.connection.cursor()
-        query = "SELECT DISTINCT postcode6, gemiddelde_aardgaslevering_woningen FROM cbs_pc6_2019_energy_use WHERE gemiddelde_aardgaslevering_woningen IS NOT null;"
+        query = "SELECT postcode6, gemiddelde_aardgaslevering_woningen FROM cbs_pc6_2019_energy_use WHERE gemiddelde_aardgaslevering_woningen IS NOT null;"
         cursor.execute(query)
         results = cursor.fetchall()
         self.postcode_gas_use_data = {
@@ -197,7 +197,7 @@ class GasBoilerModule(BaseModule):
                 interpolated_function = interp1d(benchmark_x_data, benchmark_y_data, fill_value='extrapolate')
             except:
                 print(benchmark_x_data)
-            gas_use_floor_space = postal_code_gas_use/floor_space
+            gas_use_floor_space = int(postal_code_gas_use)/floor_space
             # If there is not gas use, we cannot compare
             if gas_use_floor_space == 0:
             #    print('No gas use to compare')
