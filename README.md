@@ -22,7 +22,7 @@ psql (PostgreSQL) 12.6
 ### Install Python dependencies
 
 ```
-pip install python-dotenv psycopg2-binary requests
+pip install python-dotenv psycopg2-binary requests scipy
 ```
 
 ## Downloading and loading the datasets
@@ -59,7 +59,7 @@ Currently, this only uses a small sample of the BAG, for testing purposes.
 
 ## Tests
 
-There are unittests for the behaviour of the modules. They do not rely on the database, so you can run these without having PostgreSQL installed or the databases loaded.
+There are some unittests to test parts of the behaviour of the modules and the utils. They do not rely on the database, so you can run these without having PostgreSQL installed or the databases loaded.
 
 To run all tests:
 
