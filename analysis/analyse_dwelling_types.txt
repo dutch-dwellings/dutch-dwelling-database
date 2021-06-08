@@ -1,0 +1,72 @@
+Querying energy labels...
+[   ('Appartement', 'Hoekdak', 2485),
+    ('Appartement', 'Hoekdakvloer', 38),
+    ('Appartement', 'Hoekmidden', 4107),
+    ('Appartement', 'Hoekvloer', 1772),
+    ('Appartement', 'Tussendak', 4535),
+    ('Appartement', 'Tussendakvloer', 89),
+    ('Appartement', 'Tussenmidden', 9035),
+    ('Appartement', 'Tussenvloer', 3427),
+    ('Appartement', None, 106),
+    ('Flatwoning (overig)', 'Hoekdak', 117445),
+    ('Flatwoning (overig)', 'Hoekdakvloer', 6760),
+    ('Flatwoning (overig)', 'Hoekmidden', 228270),
+    ('Flatwoning (overig)', 'Hoekvloer', 93409),
+    ('Flatwoning (overig)', 'Tussendak', 203553),
+    ('Flatwoning (overig)', 'Tussendakvloer', 8277),
+    ('Flatwoning (overig)', 'Tussenmidden', 526165),
+    ('Flatwoning (overig)', 'Tussenvloer', 188716),
+    ('Galerijwoning', 'Hoekdak', 17809),
+    ('Galerijwoning', 'Hoekdakvloer', 49),
+    ('Galerijwoning', 'Hoekmidden', 35941),
+    ('Galerijwoning', 'Hoekvloer', 13905),
+    ('Galerijwoning', 'Tussendak', 36230),
+    ('Galerijwoning', 'Tussendakvloer', 80),
+    ('Galerijwoning', 'Tussenmidden', 103098),
+    ('Galerijwoning', 'Tussenvloer', 27834),
+    ('Logieswoning', None, 428),
+    ('Maisonnette', 'Hoekdak', 34510),
+    ('Maisonnette', 'Hoekdakvloer', 3073),
+    ('Maisonnette', 'Hoekmidden', 7926),
+    ('Maisonnette', 'Hoekvloer', 8984),
+    ('Maisonnette', 'Tussendak', 85606),
+    ('Maisonnette', 'Tussendakvloer', 5883),
+    ('Maisonnette', 'Tussenmidden', 27132),
+    ('Maisonnette', 'Tussenvloer', 32185),
+    ('Portiekwoning', 'Hoekdak', 13962),
+    ('Portiekwoning', 'Hoekmidden', 21493),
+    ('Portiekwoning', 'Hoekvloer', 13332),
+    ('Portiekwoning', 'Tussendak', 28797),
+    ('Portiekwoning', 'Tussenmidden', 64116),
+    ('Portiekwoning', 'Tussenvloer', 27000),
+    ('Rijwoning hoek', None, 6683),
+    ('Rijwoning tussen', None, 1170614),
+    ('Twee-onder-een-kap / rijwoning hoek', 'Rijwoning', 553304),
+    ('Twee-onder-een-kap / rijwoning hoek', 'Twee-onder-een-kap', 410483),
+    ('Twee-onder-een-kap / rijwoning hoek', None, 9),
+    ('Twee-onder-één-kap', None, 4019),
+    ('Vrijstaande woning', None, 425217),
+    ('Woonboot bestaande ligplaats', None, 36),
+    ('Woonboot nieuwe ligplaats', None, 10),
+    ('Woongebouw met niet-zelfstandige woonruimte', None, 2303),
+    ('Woonwagen', None, 6)]
+
+Querying BAG...
+[   ('', 17158),
+    ('hoekwoning', 1022922),
+    ('meergezinspand_hoog', 1350757),
+    ('meergezinspand_laag_midden', 1450771),
+    ('tussenwoning', 2377345),
+    ('twee_onder_1_kap', 702861),
+    ('vrijstaand', 1029916)]
+
+Querying WoON...
+eengezins vrijstaande woning: 1040211
+eengezins rijwoning: 1983919
+meergezins appartement met 1 woonlaag: 2091254
+eengezins 2 onder 1 kap: 883233
+meergezins appartement met meerdere woonlagen: 402619
+eengezins rijwoning hoek: 1069782
+
+Quering Energy Labels - BAG matrix
+Writing to file...
