@@ -1,6 +1,7 @@
 import os
 
-from psycopg2 import  sql
+from psycopg2 import sql
+from psycopg2.errors import UndefinedFile
 
 from database_utils import create_table, get_connection
 from file_utils import data_dir
@@ -14,7 +15,15 @@ load_statement = sql.SQL("COPY {table_name} FROM %s WITH DELIMITER AS ';' NULL A
 def sanitize_column_name(column_name):
 	# TODO: anything else? Maybe make this a general
 	# database util.
-	return column_name.replace('.', '_')
+	# First row start with a 'FEFF' non breaking zero-width space
+	# (WHY?!)
+	return column_name.replace('\ufeff', '').replace('.', '_')
+
+def alter_column_to_number(cursor, column_name):
+	alter_statement = sql.SQL("ALTER TABLE {table_name} ALTER COLUMN {column_name} TYPE double precision USING replace({column_name}, ',','.')::double precision").format(
+		table_name=sql.Identifier(TABLE_NAME),
+		column_name=sql.Identifier(column_name))
+	cursor.execute(alter_statement)
 
 def main():
 	try:
@@ -37,13 +46,20 @@ def main():
 	try:
 		print("Loading WoON survey data...")
 		cursor.execute(statement, (path,))
-		print("Committing...")
-		cursor.close()
-		connection.commit()
-		connection.close()
-		print("Done.")
+
 	except UndefinedFile:
 		print(f"Error: WoON survey data file not found.\nExpected file at {path}.")
+
+	columns_to_alter = ['ew_huis', 'ew_pers']
+	for column in columns_to_alter:
+		alter_column_to_number(cursor, column)
+
+	print("Committing...")
+	cursor.close()
+	connection.commit()
+	connection.close()
+	print("Done.")
+
 
 if __name__ == '__main__':
 	main()

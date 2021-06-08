@@ -20,8 +20,10 @@ from utils.CBS_PC6_2019_energy_use_load import main as load_CBS_PC6_2019_energy_
 from utils.CBS_PC6_2017_kerncijfers_create_table import main as create_CBS_PC6_2017_kerncijfers_table
 from utils.CBS_PC6_2017_kerncijfers_load import main as load_CBS_PC6_2017_kerncijfers
 
-from utils.elec_consumption_hh_create_table import main as create_elec_consumption_hosueholds_table
+from utils.elec_consumption_hh_create_table import main as create_elec_consumption_households_table
 from utils.elec_consumption_hh_load import main as load_elec_consumption_households
+
+from utils.WoON_load import main as load_WoON
 
 def bag():
 	print('Creating table for BAG...')
@@ -56,7 +58,7 @@ def CBS_kerncijfers():
 
 def elec_consumption_households():
 	print('Creating table for CBS PC6...')
-	create_elec_consumption_hosueholds_table()
+	create_elec_consumption_households_table()
 	print('Done.\n')
 
 	print('Loading the data into Postgres...')
@@ -129,7 +131,7 @@ def main():
 		print('You need to create an .env file and populate it with the desired information. Check .env.template for an example.')
 		print('Aborting.')
 		return
-	'''
+
 	print('Creating database...')
 	create_database()
 	print('Done.\n')
@@ -148,13 +150,16 @@ def main():
 
 	print('====== CBS Energy Use ======')
 	CBS_PC6()
-	'''
+
 	print('====== CBS Demographics ======')
 	CBS_kerncijfers()
-	'''
+
 	print('====== Electricity consumption households ======')
 	elec_consumption_households()
-	'''
+
+	print('====== WoON === ===')
+	load_WoON()
+
 	print('Finished with the setup.')
 
 if __name__ == "__main__":
