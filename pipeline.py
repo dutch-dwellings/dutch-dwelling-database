@@ -1,3 +1,4 @@
+import pprint
 import time
 
 from psycopg2 import sql
@@ -18,6 +19,13 @@ class Dwelling:
 		# instead of a class variable.
 		self.outputs = self.default_outputs.copy()
 		self.sampling_outputs = {}
+
+	def __str__(self):
+		pp = pprint.PrettyPrinter(indent=4)
+		return f'Dwelling {self.attributes["identificatie"]}:\nattributes:\n{pp.pformat(self.attributes)}\noutputs:\n{pp.pformat(self.outputs)}'
+
+	def __repr__(self):
+		return f'Dwelling(attributes={repr(self.attributes)}, connection={repr(self.connection)})'
 
 	def get_filtered_attributes(self):
 		'''
