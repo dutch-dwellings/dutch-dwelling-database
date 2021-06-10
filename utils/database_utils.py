@@ -189,5 +189,5 @@ def table_exists(table_name, dbname=env['POSTGRES_DBNAME']):
 	connection = get_connection()
 	cursor = connection.cursor()
 	cursor.execute(query, (dbname, table_name))
-	return cursor.fetchone()[0]
+	result = cursor.fetchone()[0]
 	connection.close()
