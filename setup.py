@@ -1,5 +1,3 @@
-from dotenv import dotenv_values
-
 from utils.database_utils import create_database, add_index
 
 from utils.BAG_create_table import main as create_BAG_table
@@ -122,15 +120,7 @@ def cbs():
 
 def main():
 
-	print('Running setup, this will take time + internet + space...\n')
-
-	env = dotenv_values(".env")
-	if len(env) > 0:
-		print('CHECK: .env created.\n')
-	else:
-		print('You need to create an .env file and populate it with the desired information. Check .env.template for an example.')
-		print('Aborting.')
-		return
+	print('Starting setup, this will take time + internet + space.\n')
 
 	print('Creating database...')
 	create_database()

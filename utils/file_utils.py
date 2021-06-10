@@ -1,6 +1,7 @@
 import os
 from zipfile import ZipFile
 
+from dotenv import dotenv_values
 import requests
 
 
@@ -80,6 +81,13 @@ def prefix_path(path, prefix):
 		return os.path.join(dirname, f'{prefix}{filename}')
 	else:
 		return path
+
+def get_env():
+	env_path = os.path.join(project_dir, '.env')
+	if os.path.exists(env_path):
+		return dotenv_values(env_path)
+	else:
+		raise FileNotFoundError(f'Expected .env file at {env_path} but file does not exist. Please populate it by taking .env.bak as an example.')
 
 project_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 data_dir = os.path.join(project_dir, 'data')

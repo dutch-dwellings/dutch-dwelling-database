@@ -1,10 +1,17 @@
-from dotenv import dotenv_values
+import os
+import sys
+
 import psycopg2
 from psycopg2 import sql
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT, AsIs
 from psycopg2.extras import DictCursor
 
-env = dotenv_values(".env")
+# Required for relative imports to also work when called
+# from project root directory.
+sys.path.append(os.path.dirname(__file__))
+from utils.file_utils import get_env
+
+env = get_env()
 
 def get_connection(dbname=env['POSTGRES_DBNAME']):
 	return psycopg2.connect(
