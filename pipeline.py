@@ -7,7 +7,7 @@ from utils.create_results_table import main as create_results_table
 from modules.district_heating_module import DistrictHeatingModule
 from modules.gas_boiler_module import GasBoilerModule
 from modules.electric_heating_module import ElectricHeatingModule
-
+from modules.sampling_module import SamplingModule
 
 class Dwelling:
 
@@ -17,13 +17,14 @@ class Dwelling:
 		# We copy the list so we get an instance variable
 		# instead of a class variable.
 		self.outputs = self.default_outputs.copy()
+		self.sampling_outputs = {}
 
 	def get_filtered_attributes(self):
 		'''
 		Get the attributes and their values
 		that need to be output to the database.
 		'''
-		return {key: val for (key, val) in self.attributes.items() if key in self.outputs}
+		return {key: val for (key, val) in self.attributes.items() if key in self.outputs or key in self.sampling_outputs.keys()}
 
 	def save(self):
 		'''
@@ -73,6 +74,7 @@ def main():
 	district_heating_module = DistrictHeatingModule(connection)
 	gas_boiler_module = GasBoilerModule(connection)
 	electric_heating_module = ElectricHeatingModule(connection)
+	sampling_module = SamplingModule(connection)
 
 	print("Processing entries...")
 	for entry in sample:
@@ -80,12 +82,13 @@ def main():
 		district_heating_module.process(dwelling)
 		gas_boiler_module.process(dwelling)
 		electric_heating_module.process(dwelling)
+		sampling_module.process(dwelling)
 		dwelling.save()
 		i += 1
 		if i % 100 == 0:
-			print(f'processed dwelling: {i}', end='\r')
+			print(f'   processed dwelling: {i}', end='\r')
 
-	print("Commiting and closing...")
+	print("\nCommiting and closing...")
 	connection.commit()
 	connection.close()
 
