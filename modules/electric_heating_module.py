@@ -18,7 +18,7 @@ class ElectricHeatingModule(BaseModule):
 		self.load_cbs_kerncijfers_data()
 
 	def load_installation_type_data(self):
-        # create dictionary with buurt_id and percentage of gas boilers
+		# create dictionary with buurt_id and percentage of gas boilers
 		cursor = self.connection.cursor()
 		query = '''
 		SELECT wijken_en_buurten, SUM(woningen) as woningen
