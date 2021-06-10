@@ -220,5 +220,7 @@ class GasBoilerModule(BaseModule):
 		dwelling.attributes['dwelling_gas_use_percentile'] = dwelling_gas_use_percentile
 
 	outputs = {
-	'dwelling_gas_use_percentile': 'double precision'
+		'dwelling_gas_use_percentile': {
+			'type': 'double precision'
+		}
 	}

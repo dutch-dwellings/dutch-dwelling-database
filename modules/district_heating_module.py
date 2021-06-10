@@ -40,9 +40,10 @@ class DistrictHeatingModule(BaseModule):
 		district_heating_p = self.RVO_data.get(buurt_id, 0) / 100
 		dwelling.attributes['district_heating_p'] = district_heating_p
 
-	sampling_outputs = {
+	outputs = {
 		'district_heating': {
-			'distribution': 'district_heating_p',
-			'output_type': 'boolean'
+			'type': 'boolean',
+			'sampling': True,
+			'distribution': 'district_heating_p'
 		}
 	}

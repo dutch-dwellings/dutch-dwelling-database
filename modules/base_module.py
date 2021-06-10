@@ -17,27 +17,22 @@ class BaseModule:
 		Make sure the required columns for the data outputs
 		exist.
 		'''
-		for column_name, data_type in self.outputs.items():
+		for output_name, options in self.outputs.items():
 			add_column(
 				table_name='results',
-				column_name=column_name,
-				data_type=data_type,
+				column_name=output_name,
+				data_type=options['type'],
 				connection=self.connection
 			)
 
-		for column_name, options in self.sampling_outputs.items():
-			add_column(
-				table_name='results',
-				column_name=column_name,
-				data_type=options['output_type'],
-				connection=self.connection)
-
 	def process(self, dwelling):
-		dwelling.outputs.extend(self.outputs.keys())
-		dwelling.sampling_outputs.update(self.sampling_outputs)
+		dwelling.outputs.update(self.outputs)
 
 	# Outputs need to be a dict, where:
 	# - the keys are valid PostgreSQL identifiers
-	# - the values are valid PostgreSQL data types
+	# - the values are dicts:
+	#	- type (mandatory): valid PostgreSQL data type
+	#	- sampling: boolean (optional)
+	#	- distribution: attribute name of distribution to sample from
+	#		(mandatory when sampling=True)
 	outputs = {}
-	sampling_outputs = {}

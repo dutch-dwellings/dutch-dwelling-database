@@ -10,15 +10,16 @@ from base_module import BaseModule
 class SamplingModule(BaseModule):
 
 	def process(self, dwelling):
-		for name, options in dwelling.sampling_outputs.items():
-			distribution_value = dwelling.attributes[options['distribution']]
-			dwelling.attributes[name] = self.sample(distribution_value, options['output_type'])
+		for name, options in dwelling.outputs.items():
+			if options.get('sampling', False) == True:
+				distribution_value = dwelling.attributes[options['distribution']]
+				dwelling.attributes[name] = self.sample(distribution_value, options['type'])
 
 	def sample(self, value, output_type):
 		if output_type == 'boolean':
 			return self.sample_boolean(value)
 		else:
-			raise NotImplementedError(f'Have not implemented a sample method for output_type {output_type}')
+			raise NotImplementedError(f'SamplingModule has no sample method for output_type {output_type} yet')
 
 	def sample_boolean(self, value):
 		if type(value) != float:

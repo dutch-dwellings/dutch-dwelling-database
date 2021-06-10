@@ -27,12 +27,12 @@ class Dwelling:
 	def __repr__(self):
 		return f'Dwelling(attributes={repr(self.attributes)}, connection={repr(self.connection)})'
 
-	def get_filtered_attributes(self):
+	def get_output_attributes(self):
 		'''
 		Get the attributes and their values
 		that need to be output to the database.
 		'''
-		return {key: val for (key, val) in self.attributes.items() if key in self.outputs or key in self.sampling_outputs.keys()}
+		return {key: val for (key, val) in self.attributes.items() if key in self.outputs.keys()}
 
 	def save(self):
 		'''
@@ -41,7 +41,7 @@ class Dwelling:
 		'''
 		cursor = self.connection.cursor()
 
-		row_dict = self.get_filtered_attributes()
+		row_dict = self.get_output_attributes()
 		insert_dict(
 			table_name='results',
 			row_dict = row_dict,
@@ -61,7 +61,7 @@ class Dwelling:
 	#
 	# As of now, we can only assume that BAG-data is always present,
 	# so only use BAG column_names here.
-	default_outputs = ['identificatie']
+	default_outputs = {'identificatie': {}}
 
 
 def main():
