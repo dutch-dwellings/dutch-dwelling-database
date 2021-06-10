@@ -61,7 +61,10 @@ def main():
 	i = 0
 
 	connection = get_connection()
+
+	# Also deletes existing `results' table
 	create_results_table()
+
 	sample = get_bag_sample(connection, n=1000)
 	district_heating_module = DistrictHeatingModule(connection)
 	gas_boiler_module = GasBoilerModule(connection)
