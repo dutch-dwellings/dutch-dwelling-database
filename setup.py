@@ -26,69 +26,54 @@ from utils.WoON_load import main as load_WoON
 def bag():
 	print('Creating table for BAG...')
 	create_BAG_table()
-	print('Done.\n')
 
 	print('Loading the data into Postgres...')
 	load_BAG()
-	print('Done.\n')
 
 	print('Creating indexes...')
 	add_index('bag', 'postcode')
-	print('Done.\n')
 
 def CBS_PC6():
 	print('Creating table for CBS PC6...')
 	create_CBS_PC6_2019_energy_use_table()
-	print('Done.\n')
 
 	print('Loading the data into Postgres...')
 	load_CBS_PC6_2019_energy_use()
-	print('Done.\n')
 
 def CBS_kerncijfers():
 	print('Creating table for CBS PC6...')
 	create_CBS_PC6_2017_kerncijfers_table()
-	print('Done.\n')
 
 	print('Loading the data into Postgres...')
 	load_CBS_PC6_2017_kerncijfers()
-	print('Done.\n')
 
 def elec_consumption_households():
 	print('Creating table for CBS PC6...')
 	create_elec_consumption_households_table()
-	print('Done.\n')
 
 	print('Loading the data into Postgres...')
 	load_elec_consumption_households()
-	print('Done.\n')
 
 def rvo_warmtenetten():
 	print('Creating table for RVO Warmtenetten...')
 	create_rvo_warmtenetten_table()
-	print('Done.\n')
 
 	print('Downloading the RVO Warmtenetten...')
 	download_rvo_warmtenetten_data()
-	print('Done.\n')
 
 	print('Loading the data into Postgres...')
 	load_rvo_warmtenetten()
-	print('Done.\n')
 
 def energy_labels():
 
 	print('Creating table for energy labels...')
 	create_energy_labels_table()
-	print('Done.\n')
 
 	print('Downloading the EP-Online database...')
 	download_energy_labels_data()
-	print('Done.\n')
 
 	print('Loading the data into Postgres...')
 	load_energy_labels_data()
-	print('Done.\n')
 
 def cbs():
 	# Include a tuple with (table_id, typed_data_set),
@@ -124,33 +109,32 @@ def main():
 
 	print('Creating database...')
 	create_database()
-	print('Done.\n')
 
-	print('====== BAG ======')
+	print('\n====== BAG ======')
 	bag()
 
-	print('====== RVO Warmtenetten ======')
+	print('\n====== RVO Warmtenetten ======')
 	rvo_warmtenetten()
 
-	print('====== Energy labels (EP-Online) ======')
+	print('\n====== Energy labels (EP-Online) ======')
 	energy_labels()
 
-	print('====== CBS ======')
+	print('\n====== CBS ======')
 	cbs()
 
-	print('====== CBS Energy Use ======')
+	print('\n====== CBS Energy Use ======')
 	CBS_PC6()
 
-	print('====== CBS Demographics ======')
+	print('\n====== CBS Demographics ======')
 	CBS_kerncijfers()
 
-	print('====== Electricity consumption households ======')
+	print('\n====== Electricity consumption households ======')
 	elec_consumption_households()
 
-	print('====== WoON === ===')
+	print('\n====== WoON === ===')
 	load_WoON()
 
-	print('Finished with the setup.')
+	print('\nFinished with the setup.')
 
 if __name__ == "__main__":
 	main()
