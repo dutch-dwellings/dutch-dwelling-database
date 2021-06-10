@@ -63,13 +63,18 @@ def main():
 	connection = get_connection()
 
 	# Also deletes existing `results' table
+	print("Creating table 'results'...")
 	create_results_table()
 
+	print("Getting a BAG sample...")
 	sample = get_bag_sample(connection, n=1000)
+
+	print("Initiating modules...")
 	district_heating_module = DistrictHeatingModule(connection)
 	gas_boiler_module = GasBoilerModule(connection)
 	electric_heating_module = ElectricHeatingModule(connection)
 
+	print("Processing entries...")
 	for entry in sample:
 		dwelling = Dwelling(dict(entry), connection)
 		district_heating_module.process(dwelling)
@@ -77,7 +82,10 @@ def main():
 		electric_heating_module.process(dwelling)
 		dwelling.save()
 		i += 1
+		if i % 100 == 0:
+			print(f'processed dwelling: {i}', end='\r')
 
+	print("Commiting and closing...")
 	connection.commit()
 	connection.close()
 
