@@ -8,7 +8,7 @@ from psycopg2 import sql
 # Required for relative imports to also work when called
 # from project root directory.
 sys.path.append(os.path.dirname(__file__))
-from database_utils import get_connection
+from database_utils import get_connection, table_empty
 from file_utils import data_dir
 
 
@@ -23,10 +23,13 @@ load_statement = sql.SQL("COPY {dbname} FROM %s WITH DELIMITER AS ';' NULL AS ''
 
 def main():
 
+	if not table_empty(TABLE_NAME):
+		print(f"Table '{TABLE_NAME} already populated, skipping loading of new records")
+		return
+
 	path_in = os.path.join(data_dir, FILE_NAME_IN)
 	path_out = os.path.join(data_dir, FILE_NAME_OUT)
 	statement = load_statement.format(dbname=sql.Identifier(TABLE_NAME))
-
 
 	with open(path_in) as infile:
 		reader = csv.DictReader(infile, delimiter = ';')
@@ -40,7 +43,6 @@ def main():
 				row.update({fieldname: value.strip() for (fieldname, value) in row.items()})
 				row.update({fieldname: value.replace('.','') for (fieldname, value) in row.items()})
 				writer.writerow(row)
-
 
 	connection = get_connection()
 	cursor = connection.cursor()

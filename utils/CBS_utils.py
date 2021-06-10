@@ -6,7 +6,7 @@ import re
 import sys
 
 import cbsodata
-from psycopg2.errors import UndefinedColumn, InvalidTableDefinition
+from psycopg2.errors import UndefinedColumn
 
 # Required for relative imports to also work when called
 # from project root directory.
@@ -206,10 +206,7 @@ def add_indices(table_name):
 		make_primary_key(table_name, sanitize_column_title('ID'))
 	except UndefinedColumn as e:
 		print("Could not add primary key on column 'id' since it does not exist")
-	# Happens when we already added a primary key,
-	# so we catch it and do nothing, makes it idempotent.
-	except InvalidTableDefinition as e:
-		print("Column 'id' already has a primary key")
+
 
 	# TODO: check whether there is no other use for the table
 	# 'codering', or whether this column also comes under a different
@@ -222,11 +219,11 @@ def add_indices(table_name):
 def load_cbs_table(table_id, typed_data_set=False):
 	'''
 	Create a Postgres table with the required structure,
-	downloads the data from CBS,
-	and loads the data into the Postgres table.
+	downloads the data from CBS, and loads the data into
+	the Postgres table.
 	'''
 	table_name = get_sanitized_cbs_table_title(table_id)
-	print(f'Loading CBS table {table_name}:')
+	print(f'Loading CBS table {table_name}')
 
 	# Do not load data
 	if table_exists(table_name):
@@ -266,8 +263,7 @@ def load_cbs_table(table_id, typed_data_set=False):
 		connection.close()
 
 	add_indices(table_name)
-
-	print('Done.\n')
+	print()
 
 # TODO:
 # improve the naming of columns with clashing keys,

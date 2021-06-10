@@ -7,7 +7,7 @@ from psycopg2 import sql
 # Required for relative imports to also work when called
 # from project root directory.
 sys.path.append(os.path.dirname(__file__))
-from database_utils import get_connection
+from database_utils import get_connection, table_empty
 from file_utils import data_dir
 
 FILE_NAME = 'RVO_Warmtenetten_Download-WarmteNetten-CSV'
@@ -16,6 +16,11 @@ TABLE_NAME = 'rvo_warmtenetten'
 load_statement = sql.SQL("COPY {dbname} FROM %s WITH DELIMITER AS ',' CSV HEADER;")
 
 def main():
+
+	if not table_empty(TABLE_NAME):
+		print(f"Table '{TABLE_NAME}' already populated, skipping loading of new records")
+		return
+
 	path = os.path.join(data_dir, FILE_NAME)
 	statement = load_statement.format(dbname=sql.Identifier(TABLE_NAME))
 

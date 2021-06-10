@@ -13,7 +13,7 @@ from file_utils import prefix_path, data_dir, save_to_file, unzip
 env = dotenv_values(".env")
 
 # RVO:
-# - Resonse file documentation: https://rvo-nl.github.io/EnergieWiki/
+# Response file documentation: https://rvo-nl.github.io/EnergieWiki/
 RVO_WARMTENETTEN_BASE_URL = "https://rvo.b3p.nl/geoserver/WarmteAtlas/wfs?REQUEST=getFeature"
 RVO_WARMTENETTEN_TYPENAME = "&typeName=WarmteNetten"
 RVO_WARMTENETTEN_OUTPUTFORMAT = "&outputformat=CSV"

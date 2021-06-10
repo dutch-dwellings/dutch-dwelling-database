@@ -25,12 +25,12 @@ def main():
 	try:
 		print("Loading household consumption records")
 		cursor.execute(statement, (path,))
-		cursor.close()
-		connection.commit()
-		connection.close()
-		print("Done.")
 	except UndefinedFile:
 		print(f"\nError: household consumption data file not found.\nExpected file at {path}.")
+
+	cursor.close()
+	connection.commit()
+	connection.close()
 
 if __name__ == "__main__":
 	main()

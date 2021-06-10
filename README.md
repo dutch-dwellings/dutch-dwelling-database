@@ -46,8 +46,6 @@ To download the rest of the data sets and load all of them, run the setup tool:
 python setup.py
 ```
 
-You will have to confirm a time/space/internet-consuming activity once in a while by typing `y` and then pressing Enter.
-
 ### CBS datasets
 
 To manually download extra CBS-datasets for evaluation / exploration, get their table ID (e.g. from the [CBS Open Data Portal](https://opendata.cbs.nl/portal.html), find the 'Identifier' that is usually of the form '12345NED') and then:

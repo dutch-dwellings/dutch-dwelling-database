@@ -1,4 +1,4 @@
-from utils.database_utils import create_database, add_index
+from utils.database_utils import create_database, add_index, make_primary_key
 
 from utils.BAG_create_table import main as create_BAG_table
 from utils.BAG_load import main as load_BAG
@@ -9,7 +9,7 @@ from utils.RVO_Warmtenetten_load import main as load_rvo_warmtenetten
 
 from utils.EP_Online_create_table import main as create_energy_labels_table
 from utils.EP_Online_download import main as download_energy_labels_data
-from utils.EP_Online_load import load_energy_labels_data
+from utils.EP_Online_load import main as load_energy_labels_data
 
 from utils.CBS_utils import load_cbs_table
 from utils.CBS_PC6_2019_energy_use_create_table import main as create_CBS_PC6_2019_energy_use_table
@@ -31,7 +31,9 @@ def bag():
 	load_BAG()
 
 	print('Creating indexes...')
+	make_primary_key('bag', 'identificatie')
 	add_index('bag', 'postcode')
+	add_index('bag', 'pand_id')
 
 def CBS_PC6():
 	print('Creating table for CBS PC6...')
@@ -64,6 +66,9 @@ def rvo_warmtenetten():
 	print('Loading the data into Postgres...')
 	load_rvo_warmtenetten()
 
+	print('Creating indexes...')
+	add_index('rvo_warmtenetten', 'buurt_code')
+
 def energy_labels():
 
 	print('Creating table for energy labels...')
@@ -74,6 +79,10 @@ def energy_labels():
 
 	print('Loading the data into Postgres...')
 	load_energy_labels_data()
+
+	print('Creating indexes...')
+	add_index('energy_labels', 'pand_bagverblijfsobjectid')
+	add_index('energy_labels', 'pand_bagpandid')
 
 def cbs():
 	# Include a tuple with (table_id, typed_data_set),
@@ -131,7 +140,7 @@ def main():
 	print('\n====== Electricity consumption households ======')
 	elec_consumption_households()
 
-	print('\n====== WoON === ===')
+	print('\n====== WoON ======')
 	load_WoON()
 
 	print('\nFinished with the setup.')

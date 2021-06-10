@@ -5,6 +5,7 @@ import psycopg2
 from psycopg2 import sql
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT, AsIs
 from psycopg2.extras import DictCursor
+from psycopg2.errors import InvalidTableDefinition
 
 # Required for relative imports to also work when called
 # from project root directory.
@@ -163,9 +164,8 @@ def add_index(table_name, column_name):
 
 def make_primary_key(table_name, column_name):
 	'''
-	Make 'column_name' the primary key for 'table_name'.
-	Note: will throw error psycopg2.errors.InvalidTableDefinition
-	if there is already a primary key defined for this table.
+	Make 'column_name' the primary key for 'table_name',
+	if no primary key has yet been set.
 	'''
 	statement = sql.SQL("ALTER TABLE {table_name} ADD PRIMARY KEY ({column_name})").format(
 			table_name = sql.Identifier(table_name),
@@ -173,7 +173,14 @@ def make_primary_key(table_name, column_name):
 		)
 	connection = get_connection()
 	cursor = connection.cursor()
-	cursor.execute(statement)
+
+	try:
+		cursor.execute(statement)
+	# Happens when we already added a primary key,
+	# so we catch it and do nothing, makes it idempotent.
+	except InvalidTableDefinition as e:
+		print(f"Table '{table_name}' already has primary key on column '{column_name}'")
+
 	cursor.close()
 	connection.commit()
 	connection.close()
@@ -191,3 +198,20 @@ def table_exists(table_name, dbname=env['POSTGRES_DBNAME']):
 	cursor.execute(query, (dbname, table_name))
 	result = cursor.fetchone()[0]
 	connection.close()
+	return result
+
+def table_empty(table_name):
+	'''
+	Check whether the table with name 'table_name' is empty.
+	Assumes the table exists. Return True or False.
+	'''
+	query = sql.SQL("SELECT COUNT(*) FROM (SELECT * FROM {table_name} LIMIT 1) sq").format(
+		table_name=sql.Identifier(table_name))
+	connection = get_connection()
+	cursor = connection.cursor()
+	cursor.execute(query)
+	result = cursor.fetchone()[0]
+	if result == 1:
+		return False
+	else:
+		return True

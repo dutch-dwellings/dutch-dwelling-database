@@ -3,7 +3,7 @@ import os
 from psycopg2 import sql
 from psycopg2.errors import UndefinedFile
 
-from database_utils import create_table, get_connection
+from database_utils import create_table, get_connection, table_empty
 from file_utils import data_dir
 
 FILENAME = 'WoON2018energie_e_1.0.csv'
@@ -39,6 +39,10 @@ def main():
 	print('Creating table...')
 	create_table(TABLE_NAME, columns)
 
+	if not table_empty(TABLE_NAME):
+		print(f"Table '{TABLE_NAME}' already populated, skipping loading of new records")
+		return
+
 	connection = get_connection()
 	cursor = connection.cursor()
 	# TODO: make this idempotent somehow?
@@ -58,8 +62,6 @@ def main():
 	cursor.close()
 	connection.commit()
 	connection.close()
-	print("Done.")
-
 
 if __name__ == '__main__':
 	main()

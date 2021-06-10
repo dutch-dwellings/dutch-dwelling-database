@@ -11,43 +11,32 @@ class ConfirmationError(Exception):
 def save_to_file(url, path, expected_size=None, method='GET', data={}, cookies={}):
 	'''
 	Download the file at 'url' and save it at 'path'.
-	Warn and ask confirmation for downloading when
-	the 'expected_size' of the download has been set
-	(as a string).
+	Will not redownload when file already exists.
 	'''
 
 	filename = os.path.basename(path)
 
 	if os.path.isfile(path):
-		confirmation = input(f'File {filename} already exists, do you want to redownload it? (y/n)\n')
-		if confirmation.lower() != 'y':
-			# skip download, still go on with the rest of processing
-			return
-
-	if expected_size:
-		confirmation = input(f'Preparing download of {filename}, expected size {expected_size}... do you want to continue? (y/n)\n')
-		if confirmation.lower() != 'y':
-			raise ConfirmationError('Aborting program on users request')
+		print(f'File already exists at {path}, skipping download')
+		return
 
 	os.makedirs(os.path.dirname(path), exist_ok=True)
 	with open(path, "wb") as file:
-		print('Starting download...')
+		print(f'Starting download (expected size: {expected_size})..')
 		if method == 'GET':
 			response = requests.get(url)
 		elif method == 'POST':
 			response = requests.post(url, data=data, cookies=cookies)
 		else:
 			raise ValueError(f'Unexpected method {method}, try GET or POST')
-		print('finished download.')
 		file.write(response.content)
 
 
 def unzip(path, expected_size=None, prefix=None):
 	'''
-	Unzip the file at 'path'. Warn and ask for
-	confirmation before unzipping if the string
-	'expected_size' of the unzipped file has been set.
+	Unzip the file at 'path'.
 	Rename the unzipped file with a 'prefix' if specified.
+	Will not unzip when a file exists at the target location.
 	'''
 
 	with ZipFile(path, 'r') as zip_ref:
@@ -56,17 +45,12 @@ def unzip(path, expected_size=None, prefix=None):
 		unzipped_path = os.path.join(os.path.dirname(path), filename)
 		prefixed_path = prefix_path(unzipped_path, prefix)
 
-		if os.path.exists(unzipped_path) or os.path.exists(prefixed_path):
-			confirmation = input(f'File has already been unzipped at either {unzipped_path} or {prefixed_path}. Do you want to redo unzipping? (y/n)\n')
-			if confirmation.lower() != 'y':
-				return
-
-		print('Starting unzipping...')
-		zip_ref.extractall(os.path.dirname(path))
-		print('finished unzipping.')
-
-	os.rename(unzipped_path, prefixed_path)
-
+		if os.path.exists(prefixed_path):
+			print(f'File has already been unzipped at {prefixed_path}')
+		else:
+			print(f'Unzipping {path}')
+			zip_ref.extractall(os.path.dirname(path))
+			os.rename(unzipped_path, prefixed_path)
 
 def prefix_path(path, prefix):
 	'''
