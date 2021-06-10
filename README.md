@@ -29,7 +29,18 @@ pip install python-dotenv psycopg2-binary requests scipy
 
 **First:** fill `.env` with the required values (see `.env.template` for the structure). You can get the required EP-Online API key with [this form from the RVO](https://epbdwebservices.rvo.nl/).
 
-To download and load all the datasets, run the setup tool:
+### Get required datasets
+
+We try to automatically download as many datasets as possible, but some you still need to put into `data` manually:
+
+- WoON survey: `WoON2018energie_e_1.0.csv`
+- BAG (custom export enriched with dwelling types): `BAG_Invoer_RuimtelijkeData_BAG_vbo_woonfunctie_studiegebied_Export.csv`
+- CBS:
+	- [Kerncijfers PC6 2017 (`CBS-PC6-2017-v3.zip`)](https://download.cbs.nl/postcode/CBS-PC6-2017-v3.zip) ([info](https://www.cbs.nl/nl-nl/dossier/nederland-regionaal/geografische-data/gegevens-per-postcode)), extract `CBS_PC6_2017_v3.csv` from the ZIP archive
+	- [Energiecijfers PC6 2019](https://www.cbs.nl/-/media/_excel/2020/33/energiecijfers_postcode6.zip) ([info](https://www.cbs.nl/nl-nl/maatwerk/2020/33/energielevering-aan-woningen-en-bedrijven-naar-postcode)) extract `Publicatiefile_Energie_postcode6_2019.csv` from the ZIP archive
+
+### Loading
+To download the rest of the data sets and load all of them, run the setup tool:
 
 ```
 python setup.py
