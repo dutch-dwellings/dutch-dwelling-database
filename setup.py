@@ -42,6 +42,9 @@ def CBS_PC6():
 	print('Loading the data into Postgres...')
 	load_CBS_PC6_2019_energy_use()
 
+	print('Creating indexes...')
+	add_index('cbs_pc6_2019_energy_use', 'pc6')
+
 def CBS_kerncijfers():
 	print('Creating table for CBS PC6...')
 	create_CBS_PC6_2017_kerncijfers_table()

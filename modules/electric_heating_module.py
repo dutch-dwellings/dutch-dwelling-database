@@ -44,7 +44,7 @@ class ElectricHeatingModule(BaseModule):
 	def load_elec_use_data(self):
 		# Create dictionary which relates the postal code of a dwelling and the electricity use of that postal code
 		cursor = self.connection.cursor()
-		query = "SELECT postcode6, gemiddelde_elektriciteitslevering_woningen FROM cbs_pc6_2019_energy_use WHERE gemiddelde_elektriciteitslevering_woningen IS NOT NULL;"
+		query = "SELECT pc6, gemiddelde_elektriciteitslevering_woningen FROM cbs_pc6_2019_energy_use WHERE gemiddelde_elektriciteitslevering_woningen IS NOT NULL;"
 		cursor.execute(query)
 		results = cursor.fetchall()
 		self.postcode_elec_use_data = {

@@ -37,7 +37,7 @@ class GasBoilerModule(BaseModule):
 	def load_gas_use_data(self):
 		# Create list of tuples with postal code, buurt_id, amount of dwellings in the postal code and the average gas use of the dwellings
 		cursor = self.connection.cursor()
-		query = "SELECT postcode6, gemiddelde_aardgaslevering_woningen FROM cbs_pc6_2019_energy_use WHERE gemiddelde_aardgaslevering_woningen IS NOT null;"
+		query = "SELECT pc6, gemiddelde_aardgaslevering_woningen FROM cbs_pc6_2019_energy_use WHERE gemiddelde_aardgaslevering_woningen IS NOT null;"
 		cursor.execute(query)
 		results = cursor.fetchall()
 		self.postcode_gas_use_data = {

@@ -1,10 +1,10 @@
 -- use IF NOT EXISTS to make the statement idempotent
 CREATE TABLE IF NOT EXISTS cbs_pc6_2019_energy_use
 (
-Postcode6 varchar,
-Gemiddelde_aardgaslevering_woningen varchar,
-Gemiddelde_aardgaslevering_woningen_gecorrigeerd int,
-Gemiddelde_elektriciteitslevering_woningen int,
-Gemiddelde_aardgaslevering_bedrijven  int,
-Gemiddelde_elektriciteitslevering_bedrijven int
+	pc6 character varying(6),
+	gemiddelde_aardgaslevering_woningen int,
+	gemiddelde_aardgaslevering_woningen_gecorrigeerd int,
+	gemiddelde_elektriciteitslevering_woningen int,
+	gemiddelde_aardgaslevering_bedrijven int,
+	gemiddelde_elektriciteitslevering_bedrijven int
 );
