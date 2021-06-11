@@ -5,7 +5,7 @@ import psycopg2
 from psycopg2 import sql
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT, AsIs
 from psycopg2.extras import DictCursor
-from psycopg2.errors import InvalidTableDefinition
+from psycopg2.errors import InvalidTableDefinition, UndefinedColumn
 
 # Required for relative imports to also work when called
 # from project root directory.
@@ -215,3 +215,28 @@ def table_empty(table_name):
 		return False
 	else:
 		return True
+
+def execute(statement):
+	connection = get_connection()
+	cursor = connection.cursor()
+	try:
+		cursor.execute(statement)
+	except Exception as e:
+		raise(e)
+	# Even when an error is raised during execution,
+	# we need to clean up the cursor and connection.
+	finally:
+		cursor.close()
+		connection.commit()
+		connection.close()
+
+def rename_column(table_name, col_name, new_col_name):
+	statement = sql.SQL("ALTER TABLE {table_name} RENAME COLUMN {col_name} TO {new_col_name}").format(
+		table_name=sql.Identifier(table_name),
+		col_name=sql.Identifier(col_name),
+		new_col_name=sql.Identifier(new_col_name)
+	)
+	try:
+		execute(statement)
+	except UndefinedColumn:
+		print(f'Did not rename column {col_name} to {new_col_name} since it does not exist.')

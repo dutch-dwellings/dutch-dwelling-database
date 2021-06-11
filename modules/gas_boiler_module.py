@@ -22,7 +22,7 @@ class GasBoilerModule(BaseModule):
 	def load_installation_type_data(self):
 		cursor = self.connection.cursor()
 		# create dictionary with buurt_id and percentage of gas boilers
-		query = "SELECT wijken_en_buurten, woningen FROM cbs_84983ned_woningen_hoofdverwarmings_buurt_2019 WHERE wijken_en_buurten LIKE 'BU%' AND type_verwarmingsinstallatie LIKE 'A050112'AND woningen IS NOT null"
+		query = "SELECT area_code, woningen FROM cbs_84983ned_woningen_hoofdverwarmings_buurt_2019_typed WHERE area_code LIKE 'BU%' AND type_verwarmingsinstallatie LIKE 'A050112'AND woningen IS NOT null"
 		# A050112 is the code for a gas boiler
 		cursor.execute(query)
 		results = cursor.fetchall()

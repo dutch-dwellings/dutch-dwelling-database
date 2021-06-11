@@ -21,14 +21,14 @@ class ElectricHeatingModule(BaseModule):
 		# create dictionary with buurt_id and percentage of gas boilers
 		cursor = self.connection.cursor()
 		query = '''
-		SELECT wijken_en_buurten, SUM(woningen) as woningen
-		FROM cbs_84983ned_woningen_hoofdverwarmings_buurt_2019
-		WHERE (wijken_en_buurten LIKE 'BU%')
+		SELECT area_code, SUM(woningen) as woningen
+		FROM cbs_84983ned_woningen_hoofdverwarmings_buurt_2019_typed
+		WHERE (area_code LIKE 'BU%')
 		AND (type_verwarmingsinstallatie LIKE 'A050117'
 		OR type_verwarmingsinstallatie LIKE 'A050118'
 		OR type_verwarmingsinstallatie LIKE 'A050119')
 		AND woningen IS NOT null
-		GROUP BY wijken_en_buurten;
+		GROUP BY area_code;
 		'''
 		cursor.execute(query)
 		results = cursor.fetchall()

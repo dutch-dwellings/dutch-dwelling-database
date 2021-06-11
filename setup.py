@@ -1,4 +1,4 @@
-from utils.database_utils import create_database, add_index, make_primary_key
+from utils.database_utils import create_database, add_index, make_primary_key, rename_column
 
 from utils.BAG_create_table import main as create_BAG_table
 from utils.BAG_load import main as load_BAG
@@ -111,6 +111,14 @@ def cbs():
 	]
 	for table in cbs_tables:
 		load_cbs_table(table[0], typed_data_set=table[1])
+
+	column_renames = [
+		# Format: (table_name, col_name, new_col_name)
+		('cbs_84799ned_kerncijfers_wijken_en_buurten_2020', 'codering', 'area_code'),
+		('cbs_84983ned_woningen_hoofdverwarmings_buurt_2019_typed', 'wijken_en_buurten', 'area_code')
+	]
+	for rename in column_renames:
+		rename_column(*rename)
 
 def main():
 

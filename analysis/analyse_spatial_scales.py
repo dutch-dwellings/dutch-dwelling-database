@@ -119,7 +119,7 @@ if run_includes['buurt']:
 	get_ranges(dwelling_buurt_count_query)
 
 	print("\nNumber of dwellings (technically: households) per buurt (CBS kerncijfers, filtered out buurten without dwellings):")
-	dwelling_buurt_count_query_cbs = "SELECT codering, huishoudens_totaal FROM cbs_84799ned_kerncijfers_wijken_en_buurten_2020 WHERE codering LIKE 'BU%' AND huishoudens_totaal > 0 ORDER BY huishoudens_totaal"
+	dwelling_buurt_count_query_cbs = "SELECT area_code, huishoudens_totaal FROM cbs_84799ned_kerncijfers_wijken_en_buurten_2020 WHERE area_code LIKE 'BU%' AND huishoudens_totaal > 0 ORDER BY huishoudens_totaal"
 	get_ranges(dwelling_buurt_count_query_cbs)
 
 	print("\nNumber of postcode per buurt_id:")
@@ -127,7 +127,7 @@ if run_includes['buurt']:
 	get_ranges(postcode_buurt_count_query)
 
 	print("\nSurface area (ha) per buurt:")
-	buurt_surface_query = "SELECT codering, oppervlakte_land FROM public.cbs_84799ned_kerncijfers_wijken_en_buurten_2020 WHERE codering LIKE 'BU%' ORDER BY oppervlakte_land"
+	buurt_surface_query = "SELECT area_code, oppervlakte_land FROM cbs_84799ned_kerncijfers_wijken_en_buurten_2020 WHERE area_code LIKE 'BU%' ORDER BY oppervlakte_land"
 	get_ranges(buurt_surface_query)
 
 
@@ -149,11 +149,11 @@ if run_includes['postcode4']:
 
 if run_includes['wijk']:
 	print("\nNumber of dwellings (technically: households) per wijk (CBS kerncijfers, filtered out wijken without dwellings):")
-	dwelling_wijk_count_query_cbs = "SELECT codering, huishoudens_totaal FROM cbs_84799ned_kerncijfers_wijken_en_buurten_2020 WHERE codering LIKE 'WK%' AND huishoudens_totaal > 0 ORDER BY huishoudens_totaal"
+	dwelling_wijk_count_query_cbs = "SELECT area_code, huishoudens_totaal FROM cbs_84799ned_kerncijfers_wijken_en_buurten_2020 WHERE area_code LIKE 'WK%' AND huishoudens_totaal > 0 ORDER BY huishoudens_totaal"
 	get_ranges(dwelling_wijk_count_query_cbs)
 
 	print("\nSurface area (ha) per wijk:")
-	wijk_surface_query = "SELECT codering, oppervlakte_land FROM public.cbs_84799ned_kerncijfers_wijken_en_buurten_2020 WHERE codering LIKE 'WK%' ORDER BY oppervlakte_land"
+	wijk_surface_query = "SELECT area_code, oppervlakte_land FROM public.cbs_84799ned_kerncijfers_wijken_en_buurten_2020 WHERE area_code LIKE 'WK%' ORDER BY oppervlakte_land"
 	get_ranges(wijk_surface_query)
 
 
@@ -166,11 +166,11 @@ if run_includes['woonplaats']:
 
 if run_includes['gemeente']:
 	print("\nSurface area (ha) per gemeente:")
-	gemeente_surface_query = "SELECT codering, oppervlakte_land FROM public.cbs_84799ned_kerncijfers_wijken_en_buurten_2020 WHERE codering LIKE 'GM%' ORDER BY oppervlakte_land"
+	gemeente_surface_query = "SELECT area_code, oppervlakte_land FROM public.cbs_84799ned_kerncijfers_wijken_en_buurten_2020 WHERE area_code LIKE 'GM%' ORDER BY oppervlakte_land"
 	get_ranges(gemeente_surface_query)
 
 
 if run_includes['country']:
 	print("\nSurface area (ha) per NL:")
-	country_surface_query = "SELECT codering, oppervlakte_land FROM public.cbs_84799ned_kerncijfers_wijken_en_buurten_2020 WHERE codering LIKE 'NL%' ORDER BY oppervlakte_land"
+	country_surface_query = "SELECT area_code, oppervlakte_land FROM public.cbs_84799ned_kerncijfers_wijken_en_buurten_2020 WHERE area_code LIKE 'NL%' ORDER BY oppervlakte_land"
 	get_ranges(country_surface_query)
