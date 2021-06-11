@@ -123,7 +123,7 @@ if run_includes['buurt']:
 	get_ranges(dwelling_buurt_count_query_cbs)
 
 	print("\nNumber of postcode per buurt_id:")
-	postcode_buurt_count_query = "SELECT buurt_id, count(buurt_id) FROM (SELECT buurt_id, postcode FROM bag GROUP BY buurt_id, postcode) sub GROUP BY buurt_id ORDER BY COUNT(buurt_id)"
+	postcode_buurt_count_query = "SELECT buurt_id, count(buurt_id) FROM (SELECT buurt_id, pc6 FROM bag GROUP BY buurt_id, pc6) sub GROUP BY buurt_id ORDER BY COUNT(buurt_id)"
 	get_ranges(postcode_buurt_count_query)
 
 	print("\nSurface area (ha) per buurt:")
@@ -133,17 +133,17 @@ if run_includes['buurt']:
 
 if run_includes['postcode']:
 	print('\nDwellings without postcode:')
-	no_postcode_count_query = "SELECT COUNT(*) FROM bag WHERE (postcode = '') IS NOT FALSE"
+	no_postcode_count_query = "SELECT COUNT(*) FROM bag WHERE (pc6 = '') IS NOT FALSE"
 	cursor.execute(no_postcode_count_query)
 	print(cursor.fetchall()[0][0])
 
 	print("\nNumber of dwellings per postcode:")
-	dwelling_postcode_count_query = "SELECT postcode, COUNT(postcode) FROM bag GROUP BY postcode ORDER BY COUNT(postcode)"
+	dwelling_postcode_count_query = "SELECT pc6, COUNT(pc6) FROM bag GROUP BY pc6 ORDER BY COUNT(pc6)"
 	get_ranges(dwelling_postcode_count_query)
 
 if run_includes['postcode4']:
 	print("\nNumber of dwellings per PC4:")
-	dwelling_pc4_count_query = "SELECT SUBSTRING(postcode, 1, 4), COUNT(SUBSTRING(postcode, 1, 4)) FROM bag WHERE postcode != '' GROUP BY SUBSTRING(postcode, 1, 4) ORDER BY COUNT(SUBSTRING(postcode, 1, 4))"
+	dwelling_pc4_count_query = "SELECT SUBSTRING(pc6, 1, 4), COUNT(SUBSTRING(pc6, 1, 4)) FROM bag WHERE pc6 != '' GROUP BY SUBSTRING(pc6, 1, 4) ORDER BY COUNT(SUBSTRING(pc6, 1, 4))"
 	get_ranges(dwelling_pc4_count_query)
 
 

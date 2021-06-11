@@ -54,8 +54,8 @@ class GasBoilerModule(BaseModule):
 		cursor.execute(query)
 		results = cursor.fetchall()
 		self.energy_label = {
-			bag_id: energy_label
-			for (bag_id, energy_label)
+			vbo_id: energy_label
+			for (vbo_id, energy_label)
 			in results
 		}
 		cursor.close()
@@ -105,15 +105,15 @@ class GasBoilerModule(BaseModule):
 		boiler_p_base = self.buurten_verwarming_data.get(buurt_id, 0) / 100
 
 		# Gas use in postal code
-		postal_code = dwelling.attributes['postcode']
+		postal_code = dwelling.attributes['pc6']
 		postal_code_gas_use = self.postcode_gas_use_data.get(postal_code, 0)
 
 		# Get dwellings attributes which serve as CBS data lookup values
-		bag_id = dwelling.attributes['identificatie']
+		vbo_id = dwelling.attributes['vbo_id']
 		floor_space = dwelling.attributes['oppervlakte']
 		building_year = dwelling.attributes['bouwjaar']
 		building_type = dwelling.attributes['woningtype']
-		energy_label = self.energy_label.get(bag_id, 'Geen label')
+		energy_label = self.energy_label.get(vbo_id, 'Geen label')
 
 		# Make energy labels searchable
 		if energy_label == 'A+++':

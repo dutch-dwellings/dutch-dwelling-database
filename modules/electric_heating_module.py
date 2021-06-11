@@ -113,11 +113,10 @@ class ElectricHeatingModule(BaseModule):
 		elec_heating_p_base = self.buurten_verwarming_data.get(buurt_id, 0) / 100
 
 		# Electricity use in postal code
-		postal_code = dwelling.attributes['postcode']
+		postal_code = dwelling.attributes['pc6']
 		postal_code_elec_use = self.postcode_elec_use_data.get(postal_code, 0)
 
 		# Get dwellings attributes
-		bag_id = dwelling.attributes['identificatie']
 		floor_space = dwelling.attributes['oppervlakte']
 		building_type = dwelling.attributes['woningtype']
 		household_size = round(self.postcode_household_size_data.get(postal_code,0))

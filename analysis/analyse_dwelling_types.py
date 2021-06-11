@@ -56,7 +56,7 @@ def woon():
 		print(f'{type_lookup[(vormwo, vorm_eg5, vorm_mg2)]}: {round(sum_huis)}')
 
 def matrix():
-	matrix_query = "SELECT gebouwtype, woningtype, COUNT(*) FROM bag, energy_labels WHERE bag.identificatie = vbo_id AND woningtype != '' AND gebouwtype IS NOT NULL GROUP BY gebouwtype, woningtype"
+	matrix_query = "SELECT gebouwtype, woningtype, COUNT(*) FROM bag, energy_labels WHERE bag.vbo_id = energy_labels.vbo_id AND woningtype != '' AND gebouwtype IS NOT NULL GROUP BY gebouwtype, woningtype"
 	print('\nQuering Energy Labels - BAG matrix')
 	cursor.execute(matrix_query)
 	df = pd.DataFrame(cursor.fetchall(), columns = ['energy_label_types', 'bag_types', 'count'])

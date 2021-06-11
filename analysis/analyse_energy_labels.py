@@ -82,7 +82,7 @@ def energy_labels_per_building_year(cursor, relative=False):
 	building_year_query = (
 		"SELECT bag.bouwjaar as year, energy_labels.energieklasse as label, COUNT(*)"
 		" FROM energy_labels, bag"
-		" WHERE energy_labels.vbo_id = bag.identificatie"
+		" WHERE energy_labels.vbo_id = bag.vbo_id"
 		" AND bag.bouwjaar IS NOT NULL"
 		" GROUP BY year, label"
 	)

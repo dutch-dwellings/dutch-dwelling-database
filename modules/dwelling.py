@@ -13,7 +13,7 @@ class Dwelling:
 
 	def __str__(self):
 		pp = pprint.PrettyPrinter(indent=4)
-		return f'Dwelling {self.attributes["identificatie"]}:\nattributes:\n{pp.pformat(self.attributes)}\noutputs:\n{pp.pformat(self.outputs)}'
+		return f'Dwelling {self.attributes["vbo_id"]}:\nattributes:\n{pp.pformat(self.attributes)}\noutputs:\n{pp.pformat(self.outputs)}'
 
 	def __repr__(self):
 		return f'Dwelling(attributes={repr(self.attributes)}, connection={repr(self.connection)})'
@@ -52,4 +52,4 @@ class Dwelling:
 	#
 	# As of now, we can only assume that BAG-data is always present,
 	# so only use BAG column_names here.
-	default_outputs = {'identificatie': {}}
+	default_outputs = {'vbo_id': {}}

@@ -31,8 +31,7 @@ def bag():
 	load_BAG()
 
 	print('Creating indexes...')
-	make_primary_key('bag', 'identificatie')
-	add_index('bag', 'postcode')
+	add_index('bag', 'pc6')
 	add_index('bag', 'pand_id')
 
 def CBS_PC6():
