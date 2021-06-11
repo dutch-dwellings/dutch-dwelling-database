@@ -118,6 +118,7 @@ def cbs():
 	for table in cbs_tables:
 		load_cbs_table(table[0], typed_data_set=table[1])
 
+	print('Renaming columns...')
 	column_renames = [
 		# Format: (table_name, col_name, new_col_name)
 		('cbs_84799ned_kerncijfers_wijken_en_buurten_2020', 'codering', 'area_code'),
@@ -125,6 +126,14 @@ def cbs():
 	]
 	for rename in column_renames:
 		rename_column(*rename)
+
+	print('Creating indexes...')
+	indexes = [
+		('cbs_84799ned_kerncijfers_wijken_en_buurten_2020', 'area_code'),
+		('cbs_84983ned_woningen_hoofdverwarmings_buurt_2019_typed', 'area_code')
+	]
+	for index in indexes:
+		add_index(*index)
 
 def main():
 
