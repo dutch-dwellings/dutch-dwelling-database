@@ -49,16 +49,8 @@ def create_database(dbname=env['POSTGRES_DBNAME']):
 	connection.close()
 
 def execute_file(path):
-
-	connection = get_connection()
-	cursor = connection.cursor()
-
 	with open(path, 'r') as file:
-		cursor.execute(file.read())
-
-	cursor.close()
-	connection.commit()
-	connection.close()
+		execute(file.read())
 
 def add_column(table_name, column_name, data_type, connection):
 	cursor = connection.cursor()
@@ -155,12 +147,7 @@ def add_index(table_name, column_name):
 			table_name = sql.Identifier(table_name),
 			column_name = sql.Identifier(column_name)
 		)
-	connection = get_connection()
-	cursor = connection.cursor()
-	cursor.execute(statement)
-	cursor.close()
-	connection.commit()
-	connection.close()
+	execute(statement)
 
 def make_primary_key(table_name, column_name):
 	'''
@@ -171,19 +158,12 @@ def make_primary_key(table_name, column_name):
 			table_name = sql.Identifier(table_name),
 			column_name = sql.Identifier(column_name)
 		)
-	connection = get_connection()
-	cursor = connection.cursor()
-
 	try:
-		cursor.execute(statement)
+		execute(statement)
 	# Happens when we already added a primary key,
 	# so we catch it and do nothing, makes it idempotent.
 	except InvalidTableDefinition as e:
 		print(f"Table '{table_name}' already has primary key on column '{column_name}'")
-
-	cursor.close()
-	connection.commit()
-	connection.close()
 
 def table_exists(table_name, dbname=env['POSTGRES_DBNAME']):
 	'''
