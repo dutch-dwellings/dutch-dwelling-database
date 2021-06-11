@@ -1,4 +1,4 @@
-from utils.database_utils import create_database, add_index, make_primary_key, rename_column
+from utils.database_utils import create_database, add_index, make_primary_key, rename_column, delete_column
 
 from utils.BAG_create_table import main as create_BAG_table
 from utils.BAG_load import main as load_BAG
@@ -83,9 +83,15 @@ def energy_labels():
 	print('Loading the data into Postgres...')
 	load_energy_labels_data()
 
+	print('Deleting columns...')
+	# is always NULL
+	delete_column('energy_labels', 'bagstandplaatsid')
+	# is only relevant for 'U' buildings
+	delete_column('energy_labels', 'sbicode')
+
 	print('Creating indexes...')
-	add_index('energy_labels', 'pand_bagverblijfsobjectid')
-	add_index('energy_labels', 'pand_bagpandid')
+	add_index('energy_labels', 'vbo_id')
+	add_index('energy_labels', 'pand_id')
 
 def cbs():
 	# Include a tuple with (table_id, typed_data_set),

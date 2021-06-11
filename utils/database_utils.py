@@ -220,3 +220,13 @@ def rename_column(table_name, col_name, new_col_name):
 		execute(statement)
 	except UndefinedColumn:
 		print(f'Did not rename column {col_name} to {new_col_name} since it does not exist.')
+
+def delete_column(table_name, col_name):
+	statement = sql.SQL("ALTER TABLE {table_name} DROP COLUMN {col_name}").format(
+		table_name=sql.Identifier(table_name),
+		col_name=sql.Identifier(col_name)
+	)
+	try:
+		execute(statement)
+	except UndefinedColumn:
+		print(f'Did not drop column {col_name} since it does not exist.')

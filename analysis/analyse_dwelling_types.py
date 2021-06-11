@@ -14,7 +14,7 @@ pp = pprint.PrettyPrinter(indent=4)
 
 def energy_labels():
 	# Note: alle 'W'-buildings have an assigned gebouwtype
-	energy_label_query = "SELECT pand_gebouwtype, pand_gebouwsubtype, COUNT(pand_gebouwtype) FROM energy_labels WHERE pand_gebouwklasse = 'W' GROUP BY pand_gebouwtype, pand_gebouwsubtype"
+	energy_label_query = "SELECT gebouwtype, gebouwsubtype, COUNT(gebouwtype) FROM energy_labels WHERE gebouwklasse = 'W' GROUP BY gebouwtype, gebouwsubtype"
 	print("Querying energy labels...")
 	cursor.execute(energy_label_query)
 	energy_label_results = cursor.fetchall()
@@ -56,7 +56,7 @@ def woon():
 		print(f'{type_lookup[(vormwo, vorm_eg5, vorm_mg2)]}: {round(sum_huis)}')
 
 def matrix():
-	matrix_query = "SELECT pand_gebouwtype, woningtype, COUNT(*) FROM bag, energy_labels WHERE bag.identificatie = pand_bagverblijfsobjectid AND woningtype != '' AND pand_gebouwtype IS NOT NULL GROUP BY pand_gebouwtype, woningtype"
+	matrix_query = "SELECT gebouwtype, woningtype, COUNT(*) FROM bag, energy_labels WHERE bag.identificatie = vbo_id AND woningtype != '' AND gebouwtype IS NOT NULL GROUP BY gebouwtype, woningtype"
 	print('\nQuering Energy Labels - BAG matrix')
 	cursor.execute(matrix_query)
 	df = pd.DataFrame(cursor.fetchall(), columns = ['energy_label_types', 'bag_types', 'count'])
