@@ -1,7 +1,7 @@
 import os
 import sys
 import re
-# Only needed for self.create_benchmark: import itertools
+import itertools
 from scipy.interpolate import interp1d
 
 # Required for relative imports to also work when called
@@ -18,6 +18,7 @@ class GasBoilerModule(BaseModule):
 		self.load_installation_type_data()
 		self.load_gas_use_data()
 		self.load_energy_label_data()
+		self.create_benchmark()
 
 	def load_installation_type_data(self):
 		cursor = self.connection.cursor()
@@ -59,6 +60,44 @@ class GasBoilerModule(BaseModule):
 		}
 		cursor.close()
 
+	def create_benchmark(self):
+		# This is a holdover from another approach. Could be useful to maybe increase efficiency by first interpolating the benchmarks and only comparing the gas use per square meter in the process function.
+		label_tuple = ('A-label', 'B-label', 'C-label', 'D-label', 'E-label', 'F-label', 'G-label', 'Geen label')
+		building_type_tuple = ('Appartement', 'Hoekwoning', '2-onder-1-kapwoning', 'Tussenwoning', 'Vrijstaande woning')
+		area_ranges_tuple = ('15 tot 50 m²', '50 tot 75 m²', '75 tot 100 m²', '100 tot 150 m²', '150 tot 250 m²', '250 tot 500 m²')
+		building_years_tuple = ('1000 tot 1946', '1946 tot 1965', '1965 tot 1975', '1975 tot 1992', '1992 tot 2000', '2000 tot 2014', 'Vanaf 2014')
+
+		combination_tuple = list(itertools.product(label_tuple, building_type_tuple, area_ranges_tuple, building_years_tuple))
+		self.gas_benchmark_dict = {}
+
+		for item in combination_tuple:
+			cursor = self.connection.cursor()
+			query_statement = """
+			SELECT aardgasleveringen_openbare_net
+			FROM cbs_83878ned_aardgaslevering_woningkenmerken
+			WHERE perioden = '2019'
+			AND energielabelklasse LIKE %s
+			AND woningkenmerken LIKE %s
+			AND gebruiks_oppervlakteklasse LIKE %s
+			AND bouwjaarklasse LIKE %s
+			AND percentielen NOT LIKE 'Gemiddelde'
+			ORDER BY aardgasleveringen_openbare_net
+			;"""
+			cursor.execute(query_statement, item)
+			results = cursor.fetchall()
+			benchmark_y_data = [5, 25, 50, 75, 95]
+			benchmark_x_data = [x for x in results]
+			benchmark_x_data = list(sum(benchmark_x_data, ()))
+			if None in benchmark_x_data or benchmark_x_data == []:
+				pass
+			# Interpolate the data, with extrapolation for <5 and >95 percentile
+			else:
+				if benchmark_x_data[3] == benchmark_x_data[4]:
+					benchmark_x_data[4] == benchmark_x_data[4] + 0.1
+
+				interpolated_function = interp1d(benchmark_x_data, benchmark_y_data, fill_value='extrapolate')
+				self.gas_benchmark_dict[item]=interpolated_function
+
 	def process(self, dwelling):
 		super().process(dwelling)
 		# Get base probability from percentage of dwellings with gas boiler in neighbourhood
@@ -75,6 +114,28 @@ class GasBoilerModule(BaseModule):
 		building_year = dwelling.attributes['bouwjaar']
 		building_type = dwelling.attributes['woningtype']
 		energy_label = self.energy_label.get(bag_id, 'Geen label')
+
+		# Make energy labels searchable
+		if energy_label == 'A+++':
+			energy_label = 'A-label'
+		elif energy_label =='A++':
+			energy_label = 'A-label'
+		elif energy_label == 'A+':
+			energy_label = 'A-label'
+		elif energy_label == 'A':
+			energy_label = 'A-label'
+		elif energy_label == 'B':
+			energy_label = 'B-label'
+		elif energy_label == 'C':
+			energy_label = 'C-label'
+		elif energy_label == 'D':
+			energy_label = 'D-label'
+		elif energy_label == 'E':
+			energy_label = 'E-label'
+		elif energy_label == 'F':
+			energy_label = 'F-label'
+		elif energy_label == 'G':
+			energy_label = 'G-label'
 
 		# Harmonize building type terminology
 		if building_type == 'twee_onder_1_kap':
@@ -93,86 +154,54 @@ class GasBoilerModule(BaseModule):
 		else:
 			building_type = ''
 
-		# Harmonize energy label terminology
-		# Remove non alphanumerical characters from energy label because the energy labels go to A+++, while the CBS data they only go to A
-		re.sub(r'\W+', '', energy_label)
-		if energy_label != 'Geen label':
-			energy_label = energy_label + '-label'
+		# Make areas searchable
+		if floor_space < 50:
+			floor_space_string = '15 tot 50 m²'
+		elif floor_space >= 50 and floor_space <75:
+			floor_space_string = '50 tot 75 m²'
+		elif floor_space >= 75 and floor_space <100:
+			floor_space_string = '75 tot 100 m²'
+		elif floor_space >= 100 and floor_space<150:
+			floor_space_string = '100 tot 150 m²'
+		elif floor_space >= 150 and floor_space<250:
+			floor_space_string = '150 tot 250 m²'
+		elif floor_space >=250:
+			floor_space_string = '250 tot 500 m²'
 
-		# Get benchmark data
-		cursor = self.connection.cursor()
-		query_statement ='''
-		SELECT aardgasleveringen_openbare_net FROM cbs_83878ned_aardgaslevering_woningkenmerken
-		WHERE perioden = '2019' AND woningkenmerken = %s
-		AND energielabelklasse LIKE %s
-		AND bouwjaarklasse NOT LIKE 'Totaal'
-		AND gebruiks_oppervlakteklasse NOT LIKE 'Totaal'
-		AND percentielen NOT LIKE 'Gemiddelde'
-		AND
-		CASE WHEN LENGTH(regexp_replace(bouwjaarklasse, '[^0-9]','','gi')) = 8
-		THEN
-		CAST(RIGHT(regexp_replace(bouwjaarklasse, '[^0-9]','','gi'),4) as integer) >= %s
-		AND CAST(LEFT(regexp_replace(bouwjaarklasse, '[^0-9]','','gi'),4) as integer) < %s
-		ELSE
-		CAST(RIGHT(regexp_replace(bouwjaarklasse, '[^0-9]','','gi'),4) as integer) < %s
-		END
-		AND
-		CASE WHEN LENGTH(regexp_replace(TRIM(TRAILING '²' FROM gebruiks_oppervlakteklasse), '[^0-9]','','gi')) = 4
-		THEN
-		CAST(RIGHT(regexp_replace(TRIM(TRAILING '²' FROM gebruiks_oppervlakteklasse), '[^0-9]','','gi'),2) as integer) >= %s
-		AND CAST(LEFT(regexp_replace(TRIM(TRAILING '²' FROM gebruiks_oppervlakteklasse), '[^0-9]','','gi'),2) as integer) < %s
-
-		WHEN LENGTH(regexp_replace(TRIM(TRAILING '²' FROM gebruiks_oppervlakteklasse), '[^0-9]','','gi')) = 5
-		THEN
-		CAST(RIGHT(regexp_replace(TRIM(TRAILING '²' FROM gebruiks_oppervlakteklasse), '[^0-9]','','gi'),3) as integer) >= %s
-		AND CAST(LEFT(regexp_replace(TRIM(TRAILING '²' FROM gebruiks_oppervlakteklasse), '[^0-9]','','gi'),2) as integer) < %s
-
-		WHEN LENGTH(regexp_replace(TRIM(TRAILING '²' FROM gebruiks_oppervlakteklasse), '[^0-9]','','gi')) = 6
-		THEN
-		CAST(RIGHT(regexp_replace(TRIM(TRAILING '²' FROM gebruiks_oppervlakteklasse), '[^0-9]','','gi'),3) as integer) >= %s
-		AND CAST(LEFT(regexp_replace(TRIM(TRAILING '²' FROM gebruiks_oppervlakteklasse), '[^0-9]','','gi'),3) as integer) < %s
-		END
-		'''
-		# Tuple for dynamically filling in the query, based on the building characteristics
-		dwelling_tuple = (building_type, energy_label, building_year, building_year, building_year, floor_space, floor_space, floor_space, floor_space, floor_space, floor_space)
-		cursor.execute(query_statement, dwelling_tuple)
-		results = cursor.fetchall()
+		# Make building years searchable
+		if building_year < 1946:
+			building_year_string = '1000 tot 1946'
+		elif building_year >= 1946 and building_year<1965:
+			building_year_string = '1946 tot 1965'
+		elif building_year >= 1965 and building_year <1975:
+			building_year_string = '1965 tot 1975'
+		elif building_year >= 1975 and building_year<1992:
+			building_year_string = '1975 tot 1992'
+		elif building_year >= 1992 and building_year <2000:
+			building_year_string = '1992 tot 2000'
+		elif building_year >= 2000 and building_year <2014:
+			building_year_string = '2000 tot 2014'
+		elif building_year >= 2014:
+			building_year_string = 'Vanaf 2014'
 
 		# Interpolation process
-
-		# The percentiles used as input values for the interpolation
-		benchmark_y_data = [5, 25, 50, 75, 95]
-		# Obtain benchmark data and make it useful
-		benchmark_x_data = [x for x in results]
-		cursor.close()
-		benchmark_x_data = [e for l in benchmark_x_data for e in l]
-
-		# Default value for percentile
 		dwelling_gas_use_percentile = 0
-		if None in benchmark_x_data or benchmark_x_data == []:
-			# print('No CBS data available')
+		dwelling_characteristics_tuple = (energy_label, building_type, floor_space_string, building_year_string)
+
+		benchmark = self.gas_benchmark_dict.get(dwelling_characteristics_tuple,0)
+		gas_use_floor_space = int(postal_code_gas_use)/floor_space
+		# If there is not gas use, we cannot compare
+		if gas_use_floor_space == 0 or benchmark == 0:
 			pass
-		# Interpolate the data, with extrapolation for <5 and >95 percentile
 		else:
-			if benchmark_x_data[3] == benchmark_x_data[4]:
-				benchmark_x_data[4] == benchmark_x_data[4] + 0.1
-			try:
-				interpolated_function = interp1d(benchmark_x_data, benchmark_y_data, fill_value='extrapolate')
-			except:
-				print(benchmark_x_data)
-			gas_use_floor_space = int(postal_code_gas_use)/floor_space
-			# If there is not gas use, we cannot compare
-			if gas_use_floor_space == 0:
-				pass
+			dwelling_gas_use_percentile = float( benchmark(gas_use_floor_space))
+			# Extrapolation can give values outside of the domain
+			if dwelling_gas_use_percentile < 0:
+				dwelling_gas_use_percentile = 0
+			elif dwelling_gas_use_percentile > 100:
+				dwelling_gas_use_percentile = 100
 			else:
-				dwelling_gas_use_percentile = float( interpolated_function(gas_use_floor_space))
-				# Extrapolation can give values outside of the domain
-				if dwelling_gas_use_percentile < 0:
-					dwelling_gas_use_percentile = 0
-				elif dwelling_gas_use_percentile > 100:
-					dwelling_gas_use_percentile = 100
-				else:
-					pass
+				pass
 
 		boiler_p = boiler_p_base
 		dwelling_gas_use_percentile = round(dwelling_gas_use_percentile,2)
