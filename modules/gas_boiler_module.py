@@ -76,13 +76,13 @@ class GasBoilerModule(BaseModule):
 			SELECT aardgasleveringen_openbare_net
 			FROM cbs_83878ned_aardgaslevering_woningkenmerken
 			WHERE perioden = '2019'
-			AND energielabelklasse LIKE %s
-			AND woningkenmerken LIKE %s
-			AND gebruiks_oppervlakteklasse LIKE %s
-			AND bouwjaarklasse LIKE %s
-			AND percentielen NOT LIKE 'Gemiddelde'
+			AND energielabelklasse = %s
+			AND woningkenmerken = %s
+			AND gebruiks_oppervlakteklasse = %s
+			AND bouwjaarklasse = %s
+			AND percentielen != 'Gemiddelde'
 			ORDER BY aardgasleveringen_openbare_net
-			;"""
+			"""
 			cursor.execute(query_statement, item)
 			results = cursor.fetchall()
 			benchmark_y_data = [5, 25, 50, 75, 95]
