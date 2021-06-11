@@ -130,12 +130,11 @@ def load_energy_labels_data():
 	cursor = connection.cursor()
 	path = os.path.join(data_dir, FILENAME)
 
-
 	insert_statement = sql.SQL('INSERT INTO {table_name} VALUES %s').format(
 		table_name=sql.Identifier(env['EP_ONLINE_DBNAME'])
 	)
 
-	# bind variables so we can pass a unary function to fast_iter
+	# Bind variables so we can pass a unary function to fast_iter.
 	bounded_handle_element = partial(
 		handle_element,
 		cursor=cursor,
