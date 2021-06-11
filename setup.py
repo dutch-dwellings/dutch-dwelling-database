@@ -102,6 +102,9 @@ def cbs():
 		# Kerncijfers wijken en buurten 2020
 		# https://opendata.cbs.nl/portal.html?_la=nl&_catalog=CBS&tableId=84799NED&_theme=235
 		("84799NED", False),
+		# Kerncijfers wijken en buurten 2019
+		# https://opendata.cbs.nl/portal.html?_la=nl&_catalog=CBS&tableId=84583NED&_theme=235
+		("84583NED", False),
 		# Woonplaatsen in Nederland 2020
 		# https://www.cbs.nl/nl-nl/cijfers/detail/84734NED
 		("84734NED", False),
