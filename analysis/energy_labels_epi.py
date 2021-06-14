@@ -9,7 +9,7 @@ import seaborn as sns
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from utils.database_utils import get_connection
-from analyse_energy_labels import energy_label_colours_improved2 as energy_label_colours
+from energy_labels import energy_label_colours_improved2 as energy_label_colours
 from utils.file_utils import project_dir
 
 query = "SELECT energieprestatieindex, energieklasse, berekeningstype FROM energy_labels WHERE gebouwklasse = 'W' AND energieprestatieindex IS NOT NULL AND energieklasse is not NULL LIMIT 100000"
