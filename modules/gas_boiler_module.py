@@ -116,12 +116,7 @@ class GasBoilerModule(BaseModule):
 		floor_space = dwelling.attributes['oppervlakte']
 		building_year = dwelling.attributes['bouwjaar']
 		building_type = dwelling.attributes['woningtype']
-<<<<<<< HEAD
-		energy_label = self.energy_label.get(bag_id, 'Geen label')
-		dwelling.attributes['energylabel'] = energy_label
-=======
 		energy_label = self.energy_label.get(vbo_id, 'Geen label')
->>>>>>> 0cdaf3260d3602b175853bbf149de53149763ad4
 
 		# Make energy labels searchable
 		if energy_label == 'A+++':
@@ -198,10 +193,11 @@ class GasBoilerModule(BaseModule):
 		# If there is not gas use, we cannot compare
 		if gas_use_floor_space == 0:
 			pass
+		# If we do not have benchmark data, we cannot compare
 		elif benchmark == 0:
 			pass
 		else:
-			dwelling_gas_use_percentile = float( benchmark(gas_use_floor_space))
+			dwelling_gas_use_percentile = float( benchmark(gas_use_floor_space))/100
 			# Extrapolation can give values outside of the domain
 			if dwelling_gas_use_percentile < 0:
 				dwelling_gas_use_percentile = 0
@@ -209,11 +205,11 @@ class GasBoilerModule(BaseModule):
 				dwelling_gas_use_percentile = 1
 			else:
 				pass
-		# Need to look at this
-		print('boiler p base is ' + str(boiler_p_base))
-		print('percentile is ' + str(dwelling_gas_use_percentile))
-		boiler_p =   (boiler_p_base * (1 - boiler_p_base) * ((dwelling_gas_use_percentile - 1) + 1))
-		print('modidied boiler p is ' + str(boiler_p))
+
+		if boiler_p_base > 0.5:
+			boiler_p = boiler_p_base + (1 - boiler_p_base) * (dwelling_gas_use_percentile - 0.5 )
+		else:
+			boiler_p = boiler_p_base + ( boiler_p_base) * (dwelling_gas_use_percentile - 0.5 )
 		dwelling.attributes['gas_boiler_p'] = round(boiler_p,2)
 
 	outputs = {

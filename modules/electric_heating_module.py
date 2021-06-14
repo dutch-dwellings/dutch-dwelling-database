@@ -23,24 +23,12 @@ class ElectricHeatingModule(BaseModule):
 	def load_installation_type_data(self):
 		# create dictionary with buurt_id and percentage of gas boilers
 		cursor = self.connection.cursor()
-<<<<<<< HEAD
 		query_hybrid_heat_pumps = '''
-		SELECT wijken_en_buurten, woningen
-		FROM cbs_84983ned_woningen_hoofdverwarmings_buurt_2019
-		WHERE (wijken_en_buurten LIKE 'BU%')
-		AND type_verwarmingsinstallatie LIKE 'A050117'
-		AND woningen IS NOT null
-=======
-		query = '''
-		SELECT area_code, SUM(woningen) as woningen
+		SELECT area_code, woningen
 		FROM cbs_84983ned_woningen_hoofdverwarmings_buurt_2019_typed
 		WHERE (area_code LIKE 'BU%')
-		AND (type_verwarmingsinstallatie LIKE 'A050117'
-		OR type_verwarmingsinstallatie LIKE 'A050118'
-		OR type_verwarmingsinstallatie LIKE 'A050119')
+		AND type_verwarmingsinstallatie LIKE 'A050117'
 		AND woningen IS NOT null
-		GROUP BY area_code;
->>>>>>> 0cdaf3260d3602b175853bbf149de53149763ad4
 		'''
 		cursor.execute(query_hybrid_heat_pumps)
 		results = cursor.fetchall()
@@ -51,9 +39,9 @@ class ElectricHeatingModule(BaseModule):
 		}
 
 		query_low_gas = '''
-		SELECT wijken_en_buurten, woningen
-		FROM cbs_84983ned_woningen_hoofdverwarmings_buurt_2019
-		WHERE (wijken_en_buurten LIKE 'BU%')
+		SELECT area_code, woningen
+		FROM cbs_84983ned_woningen_hoofdverwarmings_buurt_2019_typed
+		WHERE (area_code LIKE 'BU%')
 		AND type_verwarmingsinstallatie LIKE 'A050118'
 		AND woningen IS NOT null
 		'''
@@ -66,9 +54,9 @@ class ElectricHeatingModule(BaseModule):
 		}
 
 		query_no_gas = '''
-		SELECT wijken_en_buurten, woningen
-		FROM cbs_84983ned_woningen_hoofdverwarmings_buurt_2019
-		WHERE (wijken_en_buurten LIKE 'BU%')
+		SELECT area_code, woningen
+		FROM cbs_84983ned_woningen_hoofdverwarmings_buurt_2019_typed
+		WHERE (area_code LIKE 'BU%')
 		AND type_verwarmingsinstallatie LIKE 'A050119'
 		AND woningen IS NOT null
 		'''
@@ -112,12 +100,12 @@ class ElectricHeatingModule(BaseModule):
 	def load_energy_label_data(self):
 		cursor = self.connection.cursor()
 		# create dictionary with BAG_ID and energy label
-		query = "SELECT pand_bagverblijfsobjectid, pand_energieklasse FROM energy_labels WHERE pand_bagverblijfsobjectid IS NOT null AND pand_energieklasse IS NOT null;"
+		query = "SELECT vbo_id, energieklasse FROM energy_labels WHERE vbo_id IS NOT null AND energieklasse IS NOT null"
 		cursor.execute(query)
 		results = cursor.fetchall()
 		self.energy_label = {
-			bag_id: energy_label
-			for (bag_id, energy_label)
+			vbo_id: energy_label
+			for (vbo_id, energy_label)
 			in results
 		}
 		cursor.close()
@@ -161,13 +149,14 @@ class ElectricHeatingModule(BaseModule):
 		super().process(dwelling)
 
 		# Base probability of having different types of electric heating
+		vbo_id = dwelling.attributes['vbo_id']
 		buurt_id = dwelling.attributes['buurt_id']
 		hybrid_heat_pump_p_base = self.buurten_hybrid_heat_pump_data.get(buurt_id, 0) / 100
 		elec_low_gas_p_base = self.buurten_elec_low_gas_data.get(buurt_id, 0) / 100
 		elec_no_gas_p_base = self.buurten_elec_no_gas__data.get(buurt_id, 0) / 100
 		# Placeholder electric boiler probability
 		elec_boiler_p_base = elec_low_gas_p_base + elec_no_gas_p_base
-
+		
 		# Electricity use in postal code
 		postal_code = dwelling.attributes['pc6']
 		postal_code_elec_use = self.postcode_elec_use_data.get(postal_code, 0)
@@ -178,7 +167,7 @@ class ElectricHeatingModule(BaseModule):
 		household_size = round(self.postcode_household_size_data.get(postal_code,0))
 		if household_size <= 0:
 			household_size = 1
-		energy_label = dwelling.attributes['energylabel']
+		energy_label = self.energy_label.get(vbo_id, 'Geen label')
 
 		# We assume there are only heat pumps in dwellings with energylabel C or higher
 		if energy_label == 'A+++' or energy_label == 'A++' or energy_label == 'A+' or energy_label == 'A' or energy_label == 'B' or energy_label == 'C':
@@ -241,7 +230,7 @@ class ElectricHeatingModule(BaseModule):
 		elif benchmark == 0:
 			pass
 		else:
-			dwelling_elec_use_percentile = float(benchmark(dwelling_elec_use_per_person))
+			dwelling_elec_use_percentile = float(benchmark(dwelling_elec_use_per_person))/100
 			# Extrapolation can give values outside of the domain
 			if dwelling_elec_use_percentile < 0:
 				dwelling_elec_use_percentile = 0
@@ -249,7 +238,11 @@ class ElectricHeatingModule(BaseModule):
 				dwelling_elec_use_percentile = 1
 			else:
 				pass
-		elec_boiler_p = 0.5 *(elec_boiler_p_base * (1 - elec_boiler_p_base) * ((dwelling_elec_use_percentile - 1 ) + 1))
+		if elec_boiler_p_base > 0.5:
+			elec_boiler_p = elec_boiler_p_base + (1 - elec_boiler_p_base) * (dwelling_elec_use_percentile - 0.5 )
+		else:
+			elec_boiler_p = elec_boiler_p_base + ( elec_boiler_p_base) * (dwelling_elec_use_percentile - 0.5 )
+
 		dwelling.attributes['hybrid_heat_pump_p'] = round(hybrid_heat_pump_p,2)
 		dwelling.attributes['elec_boiler_p'] = round(elec_boiler_p,2)
 
@@ -268,7 +261,7 @@ class ElectricHeatingModule(BaseModule):
 			'sampling': True,
 			'distribution': 'elec_boiler_p'
 		},
-		'electric_boiler_p': {
+		'elec_boiler_p': {
 			'type': 'float',
 			'sampling': False,
 		}

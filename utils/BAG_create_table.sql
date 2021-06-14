@@ -12,5 +12,5 @@ CREATE TABLE IF NOT EXISTS bag
 	pand_aandeel double precision, -- check: how precise is double precision?
 	woningtype varchar,
 	pand_id character(16),
-	buurt_id character(16)
+	buurt_id character(10)
 );
