@@ -1,7 +1,7 @@
 -- use IF NOT EXISTS to make the statement idempotent
 CREATE TABLE IF NOT EXISTS cbs_pc6_2017_kerncijfers
 (
-PC6 varchar,
+PC6 character varying(6),
 INWONER int,
 MAN int,
 VROUW int,

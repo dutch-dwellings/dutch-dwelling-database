@@ -3,5 +3,5 @@
 DROP TABLE IF EXISTS results;
 CREATE TABLE IF NOT EXISTS results
 (
-	identificatie varchar
+	vbo_id character(16)
 );

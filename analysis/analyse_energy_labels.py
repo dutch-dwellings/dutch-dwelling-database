@@ -60,19 +60,19 @@ energy_label_colours_improved2 = {
 
 
 building_type_title = "Number of dwellings per building type (EP-Online)"
-building_type_query = "SELECT pand_gebouwtype, COUNT(*) FROM energy_labels WHERE pand_gebouwklasse = 'W' GROUP BY pand_gebouwtype"
+building_type_query = "SELECT gebouwtype, COUNT(*) FROM energy_labels WHERE gebouwklasse = 'W' GROUP BY gebouwtype"
 
 energy_label_title = "Number of dwellings per energy label (EP-Online)"
-energy_label_query = "SELECT pand_energieklasse, COUNT(*) FROM energy_labels WHERE pand_gebouwklasse = 'W' GROUP BY pand_energieklasse"
+energy_label_query = "SELECT energieklasse, COUNT(*) FROM energy_labels WHERE gebouwklasse = 'W' GROUP BY energieklasse"
 
 # query_to_table(building_type_query, title=building_type_title, total=True)
 # query_to_table(energy_label_query, title=energy_label_title, total=True)
 
 inspection_year_title = "Number of energy label recordings per year"
-inspection_year_query = "SELECT date_part('year', pand_opnamedatum), COUNT(*) FROM energy_labels WHERE pand_gebouwklasse = 'W' GROUP BY date_part('year', pand_opnamedatum)"
+inspection_year_query = "SELECT date_part('year', opnamedatum), COUNT(*) FROM energy_labels WHERE gebouwklasse = 'W' GROUP BY date_part('year', opnamedatum)"
 
 energy_label_year_title = "Energy labels per recording year"
-energy_label_year_query = "SELECT pand_energieklasse, COUNT(*) FROM energy_labels WHERE pand_gebouwklasse = 'W' AND date_part('year', pand_opnamedatum) = %s GROUP BY pand_energieklasse;"
+energy_label_year_query = "SELECT energieklasse, COUNT(*) FROM energy_labels WHERE gebouwklasse = 'W' AND date_part('year', opnamedatum) = %s GROUP BY energieklasse;"
 
 
 def energy_labels_per_building_year(cursor, relative=False):
@@ -80,9 +80,9 @@ def energy_labels_per_building_year(cursor, relative=False):
 	building_year_title = "Energy labels per building year"
 	# This takes a while
 	building_year_query = (
-		"SELECT bag.bouwjaar as year, energy_labels.pand_energieklasse as label, COUNT(*)"
+		"SELECT bag.bouwjaar as year, energy_labels.energieklasse as label, COUNT(*)"
 		" FROM energy_labels, bag"
-		" WHERE energy_labels.pand_bagverblijfsobjectid = bag.identificatie"
+		" WHERE energy_labels.vbo_id = bag.vbo_id"
 		" AND bag.bouwjaar IS NOT NULL"
 		" GROUP BY year, label"
 	)
@@ -132,7 +132,7 @@ def main():
 
 # TODO:
 # check boundaries of energieprestatieindex:
-# SELECT pand_energieklasse, MIN(pand_energieprestatieindex), MAX(pand_energieprestatieindex) FROM energy_labels WHERE pand_energieklasse IS NOT NULL AND pand_energieprestatieindex IS NOT NULL GROUP BY pand_energieklasse;
+# SELECT energieklasse, MIN(energieprestatieindex), MAX(energieprestatieindex) FROM energy_labels WHERE energieklasse IS NOT NULL AND energieprestatieindex IS NOT NULL GROUP BY energieklasse;
 # it doesn't seem to be very useful, ranges are all over the place
 
 
@@ -144,9 +144,9 @@ def main():
 # from dwellings inside that building as a measurement.
 #
 # To get these panden with multiple energy labels:
-# SELECT pand_bagpandid FROM energy_labels GROUP BY pand_bagpandid HAVING COUNT(*) > 1
+# SELECT bagpandid FROM energy_labels GROUP BY bagpandid HAVING COUNT(*) > 1
 # And to select the labels in those panden:
-# SELECT pand_bagpandid, pand_energieklasse FROM energy_labels WHERE pand_bagpandid IN (SELECT pand_bagpandid FROM energy_labels GROUP BY pand_bagpandid HAVING COUNT(*) > 1) AND pand_gebouwklasse = 'W';
+# SELECT bagpandid, energieklasse FROM energy_labels WHERE bagpandid IN (SELECT bagpandid FROM energy_labels GROUP BY bagpandid HAVING COUNT(*) > 1) AND gebouwklasse = 'W';
 #
 # Final use case:
 # Predict an energy_label (or a 95% range of energy_labels) based on other measured energy_labels
@@ -155,14 +155,14 @@ def main():
 # Related: doing this not for dwellings in the same building, but dwellings neighbouring each other, or within a certain radius of each other, or within the same block.
 #
 # Note: this might no be so useful since a majority of dwellings is in it's own building (5 133 559), see:
-# SELECT pand_count, COUNT(pand_count) FROM (
-# 	SELECT pand_id, COUNT(pand_id) as pand_count FROM bag GROUP BY pand_id
+# SELECT count, COUNT(count) FROM (
+# 	SELECT id, COUNT(id) as count FROM bag GROUP BY id
 # ) s
-# GROUP BY pand_count
-# ORDER BY pand_count DESC
+# GROUP BY count
+# ORDER BY count DESC
 
 # Best wel wat dubbele verblijfsobjecten:
-# SELECT pand_bagverblijfsobjectid, COUNT(pand_bagverblijfsobjectid) FROM energy_labels GROUP BY pand_bagverblijfsobjectid HAVING COUNT(pand_bagverblijfsobjectid) > 1
+# SELECT vbo_id, COUNT(vbo_id) FROM energy_labels GROUP BY vbo_id HAVING COUNT(vbo_id) > 1
 # Waarvan ook 19 met '0000000...'
 
 if __name__ == '__main__':

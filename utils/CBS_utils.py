@@ -146,13 +146,17 @@ def sanitize_column_title(title, strip_digits=True):
 	words = re.findall('[a-zA-Z][^A-Z]*', title)
 	return '_'.join([word.lower() for word in words])
 
-def get_sanitized_cbs_table_title(table_id):
+def get_sanitized_cbs_table_title(table_id, typed_data_set):
 	table_info = cbsodata.get_info(table_id)
 
 	table_short_title = table_info['ShortTitle']
 	table_sanitized_title = sanitize_cbs_title(table_short_title)
 
-	return f'CBS_{table_id}_{table_sanitized_title}'.lower()
+	postfix = ''
+	if typed_data_set:
+		postfix += '_typed'
+
+	return f'CBS_{table_id}_{table_sanitized_title}{postfix}'.lower()
 
 def get_cbs_table_columns(table_id):
 	properties = cbsodata.get_meta(table_id, 'DataProperties')
@@ -172,15 +176,14 @@ def get_cbs_table_columns(table_id):
 
 	return columns
 
-def create_table_for_cbs_table(table_id):
+def create_table_for_cbs_table(table_id, table_name):
 	'''
 	Create a Postgres table (if it not exists yet)
 	with a sanitized name based on the CBS table name,
 	with a matching table layout of the downloaded CBS data.
 	'''
-	table_title = get_sanitized_cbs_table_title(table_id)
 	columns = get_cbs_table_columns(table_id)
-	create_table(table_title, columns)
+	create_table(table_name, columns)
 
 def sanitize_data(value):
 	# CBS data is sometimes padded to a fixed
@@ -214,7 +217,7 @@ def add_indices(table_name):
 	try:
 		add_index(table_name, 'codering')
 	except UndefinedColumn as e:
-		print("Could not add primary key on column 'codering' since it does not exist")
+		print("Did not add primary key on column 'codering' since it does not exist")
 
 def load_cbs_table(table_id, typed_data_set=False):
 	'''
@@ -222,7 +225,8 @@ def load_cbs_table(table_id, typed_data_set=False):
 	downloads the data from CBS, and loads the data into
 	the Postgres table.
 	'''
-	table_name = get_sanitized_cbs_table_title(table_id)
+	table_name = get_sanitized_cbs_table_title(table_id, typed_data_set)
+
 	print(f'Loading CBS table {table_name}')
 
 	# Do not load data
@@ -231,7 +235,7 @@ def load_cbs_table(table_id, typed_data_set=False):
 
 	else:
 		print('Creating table...')
-		create_table_for_cbs_table(table_id)
+		create_table_for_cbs_table(table_id, table_name)
 
 		print('Downloading data...')
 		if typed_data_set:

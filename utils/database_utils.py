@@ -5,7 +5,7 @@ import psycopg2
 from psycopg2 import sql
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT, AsIs
 from psycopg2.extras import DictCursor
-from psycopg2.errors import InvalidTableDefinition
+from psycopg2.errors import InvalidTableDefinition, UndefinedColumn
 
 # Required for relative imports to also work when called
 # from project root directory.
@@ -49,16 +49,8 @@ def create_database(dbname=env['POSTGRES_DBNAME']):
 	connection.close()
 
 def execute_file(path):
-
-	connection = get_connection()
-	cursor = connection.cursor()
-
 	with open(path, 'r') as file:
-		cursor.execute(file.read())
-
-	cursor.close()
-	connection.commit()
-	connection.close()
+		execute(file.read())
 
 def add_column(table_name, column_name, data_type, connection):
 	cursor = connection.cursor()
@@ -155,12 +147,7 @@ def add_index(table_name, column_name):
 			table_name = sql.Identifier(table_name),
 			column_name = sql.Identifier(column_name)
 		)
-	connection = get_connection()
-	cursor = connection.cursor()
-	cursor.execute(statement)
-	cursor.close()
-	connection.commit()
-	connection.close()
+	execute(statement)
 
 def make_primary_key(table_name, column_name):
 	'''
@@ -171,19 +158,12 @@ def make_primary_key(table_name, column_name):
 			table_name = sql.Identifier(table_name),
 			column_name = sql.Identifier(column_name)
 		)
-	connection = get_connection()
-	cursor = connection.cursor()
-
 	try:
-		cursor.execute(statement)
+		execute(statement)
 	# Happens when we already added a primary key,
 	# so we catch it and do nothing, makes it idempotent.
 	except InvalidTableDefinition as e:
 		print(f"Table '{table_name}' already has primary key on column '{column_name}'")
-
-	cursor.close()
-	connection.commit()
-	connection.close()
 
 def table_exists(table_name, dbname=env['POSTGRES_DBNAME']):
 	'''
@@ -215,3 +195,38 @@ def table_empty(table_name):
 		return False
 	else:
 		return True
+
+def execute(statement):
+	connection = get_connection()
+	cursor = connection.cursor()
+	try:
+		cursor.execute(statement)
+	except Exception as e:
+		raise(e)
+	# Even when an error is raised during execution,
+	# we need to clean up the cursor and connection.
+	finally:
+		cursor.close()
+		connection.commit()
+		connection.close()
+
+def rename_column(table_name, col_name, new_col_name):
+	statement = sql.SQL("ALTER TABLE {table_name} RENAME COLUMN {col_name} TO {new_col_name}").format(
+		table_name=sql.Identifier(table_name),
+		col_name=sql.Identifier(col_name),
+		new_col_name=sql.Identifier(new_col_name)
+	)
+	try:
+		execute(statement)
+	except UndefinedColumn:
+		print(f'Did not rename column {col_name} to {new_col_name} since it does not exist.')
+
+def delete_column(table_name, col_name):
+	statement = sql.SQL("ALTER TABLE {table_name} DROP COLUMN {col_name}").format(
+		table_name=sql.Identifier(table_name),
+		col_name=sql.Identifier(col_name)
+	)
+	try:
+		execute(statement)
+	except UndefinedColumn:
+		print(f'Did not drop column {col_name} since it does not exist.')

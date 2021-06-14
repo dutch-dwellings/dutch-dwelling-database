@@ -1,4 +1,4 @@
-from utils.database_utils import create_database, add_index, make_primary_key
+from utils.database_utils import create_database, add_index, make_primary_key, rename_column, delete_column
 
 from utils.BAG_create_table import main as create_BAG_table
 from utils.BAG_load import main as load_BAG
@@ -31,8 +31,7 @@ def bag():
 	load_BAG()
 
 	print('Creating indexes...')
-	make_primary_key('bag', 'identificatie')
-	add_index('bag', 'postcode')
+	add_index('bag', 'pc6')
 	add_index('bag', 'pand_id')
 
 def CBS_PC6():
@@ -41,6 +40,9 @@ def CBS_PC6():
 
 	print('Loading the data into Postgres...')
 	load_CBS_PC6_2019_energy_use()
+
+	print('Creating indexes...')
+	add_index('cbs_pc6_2019_energy_use', 'pc6')
 
 def CBS_kerncijfers():
 	print('Creating table for CBS PC6...')
@@ -80,9 +82,15 @@ def energy_labels():
 	print('Loading the data into Postgres...')
 	load_energy_labels_data()
 
+	print('Deleting columns...')
+	# is always NULL
+	delete_column('energy_labels', 'bagstandplaatsid')
+	# is only relevant for 'U' buildings
+	delete_column('energy_labels', 'sbicode')
+
 	print('Creating indexes...')
-	add_index('energy_labels', 'pand_bagverblijfsobjectid')
-	add_index('energy_labels', 'pand_bagpandid')
+	add_index('energy_labels', 'vbo_id')
+	add_index('energy_labels', 'pand_id')
 
 def cbs():
 	# Include a tuple with (table_id, typed_data_set),
@@ -99,6 +107,9 @@ def cbs():
 		# Kerncijfers wijken en buurten 2020
 		# https://opendata.cbs.nl/portal.html?_la=nl&_catalog=CBS&tableId=84799NED&_theme=235
 		("84799NED", False),
+		# Kerncijfers wijken en buurten 2019
+		# https://opendata.cbs.nl/portal.html?_la=nl&_catalog=CBS&tableId=84583NED&_theme=235
+		("84583NED", False),
 		# Woonplaatsen in Nederland 2020
 		# https://www.cbs.nl/nl-nl/cijfers/detail/84734NED
 		("84734NED", False),
@@ -111,6 +122,23 @@ def cbs():
 	]
 	for table in cbs_tables:
 		load_cbs_table(table[0], typed_data_set=table[1])
+
+	print('Renaming columns...')
+	column_renames = [
+		# Format: (table_name, col_name, new_col_name)
+		('cbs_84799ned_kerncijfers_wijken_en_buurten_2020', 'codering', 'area_code'),
+		('cbs_84983ned_woningen_hoofdverwarmings_buurt_2019_typed', 'wijken_en_buurten', 'area_code')
+	]
+	for rename in column_renames:
+		rename_column(*rename)
+
+	print('Creating indexes...')
+	indexes = [
+		('cbs_84799ned_kerncijfers_wijken_en_buurten_2020', 'area_code'),
+		('cbs_84983ned_woningen_hoofdverwarmings_buurt_2019_typed', 'area_code')
+	]
+	for index in indexes:
+		add_index(*index)
 
 def main():
 

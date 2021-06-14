@@ -23,7 +23,7 @@ class GasBoilerModule(BaseModule):
 	def load_installation_type_data(self):
 		cursor = self.connection.cursor()
 		# create dictionary with buurt_id and percentage of gas boilers
-		query = "SELECT wijken_en_buurten, woningen FROM cbs_84983ned_woningen_hoofdverwarmings_buurt_2019 WHERE wijken_en_buurten LIKE 'BU%' AND type_verwarmingsinstallatie LIKE 'A050112'AND woningen IS NOT null"
+		query = "SELECT area_code, woningen FROM cbs_84983ned_woningen_hoofdverwarmings_buurt_2019_typed WHERE area_code LIKE 'BU%' AND type_verwarmingsinstallatie LIKE 'A050112'AND woningen IS NOT null"
 		# A050112 is the code for a gas boiler
 		cursor.execute(query)
 		results = cursor.fetchall()
@@ -37,7 +37,7 @@ class GasBoilerModule(BaseModule):
 	def load_gas_use_data(self):
 		# Create list of tuples with postal code, buurt_id, amount of dwellings in the postal code and the average gas use of the dwellings
 		cursor = self.connection.cursor()
-		query = "SELECT postcode6, gemiddelde_aardgaslevering_woningen FROM cbs_pc6_2019_energy_use WHERE gemiddelde_aardgaslevering_woningen IS NOT null;"
+		query = "SELECT pc6, gemiddelde_aardgaslevering_woningen FROM cbs_pc6_2019_energy_use WHERE gemiddelde_aardgaslevering_woningen IS NOT null"
 		cursor.execute(query)
 		results = cursor.fetchall()
 		self.postcode_gas_use_data = {
@@ -50,12 +50,12 @@ class GasBoilerModule(BaseModule):
 	def load_energy_label_data(self):
 		cursor = self.connection.cursor()
 		# create dictionary with BAG_ID and energy label
-		query = "SELECT pand_bagverblijfsobjectid, pand_energieklasse FROM energy_labels WHERE pand_bagverblijfsobjectid IS NOT null AND pand_energieklasse IS NOT null;"
+		query = "SELECT vbo_id, energieklasse FROM energy_labels WHERE vbo_id IS NOT null AND energieklasse IS NOT null"
 		cursor.execute(query)
 		results = cursor.fetchall()
 		self.energy_label = {
-			bag_id: energy_label
-			for (bag_id, energy_label)
+			vbo_id: energy_label
+			for (vbo_id, energy_label)
 			in results
 		}
 		cursor.close()
@@ -77,13 +77,13 @@ class GasBoilerModule(BaseModule):
 			SELECT aardgasleveringen_openbare_net
 			FROM cbs_83878ned_aardgaslevering_woningkenmerken
 			WHERE perioden = '2019'
-			AND energielabelklasse LIKE %s
-			AND woningkenmerken LIKE %s
-			AND gebruiks_oppervlakteklasse LIKE %s
-			AND bouwjaarklasse LIKE %s
-			AND percentielen NOT LIKE 'Gemiddelde'
+			AND energielabelklasse = %s
+			AND woningkenmerken = %s
+			AND gebruiks_oppervlakteklasse = %s
+			AND bouwjaarklasse = %s
+			AND percentielen != 'Gemiddelde'
 			ORDER BY aardgasleveringen_openbare_net
-			;"""
+			"""
 			cursor.execute(query_statement, item)
 			results = cursor.fetchall()
 			# Interpolate the data, with extrapolation for <5 and >95 percentile
@@ -108,16 +108,20 @@ class GasBoilerModule(BaseModule):
 		boiler_p_base = self.buurten_verwarming_data.get(buurt_id, 0) / 100
 
 		# Gas use in postal code
-		postal_code = dwelling.attributes['postcode']
+		postal_code = dwelling.attributes['pc6']
 		postal_code_gas_use = self.postcode_gas_use_data.get(postal_code, 0)
 
 		# Get dwellings attributes which serve as CBS data lookup values
-		bag_id = dwelling.attributes['identificatie']
+		vbo_id = dwelling.attributes['vbo_id']
 		floor_space = dwelling.attributes['oppervlakte']
 		building_year = dwelling.attributes['bouwjaar']
 		building_type = dwelling.attributes['woningtype']
+<<<<<<< HEAD
 		energy_label = self.energy_label.get(bag_id, 'Geen label')
 		dwelling.attributes['energylabel'] = energy_label
+=======
+		energy_label = self.energy_label.get(vbo_id, 'Geen label')
+>>>>>>> 0cdaf3260d3602b175853bbf149de53149763ad4
 
 		# Make energy labels searchable
 		if energy_label == 'A+++':

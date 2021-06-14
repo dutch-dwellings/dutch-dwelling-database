@@ -23,12 +23,24 @@ class ElectricHeatingModule(BaseModule):
 	def load_installation_type_data(self):
 		# create dictionary with buurt_id and percentage of gas boilers
 		cursor = self.connection.cursor()
+<<<<<<< HEAD
 		query_hybrid_heat_pumps = '''
 		SELECT wijken_en_buurten, woningen
 		FROM cbs_84983ned_woningen_hoofdverwarmings_buurt_2019
 		WHERE (wijken_en_buurten LIKE 'BU%')
 		AND type_verwarmingsinstallatie LIKE 'A050117'
 		AND woningen IS NOT null
+=======
+		query = '''
+		SELECT area_code, SUM(woningen) as woningen
+		FROM cbs_84983ned_woningen_hoofdverwarmings_buurt_2019_typed
+		WHERE (area_code LIKE 'BU%')
+		AND (type_verwarmingsinstallatie LIKE 'A050117'
+		OR type_verwarmingsinstallatie LIKE 'A050118'
+		OR type_verwarmingsinstallatie LIKE 'A050119')
+		AND woningen IS NOT null
+		GROUP BY area_code;
+>>>>>>> 0cdaf3260d3602b175853bbf149de53149763ad4
 		'''
 		cursor.execute(query_hybrid_heat_pumps)
 		results = cursor.fetchall()
@@ -72,7 +84,7 @@ class ElectricHeatingModule(BaseModule):
 	def load_elec_use_data(self):
 		# Create dictionary which relates the postal code of a dwelling and the electricity use of that postal code
 		cursor = self.connection.cursor()
-		query = "SELECT postcode6, gemiddelde_elektriciteitslevering_woningen FROM cbs_pc6_2019_energy_use WHERE gemiddelde_elektriciteitslevering_woningen IS NOT NULL;"
+		query = "SELECT pc6, gemiddelde_elektriciteitslevering_woningen FROM cbs_pc6_2019_energy_use WHERE gemiddelde_elektriciteitslevering_woningen IS NOT NULL;"
 		cursor.execute(query)
 		results = cursor.fetchall()
 		self.postcode_elec_use_data = {
@@ -157,11 +169,10 @@ class ElectricHeatingModule(BaseModule):
 		elec_boiler_p_base = elec_low_gas_p_base + elec_no_gas_p_base
 
 		# Electricity use in postal code
-		postal_code = dwelling.attributes['postcode']
+		postal_code = dwelling.attributes['pc6']
 		postal_code_elec_use = self.postcode_elec_use_data.get(postal_code, 0)
 
 		# Get dwellings attributes
-		bag_id = dwelling.attributes['identificatie']
 		floor_space = dwelling.attributes['oppervlakte']
 		building_type = dwelling.attributes['woningtype']
 		household_size = round(self.postcode_household_size_data.get(postal_code,0))
