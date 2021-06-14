@@ -61,7 +61,7 @@ class GasBoilerModule(BaseModule):
 		cursor.close()
 
 	def create_benchmark(self):
-		# This is a holdover from another approach. Could be useful to maybe increase efficiency by first interpolating the benchmarks and only comparing the gas use per square meter in the process function.
+		# Create all possible combinations of characteristics
 		label_tuple = ('A-label', 'B-label', 'C-label', 'D-label', 'E-label', 'F-label', 'G-label', 'Geen label')
 		building_type_tuple = ('Appartement', 'Hoekwoning', '2-onder-1-kapwoning', 'Tussenwoning', 'Vrijstaande woning')
 		area_ranges_tuple = ('15 tot 50 m²', '50 tot 75 m²', '75 tot 100 m²', '100 tot 150 m²', '150 tot 250 m²', '250 tot 500 m²')
@@ -70,6 +70,7 @@ class GasBoilerModule(BaseModule):
 		combination_tuple = list(itertools.product(label_tuple, building_type_tuple, area_ranges_tuple, building_years_tuple))
 		self.gas_benchmark_dict = {}
 
+		# Look up gas use data for all possible building types
 		for item in combination_tuple:
 			cursor = self.connection.cursor()
 			query_statement = """
@@ -85,13 +86,15 @@ class GasBoilerModule(BaseModule):
 			;"""
 			cursor.execute(query_statement, item)
 			results = cursor.fetchall()
+			# Interpolate the data, with extrapolation for <5 and >95 percentile
 			benchmark_y_data = [5, 25, 50, 75, 95]
 			benchmark_x_data = [x for x in results]
 			benchmark_x_data = list(sum(benchmark_x_data, ()))
 			if None in benchmark_x_data or benchmark_x_data == []:
+				# Need to find a way to make this have results. Query for totaal? How to find the characteristic that is the culprit?
 				pass
-			# Interpolate the data, with extrapolation for <5 and >95 percentile
 			else:
+				# Remove duplicate x values for interpolation
 				if benchmark_x_data[3] == benchmark_x_data[4]:
 					benchmark_x_data[4] == benchmark_x_data[4] + 0.1
 
@@ -114,6 +117,7 @@ class GasBoilerModule(BaseModule):
 		building_year = dwelling.attributes['bouwjaar']
 		building_type = dwelling.attributes['woningtype']
 		energy_label = self.energy_label.get(bag_id, 'Geen label')
+		dwelling.attributes['energylabel'] = energy_label
 
 		# Make energy labels searchable
 		if energy_label == 'A+++':
@@ -150,36 +154,33 @@ class GasBoilerModule(BaseModule):
 			building_type = 'Appartement'
 		elif building_type == 'meergezinspand_laag_midden':
 			building_type = 'Appartement'
-		# There are 51474 dwellings in the BAG that do not have a building type assigned. These are demolished buildings.
-		else:
-			building_type = ''
 
 		# Make areas searchable
 		if floor_space < 50:
 			floor_space_string = '15 tot 50 m²'
-		elif floor_space >= 50 and floor_space <75:
+		elif floor_space >= 50 and floor_space < 75:
 			floor_space_string = '50 tot 75 m²'
-		elif floor_space >= 75 and floor_space <100:
+		elif floor_space >= 75 and floor_space < 100:
 			floor_space_string = '75 tot 100 m²'
-		elif floor_space >= 100 and floor_space<150:
+		elif floor_space >= 100 and floor_space < 150:
 			floor_space_string = '100 tot 150 m²'
-		elif floor_space >= 150 and floor_space<250:
+		elif floor_space >= 150 and floor_space < 250:
 			floor_space_string = '150 tot 250 m²'
-		elif floor_space >=250:
+		elif floor_space >= 250:
 			floor_space_string = '250 tot 500 m²'
 
 		# Make building years searchable
 		if building_year < 1946:
 			building_year_string = '1000 tot 1946'
-		elif building_year >= 1946 and building_year<1965:
+		elif building_year >= 1946 and building_year < 1965:
 			building_year_string = '1946 tot 1965'
-		elif building_year >= 1965 and building_year <1975:
+		elif building_year >= 1965 and building_year < 1975:
 			building_year_string = '1965 tot 1975'
-		elif building_year >= 1975 and building_year<1992:
+		elif building_year >= 1975 and building_year < 1992:
 			building_year_string = '1975 tot 1992'
-		elif building_year >= 1992 and building_year <2000:
+		elif building_year >= 1992 and building_year < 2000:
 			building_year_string = '1992 tot 2000'
-		elif building_year >= 2000 and building_year <2014:
+		elif building_year >= 2000 and building_year < 2014:
 			building_year_string = '2000 tot 2014'
 		elif building_year >= 2014:
 			building_year_string = 'Vanaf 2014'
@@ -191,24 +192,34 @@ class GasBoilerModule(BaseModule):
 		benchmark = self.gas_benchmark_dict.get(dwelling_characteristics_tuple,0)
 		gas_use_floor_space = int(postal_code_gas_use)/floor_space
 		# If there is not gas use, we cannot compare
-		if gas_use_floor_space == 0 or benchmark == 0:
+		if gas_use_floor_space == 0:
+			pass
+		elif benchmark == 0:
 			pass
 		else:
 			dwelling_gas_use_percentile = float( benchmark(gas_use_floor_space))
 			# Extrapolation can give values outside of the domain
 			if dwelling_gas_use_percentile < 0:
 				dwelling_gas_use_percentile = 0
-			elif dwelling_gas_use_percentile > 100:
-				dwelling_gas_use_percentile = 100
+			elif dwelling_gas_use_percentile > 1:
+				dwelling_gas_use_percentile = 1
 			else:
 				pass
-
-		boiler_p = boiler_p_base
-		dwelling_gas_use_percentile = round(dwelling_gas_use_percentile,2)
-		dwelling.attributes['dwelling_gas_use_percentile'] = dwelling_gas_use_percentile
+		# Need to look at this
+		print('boiler p base is ' + str(boiler_p_base))
+		print('percentile is ' + str(dwelling_gas_use_percentile))
+		boiler_p =   (boiler_p_base * (1 - boiler_p_base) * ((dwelling_gas_use_percentile - 1) + 1))
+		print('modidied boiler p is ' + str(boiler_p))
+		dwelling.attributes['gas_boiler_p'] = round(boiler_p,2)
 
 	outputs = {
-		'dwelling_gas_use_percentile': {
-			'type': 'double precision'
+		'gas_boiler': {
+			'type': 'boolean',
+			'sampling': True,
+			'distribution': 'gas_boiler_p'
+		},
+		'gas_boiler_p': {
+			'type': 'float',
+			'sampling': False,
 		}
 	}

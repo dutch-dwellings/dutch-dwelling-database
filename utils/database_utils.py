@@ -93,7 +93,7 @@ def get_bag_sample(connection, n=1000):
 	required_share = n / n_rows * speed_up
 
 	cursor = connection.cursor(cursor_factory=DictCursor)
-	query = "SELECT * FROM bag WHERE random() < %s LIMIT %s"
+	query = "SELECT * FROM bag WHERE random() < %s AND bouwjaar IS NOT null LIMIT %s "
 	cursor.execute(query, (required_share, n))
 	sample = cursor.fetchall()
 	cursor.close()
