@@ -7,9 +7,14 @@ from utils.create_results_table import main as create_results_table
 
 from modules.dwelling import Dwelling
 
+comparison = 1
 from modules.district_heating_module import DistrictHeatingModule
-from modules.gas_boiler_module import GasBoilerModule
-from modules.electric_heating_module import ElectricHeatingModule
+if comparison == 1:
+	from modules.gas_boiler_module_nbh_comparison import GasBoilerModule
+	from modules.electric_heating_module_nbh_comparison import ElectricHeatingModule
+else:
+	from modules.gas_boiler_module import GasBoilerModule
+	from modules.electric_heating_module import ElectricHeatingModule
 from modules.sampling_module import SamplingModule
 
 

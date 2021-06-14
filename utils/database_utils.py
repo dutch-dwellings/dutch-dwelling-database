@@ -91,6 +91,14 @@ def get_bag_sample(connection, n=1000):
 	cursor.close()
 	return sample
 
+def get_neighbourhood_dwellings(connection, buurt_id):
+	cursor = connection.cursor(cursor_factory=DictCursor)
+	query = "SELECT * FROM bag WHERE buurt_id = %s AND bouwjaar IS NOT null"
+	cursor.execute(query, (buurt_id,))
+	sample = cursor.fetchall()
+	cursor.close()
+	return sample
+
 def insert_dict(table_name, row_dict, cursor):
 	# implementation adapted from
 	# https://stackoverflow.com/a/29471241/7770056
