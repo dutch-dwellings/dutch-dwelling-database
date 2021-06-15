@@ -105,7 +105,7 @@ class GasBoilerModule(BaseModule):
 		super().process(dwelling)
 		# Get base probability from percentage of dwellings with gas boiler in neighbourhood
 		buurt_id = dwelling.attributes['buurt_id']
-		boiler_p_base = self.buurten_verwarming_data.get(buurt_id, 0) / 100
+		boiler_p = self.buurten_verwarming_data.get(buurt_id, 0) / 100
 
 		# Gas use in postal code
 		postal_code = dwelling.attributes['pc6']
@@ -205,11 +205,7 @@ class GasBoilerModule(BaseModule):
 				dwelling_gas_use_percentile = 1
 			else:
 				pass
-
-		if boiler_p_base > 0.5:
-			boiler_p = boiler_p_base + (1 - boiler_p_base) * (dwelling_gas_use_percentile - 0.5 )
-		else:
-			boiler_p = boiler_p_base + ( boiler_p_base) * (dwelling_gas_use_percentile - 0.5 )
+		boiler_p = self.modify_probability(boiler_p, dwelling_gas_use_percentile)
 		dwelling.attributes['gas_boiler_p'] = round(boiler_p,2)
 
 	outputs = {

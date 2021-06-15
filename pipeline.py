@@ -7,7 +7,7 @@ from utils.create_results_table import main as create_results_table
 
 from modules.dwelling import Dwelling
 
-comparison = 1
+comparison = 0
 from modules.district_heating_module import DistrictHeatingModule
 if comparison == 1:
 	from modules.gas_boiler_module_nbh_comparison import GasBoilerModule

@@ -232,7 +232,7 @@ class GasBoilerModule(BaseModule):
 		# Get base probability from percentage of dwellings with gas boiler in neighbourhood
 		vbo_id = dwelling.attributes['vbo_id']
 		buurt_id = dwelling.attributes['buurt_id']
-		boiler_p_base = self.buurten_verwarming_data.get(buurt_id, 0) / 100
+		boiler_p = self.buurten_verwarming_data.get(buurt_id, 0) / 100
 
 		# Check if neighbourhood has already been through the gas usage ranking process
 		if buurt_id not in self.neighbourhood_gas_check_dict:
@@ -245,10 +245,7 @@ class GasBoilerModule(BaseModule):
 		[index] = index_list
 		gas_use_percentile_neighbourhood = (index+1)/len(self.neighbourhood_gas_check_dict[buurt_id][0])
 
-		if boiler_p_base > 0.5:
-			boiler_p = boiler_p_base + (1 - boiler_p_base) * (gas_use_percentile_neighbourhood - 0.5 )
-		else:
-			boiler_p = boiler_p_base + ( boiler_p_base) * (gas_use_percentile_neighbourhood - 0.5 )
+		boiler_p = self.modify_probability(boiler_p, dwelling_gas_use_percentile)
 
 		dwelling.attributes['gas_use_percentile_neighbourhood'] = round(gas_use_percentile_neighbourhood,2)
 		dwelling.attributes['gas_boiler_p'] = round(boiler_p,2)

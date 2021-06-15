@@ -293,48 +293,57 @@ class ElectricHeatingModule(BaseModule):
 		energy_label = self.energy_label.get(vbo_id, 'Geen label')
 
 		# Base probability of having different types of electric heating
-		hybrid_heat_pump_p_base = self.buurten_hybrid_heat_pump_data.get(buurt_id, 0) / 100
-		elec_low_gas_p_base = self.buurten_elec_low_gas_data.get(buurt_id, 0) / 100
-		elec_no_gas_p_base = self.buurten_elec_no_gas__data.get(buurt_id, 0) / 100
+		hybrid_heat_pump_p = self.buurten_hybrid_heat_pump_data.get(buurt_id, 0) / 100
+		elec_low_gas_p = self.buurten_elec_low_gas_data.get(buurt_id, 0) / 100
+		elec_no_gas_p = self.buurten_elec_no_gas__data.get(buurt_id, 0) / 100
 		# Placeholder electric boiler probability
-		elec_boiler_p_base = elec_low_gas_p_base + elec_no_gas_p_base
+		elec_boiler_p = elec_low_gas_p + elec_no_gas_p
 
 		# Check if neighbourhood has already been through the electricity usage ranking process
 		if buurt_id not in self.neighbourhood_elec_check_dict:
 			# If not, add to the dictionary
 			self.neighbourhood_elec_check_dict[buurt_id].append(self.neighbourhood_elec_use_comparison(buurt_id))
 
-		# Check percentile ranking within neighbourhood
+		# Check electricty consumption percentile ranking within neighbourhood
 		# Sort the electricity percentile ranking in the neighbourhood
 		sorted_usage = sorted(self.neighbourhood_elec_check_dict[buurt_id][0].items(), key=lambda k_v: k_v[1][0])
 		# Find the index of the dwelling in question
 		index_list = [i for i, tupl in enumerate(sorted_usage) if tupl[0] == vbo_id]
-		# Convert from list with one entry to a float
 		[index] = index_list
 		# Calculate the ranking of the dwelling [0,1]
 		elec_use_percentile_neighbourhood = (index+1)/len(self.neighbourhood_elec_check_dict[buurt_id][0])
 
+		#Modify probabilities for heat pumps
 		# We assume there are only heat pumps in dwellings with energylabel C or higher
-		# Check if the amount of dwellings with energy label >= C in the neighbourhood has been calculated
-		if buurt_id not in self.neighbourhood_energy_label_dict:
-			# If not, add to the dictionary
-			self.neighbourhood_energy_label_dict[buurt_id].append(self.neighbourhood_energy_labels(buurt_id))
 		if energy_label == 'A+++' or energy_label == 'A++' or energy_label == 'A+' or energy_label == 'A' or energy_label == 'B' or energy_label == 'C':
-			# Probabilities are increased using new% = (old% * N_nbh)/(N_eligible)
-			# Need to incorporate gas use (ranking)
-			# Convert from list with one entry to a float
+			# Check if the amount of dwellings with energylabel C or higher in the neighbourhood has been calculated
+			if buurt_id not in self.neighbourhood_energy_label_dict:
+				# If not, add to the dictionary
+				self.neighbourhood_energy_label_dict[buurt_id].append(self.neighbourhood_energy_labels(buurt_id))
 			[eligible_dwellings] = self.neighbourhood_energy_label_dict[buurt_id]
-			hybrid_heat_pump_p = (hybrid_heat_pump_p_base * self.num_dwellings_in_neighbourhood[buurt_id])/eligible_dwellings
+
+			# Probabilities are increased using new% = (old% * N_nbh)/(N_eligible)
+			# Afterwards, probability is modified according to electricity use
+
+			# Electric heat pump
+			electric_heat_pump_p = 0.0155  * self.num_dwellings_in_neighbourhood[buurt_id])/eligible_dwellings # 0.0155 base percentage taken from WoON
+			electric_heat_pump_p = self.modify_probability(electric_heat_pump_p, elec_use_percentile_neighbourhood)
+
+			# Hybrid heat pump
+			hybrid_heat_pump_p = (hybrid_heat_pump_p * self.num_dwellings_in_neighbourhood[buurt_id])/eligible_dwellings
+			hybrid_heat_pump_p = self.modify_probability(hybrid_heat_pump_p, elec_use_percentile_neighbourhood)
+			# If there is a high electricity use we modify the probability of the hybrid heat pump according to the gas use
+			if self.neighbourhood_elec_check_dict[buurt_id][vbo_id] > 0.7:
+				hybrid_heat_pump_p = self.modify_probability(hybrid_heat_pump_p, gas_use_percentile_neighbourhood)
 		else:
+			electric_heat_pump_p = 0.
 			hybrid_heat_pump_p = 0.
 
 		# Modify probabilities for electric boiler
-		if elec_boiler_p_base > 0.5:
-			elec_boiler_p = elec_boiler_p_base + (1 - elec_boiler_p_base) * (elec_use_percentile_neighbourhood - 0.5 )
-		else:
-			elec_boiler_p = elec_boiler_p_base + ( elec_boiler_p_base) * (elec_use_percentile_neighbourhood - 0.5 )
+		elec_boiler_p = self.modify_probability(elec_boiler_p, elec_use_percentile_neighbourhood)
 
 		dwelling.attributes['elec_use_percentile_neighbourhood'] = round(elec_use_percentile_neighbourhood,2)
+		dwelling.attributes['electric_heat_pump_p'] = round(electric_heat_pump_p,2)
 		dwelling.attributes['hybrid_heat_pump_p'] = round(hybrid_heat_pump_p,2)
 		dwelling.attributes['elec_boiler_p'] = round(elec_boiler_p,2)
 
@@ -345,6 +354,15 @@ class ElectricHeatingModule(BaseModule):
 			'distribution': 'hybrid_heat_pump_p'
 		},
 		'hybrid_heat_pump_p': {
+			'type': 'float',
+			'sampling': False,
+		},
+		'electric_heat_pump': {
+			'type': 'boolean',
+			'sampling': True,
+			'distribution': 'electric_heat_pump_p'
+		},
+		'electric_heat_pump_p': {
 			'type': 'float',
 			'sampling': False,
 		},

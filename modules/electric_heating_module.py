@@ -151,11 +151,11 @@ class ElectricHeatingModule(BaseModule):
 		# Base probability of having different types of electric heating
 		vbo_id = dwelling.attributes['vbo_id']
 		buurt_id = dwelling.attributes['buurt_id']
-		hybrid_heat_pump_p_base = self.buurten_hybrid_heat_pump_data.get(buurt_id, 0) / 100
-		elec_low_gas_p_base = self.buurten_elec_low_gas_data.get(buurt_id, 0) / 100
-		elec_no_gas_p_base = self.buurten_elec_no_gas__data.get(buurt_id, 0) / 100
+		hybrid_heat_pump_p = self.buurten_hybrid_heat_pump_data.get(buurt_id, 0) / 100
+		elec_low_gas_p= self.buurten_elec_low_gas_data.get(buurt_id, 0) / 100
+		elec_no_gas_p = self.buurten_elec_no_gas__data.get(buurt_id, 0) / 100
 		# Placeholder electric boiler probability
-		elec_boiler_p_base = elec_low_gas_p_base + elec_no_gas_p_base
+		elec_boiler_p = elec_low_gas_p + elec_no_gas_p
 
 		# Electricity use in postal code
 		postal_code = dwelling.attributes['pc6']
@@ -171,7 +171,7 @@ class ElectricHeatingModule(BaseModule):
 
 		# We assume there are only heat pumps in dwellings with energylabel C or higher
 		if energy_label == 'A+++' or energy_label == 'A++' or energy_label == 'A+' or energy_label == 'A' or energy_label == 'B' or energy_label == 'C':
-			hybrid_heat_pump_p = hybrid_heat_pump_p_base
+			hybrid_heat_pump_p = hybrid_heat_pump_p
 		else:
 			hybrid_heat_pump_p = 0.
 
@@ -238,10 +238,7 @@ class ElectricHeatingModule(BaseModule):
 				dwelling_elec_use_percentile = 1
 			else:
 				pass
-		if elec_boiler_p_base > 0.5:
-			elec_boiler_p = elec_boiler_p_base + (1 - elec_boiler_p_base) * (dwelling_elec_use_percentile - 0.5 )
-		else:
-			elec_boiler_p = elec_boiler_p_base + ( elec_boiler_p_base) * (dwelling_elec_use_percentile - 0.5 )
+		elec_boiler_p = self.modify_probability(elec_boiler_p, dwelling_elec_use_per_person)
 
 		dwelling.attributes['hybrid_heat_pump_p'] = round(hybrid_heat_pump_p,2)
 		dwelling.attributes['elec_boiler_p'] = round(elec_boiler_p,2)
