@@ -33,52 +33,25 @@ def get_boundaries(cursor):
 	print(results)
 
 
-def construct_labels_with_imputed_epi(cursor):
+def get_labels_with_imputed_epi(cursor):
 	query = '''
 	SELECT
-		bag.vbo_id, bag.pc6, bag.bouwjaar, bag.woningtype, berekeningstype, energieklasse, energieprestatieindex
+		bag.pc6, bag.bouwjaar, bag.woningtype, epi_imputed
 	FROM
 		energy_labels, bag
 	WHERE
 		energy_labels.vbo_id = bag.vbo_id
 		AND energieklasse IS NOT NULL
 	'''
-	print('Executing query...')
+	print('Executing query... (this can take a minute or so)')
 	cursor.execute(query)
-
-	print('Processing results...')
-	filename = 'energy_labels_epi_imputed.csv'
-	current_dir = os.path.dirname(os.path.realpath(__file__))
-	path = os.path.join(current_dir, filename)
-	with open(path, 'w') as file:
-
-		header = ['pc6', 'bouwjaar', 'woningtype', 'epi_imputed']
-		csv_header = ','.join(header)
-		file.write(f'{csv_header}\n')
-
-		i = 0
-
-		for row in cursor:
-			i += 1
-			(vbo_id, pc6, bouwjaar, woningtype, berekeningstype, energieklasse, energieprestatieindex) = row
-
-			if berekeningstype in ['EP','EPA', 'ISSO82.3, versie 3.0, oktober 2011']:
-				epi_imputed = energieprestatieindex
-			else:
-				epi_imputed = label_to_epi(energieklasse)
-
-			values = (pc6, str(bouwjaar), woningtype, str(epi_imputed))
-			csv_row = ','.join(values)
-			file.write(f'{csv_row}\n')
-
-			if i % 10000 == 0:
-				print(i)
+	return cursor
 
 def main():
 	connection = get_connection()
 	cursor = connection.cursor()
 	# get_boundaries(cursor)
-	construct_labels_with_imputed_epi(cursor)
+	get_labels_with_imputed_epi(cursor)
 
 if __name__ == "__main__":
 	main()
