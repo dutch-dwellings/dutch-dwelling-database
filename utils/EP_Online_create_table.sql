@@ -6,7 +6,7 @@ CREATE TABLE IF NOT EXISTS energy_labels
 	status text, -- status
 	berekeningstype text, -- berekeningstype
 	energieprestatieindex double precision, -- energieprestatieindex
-	energieklasse character varying(8), -- labelLetter, highest right now is A+++++ (so 6 char)
+	energieklasse energy_label_class, -- labelLetter
 	energielabel_is_prive boolean, -- reverse of: isOpenbaarLabel
 	is_op_basis_van_referentie_gebouw boolean, -- isOpBasisVanReferentiegebouw
 	gebouwklasse character(1), -- gebouwklasse (W or U)

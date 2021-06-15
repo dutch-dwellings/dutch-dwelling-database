@@ -9,13 +9,14 @@ import lxml.etree as ET
 from dotenv import dotenv_values
 from psycopg2 import sql
 from psycopg2.extras import execute_values
+from psycopg2.errors import DuplicateObject
 
 env = dotenv_values(".env")
 
 # Required for relative imports to also work when called
 # from project root directory.
 sys.path.append(os.path.dirname(__file__))
-from database_utils import get_connection, table_empty
+from database_utils import get_connection, table_empty, execute
 from file_utils import data_dir
 
 FILENAME = 'EP_Online_v20210501_xml.xml'
@@ -147,8 +148,16 @@ def load_energy_labels_data():
 	connection.commit()
 	connection.close()
 
+def create_energy_label_class_type():
+	statement = "CREATE TYPE energy_label_class_test AS ENUM ('G', 'F', 'E', 'D', 'C', 'B', 'A', 'A+', 'A++', 'A+++', 'A++++', 'A+++++')"
+	try:
+		execute(statement)
+	except DuplicateObject:
+		print("Type 'energy_label_class' already exists.")
 
 def main():
+	create_energy_label_class_type()
+
 	if not table_empty(env['EP_ONLINE_DBNAME']):
 		print(f"Table '{env['EP_ONLINE_DBNAME']}' already populated, skipping loading of new records")
 		return
