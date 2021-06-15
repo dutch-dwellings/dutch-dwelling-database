@@ -132,7 +132,15 @@ def main():
 
 # TODO:
 # check boundaries of energieprestatieindex:
-# SELECT energieklasse, MIN(energieprestatieindex), MAX(energieprestatieindex) FROM energy_labels WHERE energieklasse IS NOT NULL AND energieprestatieindex IS NOT NULL GROUP BY energieklasse;
+# SELECT
+# 	energieklasse, MIN(energieprestatieindex), MAX(energieprestatieindex)
+# FROM
+# 	energy_labels
+# WHERE
+# 	energieklasse IS NOT NULL
+# 	AND energieprestatieindex IS NOT NULL
+# GROUP BY
+# 	energieklasse;
 # it doesn't seem to be very useful, ranges are all over the place
 
 
