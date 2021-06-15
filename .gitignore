@@ -1,6 +1,9 @@
 .env
 data
 
+# large CSV output from analysis
+energy_labels_epi_imputed.csv
+
 # Sublime Text
 *.sublime-project
 
