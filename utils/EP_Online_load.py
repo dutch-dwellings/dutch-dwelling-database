@@ -16,7 +16,7 @@ env = dotenv_values(".env")
 # Required for relative imports to also work when called
 # from project root directory.
 sys.path.append(os.path.dirname(__file__))
-from database_utils import get_connection, table_empty, execute
+from database_utils import get_connection, table_empty, execute, execute_file
 from file_utils import data_dir
 
 FILENAME = 'EP_Online_v20210501_xml.xml'
@@ -149,24 +149,43 @@ def load_energy_labels_data():
 	connection.close()
 
 def create_energy_label_class_type():
+	print("Creating type 'energy_label_class'...")
 	statement = "CREATE TYPE energy_label_class_test AS ENUM ('G', 'F', 'E', 'D', 'C', 'B', 'A', 'A+', 'A++', 'A+++', 'A++++', 'A+++++')"
 	try:
 		execute(statement)
 	except DuplicateObject:
 		print("Type 'energy_label_class' already exists.")
 
+def add_functions():
+	print('Adding functions for energy labels...')
+	filename = 'EP_Online_add_functions.sql'
+	current_dir = os.path.dirname(os.path.realpath(__file__))
+	path = os.path.join(current_dir, filename)
+
+	execute_file(path)
+
+def add_column_epi_imputed():
+	print('Adding column with imputed EPI values, this can take a minute or 2...')
+	filename = 'EP_Online_add_column_epi_imputed.sql'
+	current_dir = os.path.dirname(os.path.realpath(__file__))
+	path = os.path.join(current_dir, filename)
+
+	execute_file(path)
+
 def main():
 	create_energy_label_class_type()
 
 	if not table_empty(env['EP_ONLINE_DBNAME']):
 		print(f"Table '{env['EP_ONLINE_DBNAME']}' already populated, skipping loading of new records")
-		return
+	else:
+		start_time = time.time()
+		print('Starting to load records (estimated 4.7M records), this can take around 15 minutes...')
+		load_energy_labels_data()
+		print(f'\nProcessed {i:,} records in {(time.time() - start_time):.2f} seconds.')
+		print(f'Max memory usage: {(resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1000000):.3f} (MB on macOS; probably GB on Linux).')
 
-	start_time = time.time()
-	print('Starting to load records (estimated 4.7M records), this can take around 15 minutes...')
-	load_energy_labels_data()
-	print(f'\nProcessed {i:,} records in {(time.time() - start_time):.2f} seconds.')
-	print(f'Max memory usage: {(resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1000000):.3f} (MB on macOS; probably GB on Linux).')
+	add_functions()
+	add_column_epi_imputed()
 
 if __name__ == "__main__":
 	main()
