@@ -156,7 +156,7 @@ class ElectricHeatingModule(BaseModule):
 		elec_no_gas_p_base = self.buurten_elec_no_gas__data.get(buurt_id, 0) / 100
 		# Placeholder electric boiler probability
 		elec_boiler_p_base = elec_low_gas_p_base + elec_no_gas_p_base
-		
+
 		# Electricity use in postal code
 		postal_code = dwelling.attributes['pc6']
 		postal_code_elec_use = self.postcode_elec_use_data.get(postal_code, 0)

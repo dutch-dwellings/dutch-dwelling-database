@@ -22,6 +22,7 @@ class ElectricHeatingModule(BaseModule):
 		self.load_energy_label_data()
 		self.create_benchmark()
 		self.load_neighbourhood_dwelling_data()
+		self.load_num_dwellings_in_neighbourhood()
 
 	def load_installation_type_data(self):
 		# create dictionary with buurt_id and percentage of gas boilers
@@ -91,15 +92,33 @@ class ElectricHeatingModule(BaseModule):
 		query = "SELECT buurt_id, vbo_id FROM bag WHERE vbo_id IS NOT NULL;"
 		cursor.execute(query)
 		results = cursor.fetchall()
-		self.neighbourhood_dwellings = collections.defaultdict(list)
+		self.neighbourhood_vbo_ids = collections.defaultdict(list)
 		for (buurt_id, vbo_id) in results:
-			self.neighbourhood_dwellings[buurt_id].append(vbo_id)
+			self.neighbourhood_vbo_ids[buurt_id].append(vbo_id)
+		# Create dictionaries needed for storing information on relative electricity use and the amount of dwellings with  energy label C or higher in a neighbourhood
 		self.neighbourhood_elec_check_dict = collections.defaultdict(list)
+		self.neighbourhood_energy_label_dict = collections.defaultdict(list)
 		cursor.close()
 
+	def neighbourhood_energy_labels(self, buurt_id):
+		# Count the amount of dwellings that have an energy label of C or higher in a neighbourhood
+		energy_labels_c_up = 0
+		connection = get_connection()
+		sample = get_neighbourhood_dwellings(connection, buurt_id)
+
+		for entry in sample:
+			dwelling = Dwelling(dict(entry), connection)
+			vbo_id = dwelling.attributes['vbo_id']
+			energy_label = energy_label = self.energy_label.get(vbo_id, 'Geen label')
+			if energy_label == 'A+++' or energy_label == 'A++' or energy_label == 'A+' or energy_label == 'A' or energy_label == 'B' or energy_label == 'C':
+				energy_labels_c_up += 1
+		return energy_labels_c_up
+
 	def neighbourhood_elec_use_comparison(self,buurt_id):
+		# Output: Dictionary with vbo_id:percentile electricity use
 		percentile_elec_use_dict = collections.defaultdict(list)
 		connection = get_connection()
+		# Get all dwellings in the neighbourhood
 		sample = get_neighbourhood_dwellings(connection, buurt_id)
 
 		for entry in sample:
@@ -176,6 +195,7 @@ class ElectricHeatingModule(BaseModule):
 			elif benchmark == 0:
 				pass
 			else:
+				# See where electricity use compares against the interpolated benchmark
 				dwelling_elec_use_percentile = float(benchmark(dwelling_elec_use_per_person))/100
 				# Extrapolation can give values outside of the domain
 				if dwelling_elec_use_percentile < 0:
@@ -199,6 +219,20 @@ class ElectricHeatingModule(BaseModule):
 		postcode: household_size
 		for (postcode, household_size)
 		in results
+		}
+		cursor.close()
+
+
+	def load_num_dwellings_in_neighbourhood(self):
+		cursor = self.connection.cursor()
+		# create dictionary with buurt_id and number of dwellings
+		query = "SELECT buurt_id, COUNT(vbo_id) FROM bag GROUP BY buurt_id"
+		cursor.execute(query)
+		results = cursor.fetchall()
+		self.num_dwellings_in_neighbourhood = {
+			buurt_id: num_dwellings
+			for (buurt_id, num_dwellings)
+			in results
 		}
 		cursor.close()
 
@@ -271,19 +305,30 @@ class ElectricHeatingModule(BaseModule):
 			self.neighbourhood_elec_check_dict[buurt_id].append(self.neighbourhood_elec_use_comparison(buurt_id))
 
 		# Check percentile ranking within neighbourhood
+		# Sort the electricity percentile ranking in the neighbourhood
 		sorted_usage = sorted(self.neighbourhood_elec_check_dict[buurt_id][0].items(), key=lambda k_v: k_v[1][0])
+		# Find the index of the dwelling in question
 		index_list = [i for i, tupl in enumerate(sorted_usage) if tupl[0] == vbo_id]
+		# Convert from list with one entry to a float
 		[index] = index_list
+		# Calculate the ranking of the dwelling [0,1]
 		elec_use_percentile_neighbourhood = (index+1)/len(self.neighbourhood_elec_check_dict[buurt_id][0])
 
 		# We assume there are only heat pumps in dwellings with energylabel C or higher
-		# Probability can be increased using new% = (old% * N_nbh)/(N_eligible), but this only works when the entire nbh is put through
+		# Check if the amount of dwellings with energy label >= C in the neighbourhood has been calculated
+		if buurt_id not in self.neighbourhood_energy_label_dict:
+			# If not, add to the dictionary
+			self.neighbourhood_energy_label_dict[buurt_id].append(self.neighbourhood_energy_labels(buurt_id))
 		if energy_label == 'A+++' or energy_label == 'A++' or energy_label == 'A+' or energy_label == 'A' or energy_label == 'B' or energy_label == 'C':
-			hybrid_heat_pump_p = hybrid_heat_pump_p_base
+			# Probabilities are increased using new% = (old% * N_nbh)/(N_eligible)
+			# Need to incorporate gas use (ranking)
+			# Convert from list with one entry to a float
+			[eligible_dwellings] = self.neighbourhood_energy_label_dict[buurt_id]
+			hybrid_heat_pump_p = (hybrid_heat_pump_p_base * self.num_dwellings_in_neighbourhood[buurt_id])/eligible_dwellings
 		else:
 			hybrid_heat_pump_p = 0.
 
-		# Modify probabilities
+		# Modify probabilities for electric boiler
 		if elec_boiler_p_base > 0.5:
 			elec_boiler_p = elec_boiler_p_base + (1 - elec_boiler_p_base) * (elec_use_percentile_neighbourhood - 0.5 )
 		else:

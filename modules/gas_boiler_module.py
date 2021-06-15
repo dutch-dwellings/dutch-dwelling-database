@@ -195,7 +195,7 @@ class GasBoilerModule(BaseModule):
 			pass
 		# If we do not have benchmark data, we cannot compare
 		elif benchmark == 0:
-			pass
+			 print(energy_label , building_type , floor_space, building_year)
 		else:
 			dwelling_gas_use_percentile = float( benchmark(gas_use_floor_space))/100
 			# Extrapolation can give values outside of the domain
