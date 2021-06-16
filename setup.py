@@ -37,6 +37,7 @@ def bag():
 	print('Creating indexes...')
 	add_index('bag', 'pc6')
 	add_index('bag', 'pand_id')
+	add_index('bag', 'buurt_id')
 
 def CBS_PC6():
 	print('Creating table for CBS PC6...')
