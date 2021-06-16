@@ -1,4 +1,4 @@
-from utils.database_utils import create_database, add_index, make_primary_key, rename_column, delete_column
+from utils.database_utils import create_database, add_index, make_primary_key, rename_column, delete_column, execute, get_column_type
 
 from utils.BAG_create_table import main as create_BAG_table
 from utils.BAG_load import main as load_BAG
@@ -139,6 +139,32 @@ def cbs():
 	]
 	for index in indexes:
 		add_index(*index)
+
+	print('Transforming data...')
+	col_type = get_column_type('cbs_83878ned_aardgaslevering_woningkenmerken', 'energielabelklasse')
+	if col_type != 'energy_label_class':
+
+		delete_statement = '''
+		DELETE FROM cbs_83878ned_aardgaslevering_woningkenmerken
+		WHERE energielabelklasse = 'Totaal'
+		'''
+
+		change_to_null_statement = '''
+		UPDATE cbs_83878ned_aardgaslevering_woningkenmerken
+		SET energielabelklasse = NULL
+		WHERE energielabelklasse = 'Geen label'
+		'''
+
+		alter_type_statement = '''
+		ALTER TABLE cbs_83878ned_aardgaslevering_woningkenmerken
+		ALTER COLUMN energielabelklasse
+		TYPE energy_label_class
+		USING LEFT(energielabelklasse, 1)::energy_label_class
+		'''
+
+		execute(delete_statement)
+		execute(change_to_null_statement)
+		execute(alter_type_statement)
 
 def main():
 

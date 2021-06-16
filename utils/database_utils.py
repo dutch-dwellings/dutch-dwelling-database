@@ -238,3 +238,15 @@ def delete_column(table_name, col_name):
 		execute(statement)
 	except UndefinedColumn:
 		print(f'Did not drop column {col_name} since it does not exist.')
+
+def get_column_type(table_name, column_name):
+	connection = get_connection()
+	cursor = connection.cursor()
+	query = '''
+	SELECT udt_name
+	FROM information_schema.columns
+	WHERE table_name = %s
+	AND column_name = %s
+	'''
+	cursor.execute(query, (table_name, column_name))
+	return cursor.fetchone()[0]

@@ -62,7 +62,7 @@ class GasBoilerModule(BaseModule):
 
 	def create_benchmark(self):
 		# Create all possible combinations of characteristics
-		label_tuple = ('A-label', 'B-label', 'C-label', 'D-label', 'E-label', 'F-label', 'G-label', 'Geen label')
+		label_tuple = ('A', 'B', 'C', 'D', 'E', 'F', 'G', None)
 		building_type_tuple = ('Appartement', 'Hoekwoning', '2-onder-1-kapwoning', 'Tussenwoning', 'Vrijstaande woning')
 		area_ranges_tuple = ('15 tot 50 m²', '50 tot 75 m²', '75 tot 100 m²', '100 tot 150 m²', '150 tot 250 m²', '250 tot 500 m²')
 		building_years_tuple = ('1000 tot 1946', '1946 tot 1965', '1965 tot 1975', '1975 tot 1992', '1992 tot 2000', '2000 tot 2014', 'Vanaf 2014')
@@ -118,27 +118,9 @@ class GasBoilerModule(BaseModule):
 		building_type = dwelling.attributes['woningtype']
 		energy_label = self.energy_label.get(vbo_id, 'Geen label')
 
-		# Make energy labels searchable
-		if energy_label == 'A+++':
-			energy_label = 'A-label'
-		elif energy_label =='A++':
-			energy_label = 'A-label'
-		elif energy_label == 'A+':
-			energy_label = 'A-label'
-		elif energy_label == 'A':
-			energy_label = 'A-label'
-		elif energy_label == 'B':
-			energy_label = 'B-label'
-		elif energy_label == 'C':
-			energy_label = 'C-label'
-		elif energy_label == 'D':
-			energy_label = 'D-label'
-		elif energy_label == 'E':
-			energy_label = 'E-label'
-		elif energy_label == 'F':
-			energy_label = 'F-label'
-		elif energy_label == 'G':
-			energy_label = 'G-label'
+		# The CBS table only goes to 'A'-labels.
+		for energy_label in ['A+++++', 'A++++', 'A+++', 'A++', 'A+']:
+			energy_label = 'A'
 
 		# Harmonize building type terminology
 		if building_type == 'twee_onder_1_kap':
