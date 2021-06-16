@@ -149,7 +149,7 @@ def add_index(table_name, column_name):
 	'table_name'. Check whether index already
 	exists to make it idempotent.
 	'''
-	index_name = f'{column_name}_idx'
+	index_name = f'{table_name}_{column_name}_idx'
 	statement = sql.SQL("CREATE INDEX IF NOT EXISTS {index_name} ON {table_name} ({column_name})").format(
 			index_name = sql.Identifier(index_name),
 			table_name = sql.Identifier(table_name),
