@@ -1,13 +1,10 @@
 import os
 import sys
-import random
-import collections
 
 # Required for relative imports to also work when called
 # from project root directory.
 sys.path.append(os.path.dirname(__file__))
 from base_module import BaseModule
-
 
 class DistrictHeatingModule(BaseModule):
 

@@ -66,6 +66,7 @@ def add_column(table_name, column_name, data_type, connection):
 	# in PostgreSQL, because e.g. "varchar" does work.
 	cursor.execute(alter_statement, (AsIs(data_type),))
 
+
 def get_bag_sample(connection, n=1000):
 	'''
 	Get a sample of random entries (default: 1000 entries)
@@ -87,6 +88,14 @@ def get_bag_sample(connection, n=1000):
 	cursor = connection.cursor(cursor_factory=DictCursor)
 	query = "SELECT * FROM bag WHERE random() < %s AND bouwjaar IS NOT null LIMIT %s "
 	cursor.execute(query, (required_share, n))
+	sample = cursor.fetchall()
+	cursor.close()
+	return sample
+
+def get_neighbourhoods_sample(connection, buurt_id):
+	cursor = connection.cursor(cursor_factory=DictCursor)
+	query = "SELECT * FROM bag WHERE buurt_id LIKE %s AND bouwjaar IS NOT null"
+	cursor.execute(query, (buurt_id,))
 	sample = cursor.fetchall()
 	cursor.close()
 	return sample
