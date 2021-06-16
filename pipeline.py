@@ -2,7 +2,7 @@ import time
 
 from psycopg2 import sql
 
-from utils.database_utils import get_connection, get_bag_sample
+from utils.database_utils import get_connection, get_bag_sample, get_neighbourhoods_sample
 from utils.create_results_table import main as create_results_table
 
 from modules.dwelling import Dwelling
@@ -31,7 +31,7 @@ def main():
 	create_results_table()
 
 	print("Getting a BAG sample...")
-	sample = get_bag_sample(connection, n=1000)
+	sample = get_neighbourhoods_sample(connection, 'BU0034%')
 
 	print("Initiating modules...")
 	energy_label_module = EnergyLabelModule(connection)

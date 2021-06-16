@@ -19,8 +19,10 @@ class EnergyLabelModule(BaseModule):
 		# Get energy label of dwelling
 		query = "SELECT energieklasse FROM energy_labels WHERE energieklasse IS NOT null AND vbo_id = %s"
 		cursor.execute(query, (vbo_id,))
-		results = cursor.fetchall()
-		return results.pop().pop()
+		results = cursor.fetchone()
+		if results is not None:
+			results = results[0]
+		return results
 		cursor.close()
 
 	def process(self, dwelling):
@@ -28,5 +30,4 @@ class EnergyLabelModule(BaseModule):
 		vbo_id = dwelling.attributes['vbo_id']
 		buurt_id = dwelling.attributes['buurt_id']
 		energy_label = self.get_energy_label(vbo_id)
-		print(energy_label)
 		dwelling.attributes['energy_label'] = energy_label

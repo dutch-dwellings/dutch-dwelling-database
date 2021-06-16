@@ -67,8 +67,6 @@ def add_column(table_name, column_name, data_type, connection):
 	cursor.execute(alter_statement, (AsIs(data_type),))
 
 
-
-
 def get_bag_sample(connection, n=1000):
 	'''
 	Get a sample of random entries (default: 1000 entries)
@@ -88,37 +86,19 @@ def get_bag_sample(connection, n=1000):
 	required_share = n / n_rows * speed_up
 
 	cursor = connection.cursor(cursor_factory=DictCursor)
-	query = "SELECT * FROM bag WHERE buurt_id like 'BU060%' "
-	cursor.execute(query,)
+	query = "SELECT * FROM bag WHERE random() < %s AND bouwjaar IS NOT null LIMIT %s "
+	cursor.execute(query, (required_share, n))
 	sample = cursor.fetchall()
 	cursor.close()
 	return sample
 
-#
-# def get_bag_sample(connection, n=1000):
-# 	'''
-# 	Get a sample of random entries (default: 1000 entries)
-# 	from the BAG table. Note: might return a little fewer entries
-# 	than requested.
-# 	'''
-# 	# Determines how far into the database we go look for entries.
-# 	# With speed_up = 1, we query roughly the entire database before the
-# 	# LIMIT is reached, and the sample is more or less representative.
-# 	# But we can save time by limiting the query to the first 1 / speed_up
-# 	# part of the database.
-# 	speed_up = 5
-# 	# Estimate of total rows in the BAG database, doesn't need to be precise.
-# 	n_rows = 7951730
-# 	# Estimate of required random share of rows to be selected
-# 	# in order to gather 'n' entries, increased by the speed_up
-# 	required_share = n / n_rows * speed_up
-#
-# 	cursor = connection.cursor(cursor_factory=DictCursor)
-# 	query = "SELECT * FROM bag WHERE random() < %s AND bouwjaar IS NOT null LIMIT %s "
-# 	cursor.execute(query, (required_share, n))
-# 	sample = cursor.fetchall()
-# 	cursor.close()
-# 	return sample
+def get_neighbourhoods_sample(connection, buurt_id):
+	cursor = connection.cursor(cursor_factory=DictCursor)
+	query = "SELECT * FROM bag WHERE buurt_id LIKE %s AND bouwjaar IS NOT null"
+	cursor.execute(query, (buurt_id,))
+	sample = cursor.fetchall()
+	cursor.close()
+	return sample
 
 def get_neighbourhood_dwellings(connection, buurt_id):
 	cursor = connection.cursor(cursor_factory=DictCursor)

@@ -32,7 +32,9 @@ class GasBoilerModule(BaseModule):
 		# A050112 is the code for a gas boiler
 		cursor.execute(query, (buurt_id,))
 		results = cursor.fetchall()
-		self.buurten_verwarming_data[buurt_id] = results[0][0]
+		if results is not None:
+			results = results[0][0]
+		self.buurten_verwarming_data[buurt_id] = results
 		cursor.close()
 
 	def load_gas_use_data(self, postal_code):
@@ -41,13 +43,28 @@ class GasBoilerModule(BaseModule):
 		query = "SELECT gemiddelde_aardgaslevering_woningen FROM cbs_pc6_2019_energy_use WHERE gemiddelde_aardgaslevering_woningen IS NOT null AND pc6 = %s"
 		cursor.execute(query, (postal_code,))
 		results = cursor.fetchall()
-		self.postcode_gas_use_data[postal_code] = results[0]
+		if results is None or results == []:
+			results = 0
+		else:
+			results = results[0][0]
+		self.postcode_gas_use_data[postal_code] = results
 		cursor.close()
 
 	def neighbourhood_gas_use_comparison(self,buurt_id):
 		percentile_gas_use_dict = {}
 		connection = get_connection()
 		sample = get_neighbourhood_dwellings(connection, buurt_id)
+
+		cursor = self.connection.cursor()
+		query = "SELECT energy_labels.vbo_id, energieklasse FROM energy_labels, bag WHERE energy_labels.vbo_id = bag.vbo_id AND bag.buurt_id = %s"
+		cursor.execute(query, (buurt_id,))
+		results = cursor.fetchall()
+		self.energy_labels_neighbourhood = {
+			vbo_id: energy_label
+			for (vbo_id, energy_label)
+			in results
+		}
+		cursor.close()
 
 		for entry in sample:
 			dwelling = Dwelling(dict(entry), connection)
@@ -61,13 +78,10 @@ class GasBoilerModule(BaseModule):
 
 			# Get dwellings attributes which serve as CBS data lookup values
 			vbo_id = dwelling.attributes['vbo_id']
-			print(vbo_id)
 			floor_space = dwelling.attributes['oppervlakte']
 			building_year = dwelling.attributes['bouwjaar']
 			building_type = dwelling.attributes['woningtype']
-			energy_label = dwelling.attributes['energy_label']
-
-
+			energy_label = self.energy_labels_neighbourhood.get(vbo_id, None)
 
 			# Make energy labels searchable
 			for energy_label in ['A+++++', 'A++++', 'A+++', 'A++', 'A+']:
@@ -130,7 +144,7 @@ class GasBoilerModule(BaseModule):
 			if gas_use_floor_space == 0:
 				pass
 			# If we do not have benchmark data, we cannot compare
-			elif benchmark == None:
+			elif benchmark == 0:
 				pass
 			else:
 				dwelling_gas_use_percentile = float(benchmark(gas_use_floor_space))/100
@@ -145,36 +159,33 @@ class GasBoilerModule(BaseModule):
 		return(percentile_gas_use_dict)
 
 	def create_benchmark(self, dwelling_characteristics_tuple):
-
 		# Look up gas use data for building characteristics
-		for item in dwelling_characteristics_tuple:
-			cursor = self.connection.cursor()
-			query_statement = """
-			SELECT aardgasleveringen_openbare_net
-			FROM cbs_83878ned_aardgaslevering_woningkenmerken
-			WHERE perioden = '2019'
-			AND energielabelklasse = %s
-			AND woningkenmerken = %s
-			AND gebruiks_oppervlakteklasse = %s
-			AND bouwjaarklasse = %s
-			AND percentielen != 'Gemiddelde'
-			ORDER BY aardgasleveringen_openbare_net
-			"""
-			cursor.execute(query_statement, item)
-			results = cursor.fetchall()
-			# Interpolate the data, with extrapolation for <5 and >95 percentile
-			benchmark_y_data = [5, 25, 50, 75, 95]
-			benchmark_x_data = [x for x in results]
-			benchmark_x_data = list(sum(benchmark_x_data, ()))
-			if None in benchmark_x_data or benchmark_x_data == []:
-				# Need to find a way to make this have results. Query for 'totaal'? How to find the characteristic that is the culprit?
-				pass
-			else:
-				# Remove duplicate x values for interpolation
-				if benchmark_x_data[3] == benchmark_x_data[4]:
-					benchmark_x_data[4] == benchmark_x_data[4] + 0.1
-
-				interpolated_function = interp1d(benchmark_x_data, benchmark_y_data, fill_value='extrapolate')
+		cursor = self.connection.cursor()
+		query_statement = """
+		SELECT aardgasleveringen_openbare_net
+		FROM cbs_83878ned_aardgaslevering_woningkenmerken
+		WHERE perioden = '2019'
+		AND energielabelklasse = %s
+		AND woningkenmerken = %s
+		AND gebruiks_oppervlakteklasse = %s
+		AND bouwjaarklasse = %s
+		AND percentielen != 'Gemiddelde'
+		ORDER BY aardgasleveringen_openbare_net
+		"""
+		cursor.execute(query_statement, dwelling_characteristics_tuple)
+		results = cursor.fetchall()
+		# Interpolate the data, with extrapolation for <5 and >95 percentile
+		benchmark_y_data = [5, 25, 50, 75, 95]
+		benchmark_x_data = [x for x in results]
+		benchmark_x_data = list(sum(benchmark_x_data, ()))
+		if None in benchmark_x_data or benchmark_x_data == []:
+			# Need to find a way to make this have results. Query for 'totaal'? How to find the characteristic that is the culprit?
+			interpolated_function = 0
+		else:
+			# Remove duplicate x values for interpolation
+			if benchmark_x_data[3] == benchmark_x_data[4]:
+				benchmark_x_data[4] == benchmark_x_data[4] + 0.1
+			interpolated_function = interp1d(benchmark_x_data, benchmark_y_data, fill_value='extrapolate')
 		return interpolated_function
 
 	def process(self, dwelling):
