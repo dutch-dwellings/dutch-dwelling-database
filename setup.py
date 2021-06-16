@@ -18,6 +18,7 @@ from utils.CBS_PC6_2019_energy_use_create_table import main as create_CBS_PC6_20
 from utils.CBS_PC6_2019_energy_use_load import main as load_CBS_PC6_2019_energy_use
 
 from utils.CBS_PC6_2017_kerncijfers_create_table import main as create_CBS_PC6_2017_kerncijfers_table
+from utils.CBS_PC6_2017_kerncijfers_download import main as download_CBS_PC6_2017_kerncijfers
 from utils.CBS_PC6_2017_kerncijfers_load import main as load_CBS_PC6_2017_kerncijfers
 
 from utils.elec_consumption_hh_create_table import main as create_elec_consumption_households_table
@@ -49,6 +50,9 @@ def CBS_PC6():
 def CBS_kerncijfers():
 	print('Creating table for CBS PC6...')
 	create_CBS_PC6_2017_kerncijfers_table()
+
+	print('Downloading data...')
+	download_CBS_PC6_2017_kerncijfers()
 
 	print('Loading the data into Postgres...')
 	load_CBS_PC6_2017_kerncijfers()

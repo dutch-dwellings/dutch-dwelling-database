@@ -32,25 +32,28 @@ def save_to_file(url, path, expected_size=None, method='GET', data={}, cookies={
 		file.write(response.content)
 
 
-def unzip(path, expected_size=None, prefix=None):
+def unzip(path, expected_size=None, prefix=None, files=None):
 	'''
-	Unzip the file at 'path'.
-	Rename the unzipped file with a 'prefix' if specified.
-	Will not unzip when a file exists at the target location.
+	Unzip the archive at 'path'. Only zip the files specified in
+	'files' (default: extract all files).
+	Rename the unzipped files with a 'prefix' if specified.
+	Will not unzip file when a file already exists at the target location.
 	'''
 
 	with ZipFile(path, 'r') as zip_ref:
-		filename = zip_ref.namelist()[0]
+		if files == None:
+			files = zip_ref.namelist()
 
-		unzipped_path = os.path.join(os.path.dirname(path), filename)
-		prefixed_path = prefix_path(unzipped_path, prefix)
+		for filename in files:
+			unzipped_path = os.path.join(os.path.dirname(path), filename)
+			prefixed_path = prefix_path(unzipped_path, prefix)
 
-		if os.path.exists(prefixed_path):
-			print(f'File has already been unzipped at {prefixed_path}')
-		else:
-			print(f'Unzipping {path}')
-			zip_ref.extractall(os.path.dirname(path))
-			os.rename(unzipped_path, prefixed_path)
+			if os.path.exists(prefixed_path):
+				print(f'File has already been unzipped at {prefixed_path}')
+			else:
+				print(f'Unzipping {filename} from {path}')
+				zip_ref.extract(filename, path=os.path.dirname(path))
+				os.rename(unzipped_path, prefixed_path)
 
 def prefix_path(path, prefix):
 	'''
