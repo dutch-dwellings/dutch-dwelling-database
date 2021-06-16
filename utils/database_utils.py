@@ -95,11 +95,16 @@ def get_neighbourhood_dwellings(connection, buurt_id):
 	cursor = connection.cursor(cursor_factory=DictCursor)
 	query = "SELECT * FROM bag WHERE buurt_id = %s AND bouwjaar IS NOT null"
 	cursor.execute(query, (buurt_id,))
-	sample = cursor.fetchall()
+	dwellings = cursor.fetchall()
 	cursor.close()
-	return sample
+	return dwellings
 
 def insert_dict(table_name, row_dict, cursor):
+	'''
+	Insert into 'table_name' the 'row_dict' where
+	every key is a column_name in the table.
+	'''
+
 	# implementation adapted from
 	# https://stackoverflow.com/a/29471241/7770056
 
@@ -125,8 +130,6 @@ def create_table(table_name, columns):
 	E.g.
 		columns = [('id', 'int'), ('neighbourhood', 'character varying')]
 	'''
-	connection = get_connection()
-	cursor = connection.cursor()
 
 	# use IF NOT EXISTS to make the statement idempotent
 	create_statement = sql.SQL("CREATE TABLE IF NOT EXISTS {table_name} (%s);").format(
@@ -138,10 +141,7 @@ def create_table(table_name, columns):
 	# elegantly using e.g. psycopg2.sql
 	columns_sql = ', '.join([' '.join(column) for column in columns])
 
-	cursor.execute(create_statement, (AsIs(columns_sql),))
-	cursor.close()
-	connection.commit()
-	connection.close()
+	execute(create_statement, (AsIs(columns_sql),))
 
 def add_index(table_name, column_name):
 	'''
@@ -180,13 +180,7 @@ def table_exists(table_name, dbname=env['POSTGRES_DBNAME']):
 	'''
 	# Adapted from https://stackoverflow.com/a/1874268/7770056
 	query = "SELECT exists(SELECT * FROM information_schema.tables WHERE table_catalog = %s AND table_name = %s)"
-
-	connection = get_connection()
-	cursor = connection.cursor()
-	cursor.execute(query, (dbname, table_name))
-	result = cursor.fetchone()[0]
-	connection.close()
-	return result
+	return execute(query, (dbname, table_name), fetch='one')[0]
 
 def table_empty(table_name):
 	'''
@@ -195,20 +189,23 @@ def table_empty(table_name):
 	'''
 	query = sql.SQL("SELECT COUNT(*) FROM (SELECT * FROM {table_name} LIMIT 1) sq").format(
 		table_name=sql.Identifier(table_name))
-	connection = get_connection()
-	cursor = connection.cursor()
-	cursor.execute(query)
-	result = cursor.fetchone()[0]
+	result = execute(query, fetch='one')[0]
 	if result == 1:
 		return False
 	else:
 		return True
 
-def execute(statement):
+def execute(statement, parameters=None, fetch=None):
 	connection = get_connection()
 	cursor = connection.cursor()
 	try:
-		cursor.execute(statement)
+		cursor.execute(statement, parameters)
+		if fetch == 'one':
+			return cursor.fetchone()
+		elif fetch == 'all':
+			return cursor.fetchall()
+		else:
+			return None
 	except Exception as e:
 		raise(e)
 	# Even when an error is raised during execution,
@@ -240,13 +237,10 @@ def delete_column(table_name, col_name):
 		print(f'Did not drop column {col_name} since it does not exist.')
 
 def get_column_type(table_name, column_name):
-	connection = get_connection()
-	cursor = connection.cursor()
 	query = '''
 	SELECT udt_name
 	FROM information_schema.columns
 	WHERE table_name = %s
 	AND column_name = %s
 	'''
-	cursor.execute(query, (table_name, column_name))
-	return cursor.fetchone()[0]
+	return execute(query, (table_name, column_name), fetch='one')[0]
