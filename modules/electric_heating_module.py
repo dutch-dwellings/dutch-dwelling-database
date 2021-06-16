@@ -17,7 +17,6 @@ class ElectricHeatingModule(BaseModule):
 		self.load_installation_type_data()
 		self.load_elec_use_data()
 		self.load_cbs_kerncijfers_data()
-		self.load_energy_label_data()
 		self.create_benchmark()
 
 	def load_installation_type_data(self):
@@ -97,19 +96,6 @@ class ElectricHeatingModule(BaseModule):
 		}
 		cursor.close()
 
-	def load_energy_label_data(self):
-		cursor = self.connection.cursor()
-		# create dictionary with BAG_ID and energy label
-		query = "SELECT vbo_id, energieklasse FROM energy_labels WHERE vbo_id IS NOT null AND energieklasse IS NOT null"
-		cursor.execute(query)
-		results = cursor.fetchall()
-		self.energy_label = {
-			vbo_id: energy_label
-			for (vbo_id, energy_label)
-			in results
-		}
-		cursor.close()
-
 	def create_benchmark(self):
 		# Create all possible combinations of characteristics
 		building_type_tuple = ('Appartement', 'Hoekwoning', '2-onder-1-kapwoning', 'Tussenwoning', 'Vrijstaande woning')
@@ -167,7 +153,7 @@ class ElectricHeatingModule(BaseModule):
 		household_size = round(self.postcode_household_size_data.get(postal_code,0))
 		if household_size <= 0:
 			household_size = 1
-		energy_label = self.energy_label.get(vbo_id, 'Geen label')
+		energy_label = dwelling.attributes['energy_label']
 
 		# We assume there are only heat pumps in dwellings with energylabel C or higher
 		if energy_label == 'A+++' or energy_label == 'A++' or energy_label == 'A+' or energy_label == 'A' or energy_label == 'B' or energy_label == 'C':

@@ -19,9 +19,9 @@ class GasBoilerModule(BaseModule):
 
 		self.load_installation_type_data()
 		self.load_gas_use_data()
+		self.load_neighbourhood_dwelling_data()
 		self.load_energy_label_data()
 		self.create_benchmark()
-		self.load_neighbourhood_dwelling_data()
 
 	def load_installation_type_data(self):
 		cursor = self.connection.cursor()
@@ -33,6 +33,32 @@ class GasBoilerModule(BaseModule):
 		self.buurten_verwarming_data = {
 			buurt_id: percentage_gas_boilers
 			for (buurt_id, percentage_gas_boilers)
+			in results
+		}
+		cursor.close()
+
+	def load_neighbourhood_dwelling_data(self):
+		# Create dictionary which relates the neighbourhood code of a dwelling and the dwellings in that neighbourhood
+		cursor = self.connection.cursor()
+		query = "SELECT buurt_id, vbo_id FROM bag WHERE vbo_id IS NOT NULL;"
+		cursor.execute(query)
+		results = cursor.fetchall()
+		self.neighbourhood_vbo_ids = collections.defaultdict(list)
+		for (buurt_id, vbo_id) in results:
+			self.neighbourhood_vbo_ids[buurt_id].append(vbo_id)
+		# Create dictionary needed for storing information on relative gas use
+		self.neighbourhood_gas_check_dict = {}
+		cursor.close()
+
+	def load_energy_label_data(self):
+		cursor = self.connection.cursor()
+		# create dictionary with BAG_ID and energy label
+		query = "SELECT vbo_id, energieklasse FROM energy_labels WHERE vbo_id IS NOT null AND energieklasse IS NOT null"
+		cursor.execute(query)
+		results = cursor.fetchall()
+		self.energy_label = {
+			vbo_id: energy_label
+			for (vbo_id, energy_label)
 			in results
 		}
 		cursor.close()
@@ -50,20 +76,8 @@ class GasBoilerModule(BaseModule):
 		}
 		cursor.close()
 
-	def load_neighbourhood_dwelling_data(self):
-		# Create dictionary which relates the neighbourhood code of a dwelling and the dwellings in that neighbourhood
-		cursor = self.connection.cursor()
-		query = "SELECT buurt_id, vbo_id FROM bag WHERE vbo_id IS NOT NULL;"
-		cursor.execute(query)
-		results = cursor.fetchall()
-		self.neighbourhood_dwellings = collections.defaultdict(list)
-		for (buurt_id, vbo_id) in results:
-			self.neighbourhood_dwellings[buurt_id].append(vbo_id)
-		self.neighbourhood_gas_check_dict = collections.defaultdict(list)
-		cursor.close()
-
 	def neighbourhood_gas_use_comparison(self,buurt_id):
-		percentile_gas_use_dict = collections.defaultdict(list)
+		percentile_gas_use_dict = {}
 		connection = get_connection()
 		sample = get_neighbourhood_dwellings(connection, buurt_id)
 
@@ -169,21 +183,8 @@ class GasBoilerModule(BaseModule):
 					dwelling_gas_use_percentile = 1
 				else:
 					pass
-			percentile_gas_use_dict[vbo_id].append(dwelling_gas_use_percentile)
+			percentile_gas_use_dict[vbo_id] = dwelling_gas_use_percentile
 		return(percentile_gas_use_dict)
-
-	def load_energy_label_data(self):
-		cursor = self.connection.cursor()
-		# create dictionary with BAG_ID and energy label
-		query = "SELECT vbo_id, energieklasse FROM energy_labels WHERE vbo_id IS NOT null AND energieklasse IS NOT null"
-		cursor.execute(query)
-		results = cursor.fetchall()
-		self.energy_label = {
-			vbo_id: energy_label
-			for (vbo_id, energy_label)
-			in results
-		}
-		cursor.close()
 
 	def create_benchmark(self):
 		# Create all possible combinations of characteristics
@@ -233,22 +234,25 @@ class GasBoilerModule(BaseModule):
 		vbo_id = dwelling.attributes['vbo_id']
 		buurt_id = dwelling.attributes['buurt_id']
 		boiler_p = self.buurten_verwarming_data.get(buurt_id, 0) / 100
+		energy_label = self.energy_label.get(vbo_id, 'Geen label')
+		dwelling.attributes['energy_label'] = energy_label
 
 		# Check if neighbourhood has already been through the gas usage ranking process
 		if buurt_id not in self.neighbourhood_gas_check_dict:
 			# If not, add to the dictionary
-			self.neighbourhood_gas_check_dict[buurt_id].append(self.neighbourhood_gas_use_comparison(buurt_id))
+			self.neighbourhood_gas_check_dict[buurt_id] = self.neighbourhood_gas_use_comparison(buurt_id)
 
 		# Check percentile ranking within neighbourhood
-		sorted_usage = sorted(self.neighbourhood_gas_check_dict[buurt_id][0].items(), key=lambda k_v: k_v[1][0])
-		index_list = [i for i, tupl in enumerate(sorted_usage) if tupl[0] == vbo_id]
-		[index] = index_list
-		gas_use_percentile_neighbourhood = (index+1)/len(self.neighbourhood_gas_check_dict[buurt_id][0])
+		sorted_usage = list({k: v for k, v in sorted(self.neighbourhood_gas_check_dict[buurt_id].items(), key=lambda item: item[1])}.items())
+		# Find the index of the dwelling in question
+		index = [i for i, tupl in enumerate(sorted_usage) if tupl[0] == vbo_id].pop()
+		# Calculate the ranking of the dwelling [0,1]
+		gas_use_percentile_neighbourhood = (index+1)/len(sorted_usage)
+		gas_boiler_p = self.modify_probability(boiler_p, gas_use_percentile_neighbourhood)
 
-		boiler_p = self.modify_probability(boiler_p, dwelling_gas_use_percentile)
-
-		dwelling.attributes['gas_use_percentile_neighbourhood'] = round(gas_use_percentile_neighbourhood,2)
-		dwelling.attributes['gas_boiler_p'] = round(boiler_p,2)
+		dwelling.attributes['gas_use_percentile_national'] = self.neighbourhood_gas_check_dict[buurt_id][vbo_id]
+		dwelling.attributes['gas_use_percentile_neighbourhood'] = gas_use_percentile_neighbourhood
+		dwelling.attributes['gas_boiler_p'] = boiler_p
 
 	outputs = {
 		'gas_boiler': {
