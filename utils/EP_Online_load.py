@@ -164,7 +164,6 @@ def add_column_epi_imputed():
 	execute_file(path)
 
 def main():
-	create_energy_label_class_type()
 
 	if not table_empty(env['EP_ONLINE_DBNAME']):
 		print(f"Table '{env['EP_ONLINE_DBNAME']}' already populated, skipping loading of new records")
