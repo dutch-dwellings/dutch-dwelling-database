@@ -8,10 +8,11 @@ from utils.create_results_table import main as create_results_table
 from modules.dwelling import Dwelling
 
 comparison = 1
+from modules.energy_label_module import EnergyLabelModule
 from modules.district_heating_module import DistrictHeatingModule
 if comparison == 1:
-	from modules.gas_boiler_module_nbh_comparison import GasBoilerModule
-	from modules.electric_heating_module_nbh_comparison import ElectricHeatingModule
+	from modules.gas_boiler_module_nbh_comparison_refactored import GasBoilerModule
+	from modules.electric_heating_module_nbh_comparison_refactored import ElectricHeatingModule
 else:
 	from modules.gas_boiler_module import GasBoilerModule
 	from modules.electric_heating_module import ElectricHeatingModule
@@ -33,6 +34,7 @@ def main():
 	sample = get_bag_sample(connection, n=1000)
 
 	print("Initiating modules...")
+	energy_label_module = EnergyLabelModule(connection)
 	district_heating_module = DistrictHeatingModule(connection)
 	gas_boiler_module = GasBoilerModule(connection)
 	electric_heating_module = ElectricHeatingModule(connection)
@@ -41,6 +43,7 @@ def main():
 	print("Processing entries...")
 	for entry in sample:
 		dwelling = Dwelling(dict(entry), connection)
+		energy_label_module.process(connection)
 		district_heating_module.process(dwelling)
 		gas_boiler_module.process(dwelling)
 		electric_heating_module.process(dwelling)
