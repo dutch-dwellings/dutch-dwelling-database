@@ -6,7 +6,7 @@ from scipy.interpolate import interp1d
 import collections
 from utils.database_utils import get_connection, get_neighbourhood_dwellings
 from modules.dwelling import Dwelling
-from modules.energy_label_module import EnergyLabelModule
+from modules.energy_label_module import EnergyLabelModule as energy_label_module
 # Required for relative imports to also work when called
 # from project root directory.
 sys.path.append(os.path.dirname(__file__))
@@ -30,18 +30,18 @@ class GasBoilerModule(BaseModule):
 		cursor = self.connection.cursor()
 		query = "SELECT woningen FROM cbs_84983ned_woningen_hoofdverwarmings_buurt_2019_typed WHERE area_code = %s AND type_verwarmingsinstallatie LIKE 'A050112'AND woningen IS NOT null"
 		# A050112 is the code for a gas boiler
-		cursor.execute(query, buurt_id)
+		cursor.execute(query, (buurt_id,))
 		results = cursor.fetchall()
-		self.buurten_verwarming_data[buurt_id] = results
+		self.buurten_verwarming_data[buurt_id] = results[0][0]
 		cursor.close()
 
 	def load_gas_use_data(self, postal_code):
 		# Add gas use of postal code to dict
 		cursor = self.connection.cursor()
 		query = "SELECT gemiddelde_aardgaslevering_woningen FROM cbs_pc6_2019_energy_use WHERE gemiddelde_aardgaslevering_woningen IS NOT null AND pc6 = %s"
-		cursor.execute(query, postal_code)
+		cursor.execute(query, (postal_code,))
 		results = cursor.fetchall()
-		self.postcode_gas_use_data[postal_code] = results
+		self.postcode_gas_use_data[postal_code] = results[0]
 		cursor.close()
 
 	def neighbourhood_gas_use_comparison(self,buurt_id):
@@ -56,7 +56,7 @@ class GasBoilerModule(BaseModule):
 
 			# Gas use in postal code
 			if postal_code not in self.postcode_gas_use_data:
-				energy_label_module.process(connection)
+				energy_label_module.process(connection, dwelling)
 			postal_code_gas_use = self.postcode_gas_use_data[postal_code]
 
 			# Get dwellings attributes which serve as CBS data lookup values

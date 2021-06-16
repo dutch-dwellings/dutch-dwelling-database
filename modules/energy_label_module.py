@@ -15,10 +15,10 @@ class EnergyLabelModule(BaseModule):
 		cursor = self.connection.cursor()
 		# Get energy label of dwelling
 		query = "SELECT energieklasse FROM energy_labels WHERE energieklasse IS NOT null AND vbo_id = %s"
-		cursor.execute(query)
+		cursor.execute(query, (vbo_id,))
 		results = cursor.fetchall()
-		cursor.close()
 		return results
+		cursor.close()
 
 	def process(self, dwelling):
 		super().process(dwelling)

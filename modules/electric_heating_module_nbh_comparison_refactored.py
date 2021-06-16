@@ -34,41 +34,41 @@ class ElectricHeatingModule(BaseModule):
 		cursor = self.connection.cursor()
 		query_hybrid_heat_pumps = "SELECT woningen FROM cbs_84983ned_woningen_hoofdverwarmings_buurt_2019_typed WHERE area_code = %s AND type_verwarmingsinstallatie LIKE 'A050117'AND woningen IS NOT null"
 		# A050117 is the code for a gas boiler
-		cursor.execute(query_hybrid_heat_pumps)
+		cursor.execute(query_hybrid_heat_pumps, (buurt_id,))
 		results = cursor.fetchall()
-		self.buurten_hybrid_heat_pump_data[buurt_id] = results
+		self.buurten_hybrid_heat_pump_data[buurt_id] = results[0]
 
 		# Add percentage of dwellings with eelctric heating and low gas use in neighbourhood to dict
 		query_low_gas ="SELECT woningen FROM cbs_84983ned_woningen_hoofdverwarmings_buurt_2019_typed WHERE area_code = %s AND type_verwarmingsinstallatie LIKE 'A050118'AND woningen IS NOT null"
 		# A050118 is the code for electric heating with low gas use
-		cursor.execute(query_low_gas)
+		cursor.execute(query_low_gas, (buurt_id,))
 		results = cursor.fetchall()
-		self.buurten_elec_low_gas_data[buurt_id] = results
+		self.buurten_elec_low_gas_data[buurt_id] = results[0]
 
 		# Add percentage of dwellings with eelctric heating and no gas use in neighbourhood to dict
 		query_no_gas = "SELECT woningen FROM cbs_84983ned_woningen_hoofdverwarmings_buurt_2019_typed WHERE area_code = %s AND type_verwarmingsinstallatie LIKE 'A050119'AND woningen IS NOT null"
 		# A050119 is the code for electric heating with no gas use
-		cursor.execute(query_no_gas)
+		cursor.execute(query_no_gas, (buurt_id,))
 		results = cursor.fetchall()
-		self.buurten_elec_no_gas_data[buurt_id] = results
+		self.buurten_elec_no_gas_data[buurt_id] = results[0]
 		cursor.close()
 
 	def load_elec_use_data(self, postal_code):
 		# Add e;ec use of postal code to dict
 		cursor = self.connection.cursor()
 		query = "SELECT gemiddelde_elektriciteitslevering_woningen FROM cbs_pc6_2019_energy_use WHERE gemiddelde_elektriciteitslevering_woningen IS NOT NULL AND pc6 = %s"
-		cursor.execute(query)
+		cursor.execute(query, (postal_code,))
 		results = cursor.fetchall()
-		self.postcode_elec_use_data[postal_code] = results
+		self.postcode_elec_use_data[postal_code] = results[0]
 		cursor.close()
 
 	def load_cbs_kerncijfers_data(self, postal_code):
 		# Add average pc6 household size to dict
 		cursor = self.connection.cursor()
 		query = " SELECT gem_hh_gr FROM cbs_pc6_2017_kerncijfers WHERE gem_hh_gr IS NOT null AND pc6 = %s"
-		cursor.execute(query)
+		cursor.execute(query, (postal_code,))
 		results = cursor.fetchall()
-		self.postcode_household_size_data[pc6] = results
+		self.postcode_household_size_data[pc6] = results[0]
 		cursor.close()
 
 	def heat_pump_probability_modification(self):

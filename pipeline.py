@@ -43,7 +43,7 @@ def main():
 	print("Processing entries...")
 	for entry in sample:
 		dwelling = Dwelling(dict(entry), connection)
-		energy_label_module.process(connection)
+		energy_label_module.process(dwelling)
 		district_heating_module.process(dwelling)
 		gas_boiler_module.process(dwelling)
 		electric_heating_module.process(dwelling)
