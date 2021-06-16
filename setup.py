@@ -1,3 +1,5 @@
+from psycopg2.errors import DuplicateObject
+
 from utils.database_utils import create_database, add_index, make_primary_key, rename_column, delete_column, execute, get_column_type
 
 from utils.BAG_create_table import main as create_BAG_table
@@ -50,6 +52,20 @@ def CBS_kerncijfers():
 
 	print('Loading the data into Postgres...')
 	load_CBS_PC6_2017_kerncijfers()
+
+def create_types():
+	print('Adding new Postgres types...')
+
+	print("Creating type 'energy_label_class'...")
+	create_type_statement = '''
+	CREATE TYPE energy_label_class
+	AS ENUM
+	('G', 'F', 'E', 'D', 'C', 'B', 'A', 'A+', 'A++', 'A+++', 'A++++', 'A+++++')
+	'''
+	try:
+		execute(create_type_statement)
+	except DuplicateObject:
+		print("\tType 'energy_label_class' already exists.")
 
 def elec_consumption_households():
 	print('Creating table for CBS PC6...')
@@ -172,6 +188,9 @@ def main():
 
 	print('Creating database...')
 	create_database()
+
+	print('\nCreating types...')
+	create_types()
 
 	print('\n====== BAG ======')
 	bag()

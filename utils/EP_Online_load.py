@@ -9,7 +9,6 @@ import lxml.etree as ET
 from dotenv import dotenv_values
 from psycopg2 import sql
 from psycopg2.extras import execute_values
-from psycopg2.errors import DuplicateObject
 
 env = dotenv_values(".env")
 
@@ -147,14 +146,6 @@ def load_energy_labels_data():
 	cursor.close()
 	connection.commit()
 	connection.close()
-
-def create_energy_label_class_type():
-	print("Creating type 'energy_label_class'...")
-	statement = "CREATE TYPE energy_label_class_test AS ENUM ('G', 'F', 'E', 'D', 'C', 'B', 'A', 'A+', 'A++', 'A+++', 'A++++', 'A+++++')"
-	try:
-		execute(statement)
-	except DuplicateObject:
-		print("Type 'energy_label_class' already exists.")
 
 def add_functions():
 	print('Adding functions for energy labels...')
