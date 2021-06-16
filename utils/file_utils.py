@@ -22,7 +22,7 @@ def save_to_file(url, path, expected_size=None, method='GET', data={}, cookies={
 
 	os.makedirs(os.path.dirname(path), exist_ok=True)
 	with open(path, "wb") as file:
-		print(f'Starting download (expected size: {expected_size})..')
+		print(f'Starting download... (expected size: {expected_size})')
 		if method == 'GET':
 			response = requests.get(url)
 		elif method == 'POST':

@@ -15,6 +15,7 @@ from utils.EP_Online_load import main as load_energy_labels_data
 
 from utils.CBS_utils import load_cbs_table
 from utils.CBS_PC6_2019_energy_use_create_table import main as create_CBS_PC6_2019_energy_use_table
+from utils.CBS_PC6_2019_energy_use_download import main as download_CBS_PC6_2019_energy_use
 from utils.CBS_PC6_2019_energy_use_load import main as load_CBS_PC6_2019_energy_use
 
 from utils.CBS_PC6_2017_kerncijfers_create_table import main as create_CBS_PC6_2017_kerncijfers_table
@@ -40,6 +41,9 @@ def bag():
 def CBS_PC6():
 	print('Creating table for CBS PC6...')
 	create_CBS_PC6_2019_energy_use_table()
+
+	print('Downloading data...')
+	download_CBS_PC6_2019_energy_use()
 
 	print('Loading the data into Postgres...')
 	load_CBS_PC6_2019_energy_use()

@@ -12,8 +12,8 @@ from database_utils import get_connection, table_empty
 from file_utils import data_dir
 
 
-FILE_NAME_IN = 'Publicatiefile_Energie_postcode6_2019.csv'
-FILE_NAME_OUT = 'Publicatiefile_Energie_postcode6_2019_fixed.csv'
+FILE_NAME_IN = 'CBS_PC6_2019_Publicatiefile_Energie_postcode6_2019.csv'
+FILE_NAME_OUT = 'CBS_PC6_2019_Publicatiefile_Energie_postcode6_2019_fixed.csv'
 TABLE_NAME = 'cbs_pc6_2019_energy_use'
 
 # note: '''' means: use the character ' as quote character.

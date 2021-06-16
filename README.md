@@ -31,12 +31,10 @@ pip install python-dotenv psycopg2-binary requests scipy
 
 ### Get required datasets
 
-We try to automatically download as many datasets as possible, but some you still need to put into `data` manually:
+We try to automatically download as many datasets as possible, but some you still need to put into `data` manually since these datasets are not easily/freely available:
 
 - WoON survey: `WoON2018energie_e_1.0.csv`
 - BAG (custom export enriched with dwelling types): `BAG_Invoer_RuimtelijkeData_BAG_vbo_woonfunctie_studiegebied_Export.csv`
-- CBS:
-	- [Energiecijfers PC6 2019](https://www.cbs.nl/-/media/_excel/2020/33/energiecijfers_postcode6.zip) ([info](https://www.cbs.nl/nl-nl/maatwerk/2020/33/energielevering-aan-woningen-en-bedrijven-naar-postcode)) extract `Publicatiefile_Energie_postcode6_2019.csv` from the ZIP archive
 
 ### Loading
 To download the rest of the data sets and load all of them, run the setup tool:
