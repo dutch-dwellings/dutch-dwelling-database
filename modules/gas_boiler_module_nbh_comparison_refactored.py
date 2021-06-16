@@ -56,21 +56,18 @@ class GasBoilerModule(BaseModule):
 
 			# Gas use in postal code
 			if postal_code not in self.postcode_gas_use_data:
-				energy_label_module.process(connection, dwelling)
+				self.load_gas_use_data(postal_code)
 			postal_code_gas_use = self.postcode_gas_use_data[postal_code]
 
 			# Get dwellings attributes which serve as CBS data lookup values
 			vbo_id = dwelling.attributes['vbo_id']
+			print(vbo_id)
 			floor_space = dwelling.attributes['oppervlakte']
 			building_year = dwelling.attributes['bouwjaar']
 			building_type = dwelling.attributes['woningtype']
+			energy_label = dwelling.attributes['energy_label']
 
-			try:
-				 energy_label = dwelling.attributes['energy_label']
-			except KeyError:
-				self.get_energy_label[vbo_id]
-				self.assign_energy_label[dwelling]
-				energy_label = dwelling.attributes['energy_label']
+
 
 			# Make energy labels searchable
 			for energy_label in ['A+++++', 'A++++', 'A+++', 'A++', 'A+']:
