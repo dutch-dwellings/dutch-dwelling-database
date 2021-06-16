@@ -116,6 +116,7 @@ def energy_labels():
 	print('Creating indexes...')
 	add_index('energy_labels', 'vbo_id')
 	add_index('energy_labels', 'pand_id')
+	add_index('energy_labels', 'pc6')
 
 def cbs():
 	# Include a tuple with (table_id, typed_data_set),
