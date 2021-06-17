@@ -1,11 +1,5 @@
 import os
 import sys
-import re
-import itertools
-from scipy.interpolate import interp1d
-import collections
-from utils.database_utils import get_connection, get_neighbourhood_dwellings
-from modules.dwelling import Dwelling
 
 sys.path.append(os.path.dirname(__file__))
 from base_module import BaseModule
@@ -15,30 +9,48 @@ class GasWaterHeatingModule(BaseModule):
 
 	def __init__(self, connection):
 		super().__init__(connection)
-		self.create_dicts()
-
-	def create_dicts(self):
-		self.buurten_gas_boiler_data = {}
-		self.buurten_block_heating_data = {}
-		self.neighbourhood_gas_check_dict = {}
-		self.postcode_gas_use_data = {}
-		self.gas_benchmark_dict = {}
 
 	def process(self, dwelling):
 		super().process(dwelling)
 
+		# Get dwelling attributes
+		vbo_id = dwelling.attributes['vbo_id']
+		gas_use_percentile_neighbourhood = dwelling.attributes['gas_use_percentile_neighbourhood']
+
+		boiler_heating_space_p = dwelling.attributes['boiler_heating_space_p']
+		district_low_gas_p = dwelling.attributes['district_low_gas_p']
+		district_high_gas_p = dwelling.attributes['district_high_gas_p']
+		elec_high_gas = dwelling.attributes['elec_high_gas_p']
+		elec_low_gas_p = dwelling.attributes['elec_low_gas_p']
+		block_heating_space_p = dwelling.attributes['block_heating_space_p']
+
 		# Individual gas boiler
-		gas_boiler_water_p = dwelling.attributes['gas_boiler_space_p'] + dwelling.attributes['district_low_gas_p'] + dwelling.attributes['hybrid_heat_pump_p'] + dwelling.attributes['elec_low_gas_p']
-
-		print('gas_boiler_space_p = ' + str(dwelling.attributes['gas_boiler_space_p'] ))
-		print('district_low_gas_p = ' + str(dwelling.attributes['district_low_gas_p'] ))
-		print('hybrid_heat_pump_p = '+ str(dwelling.attributes['hybrid_heat_pump_p'] ))
-		print('elec_low_gas_p     = ' + str(dwelling.attributes['elec_low_gas_p'] ))
-		print('elec_no_gas_p      = ' + str(dwelling.attributes['elec_no_gas_p'] ))
-		print('district_no_gas_p  = ' + str(dwelling.attributes['district_no_gas_p'] ))
-		print('district_high_gas_p= ' + str(dwelling.attributes['district_high_gas_p'] ))
-
-		print('gas_boiler_water_p = ' + str(gas_boiler_water_p) +'\n')
+		gas_boiler_water_p = boiler_heating_space_p + district_low_gas_p + district_high_gas_p + elec_high_gas + elec_low_gas_p
+		gas_boiler_water_p = self.modify_probability_up(gas_boiler_water_p, gas_use_percentile_neighbourhood)
 
 		# Block gas boiler
-		block_heating_water_p = dwelling.attributes['block_heating_space_p']
+		block_heating_water_p = block_heating_space_p
+
+		dwelling.attributes['gas_boiler_water_p'] = gas_boiler_water_p
+		dwelling.attributes['block_heating_water_p'] = block_heating_water_p
+
+	outputs = {
+		'gas_boiler_water': {
+			'type': 'boolean',
+			'sampling': True,
+			'distribution': 'gas_boiler_water_p'
+		},
+		'gas_boiler_water_p': {
+			'type': 'float',
+			'sampling': False,
+		},
+		'block_heating_water': {
+			'type': 'boolean',
+			'sampling': True,
+			'distribution': 'block_heating_water_p'
+		},
+		'block_heating_water_p': {
+			'type': 'float',
+			'sampling': False,
+		}
+	}

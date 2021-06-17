@@ -25,11 +25,18 @@ class BaseModule:
 				connection=self.connection
 			)
 
-	def modify_probability(self, probability, percentile):
+	def modify_probability_up(self, probability, percentile):
 		if probability > 0.5:
 			probability = probability + 2 * (1 - probability) * (percentile - 0.5)
 		else:
 			probability = probability + 2 * (probability) * (percentile - 0.5)
+		return probability
+
+	def modify_probability_down(self, probability, percentile):
+		if probability > 0.5:
+			probability = probability - 2 * (1 - probability) * (percentile - 0.5)
+		else:
+			probability = probability - 2 * (probability) * (percentile - 0.5)
 		return probability
 
 	def process(self, dwelling):

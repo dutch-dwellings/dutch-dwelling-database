@@ -1,12 +1,5 @@
 import os
 import sys
-from scipy.interpolate import interp1d
-import itertools
-import math
-import collections
-from utils.database_utils import get_connection, get_neighbourhood_dwellings
-from modules.dwelling import Dwelling
-from modules.energy_label_module import EnergyLabelModule
 
 # Required for relative imports to also work when called
 # from project root directory.
@@ -22,7 +15,7 @@ class ElectricSpaceHeatingModule(BaseModule):
 		self.heat_pump_probability_modification()
 
 	def create_dicts(self):
-		self.buurten_hybrid_heat_pump_data = {}
+		self.buurten_elec_high_gas_data = {}
 		self.buurten_elec_low_gas_data = {}
 		self.buurten_elec_no_gas_data = {}
 
@@ -33,7 +26,7 @@ class ElectricSpaceHeatingModule(BaseModule):
 		# A050117 is the code for a gas boiler
 		cursor.execute(query_hybrid_heat_pumps, (buurt_id,))
 		results = cursor.fetchall()
-		self.buurten_hybrid_heat_pump_data[buurt_id] = results[0][0]
+		self.buurten_elec_high_gas_data[buurt_id] = results[0][0]
 
 		# Add percentage of dwellings with eelctric heating and low gas use in neighbourhood to dict
 		query_low_gas ="SELECT woningen FROM cbs_84983ned_woningen_hoofdverwarmings_buurt_2019_typed WHERE area_code = %s AND type_verwarmingsinstallatie LIKE 'A050118'AND woningen IS NOT null"
@@ -68,18 +61,19 @@ class ElectricSpaceHeatingModule(BaseModule):
 	def process(self, dwelling):
 		super().process(dwelling)
 
-		# Get basic dwelling attributes
+		# Get dwelling attributes
 		vbo_id = dwelling.attributes['vbo_id']
 		buurt_id = dwelling.attributes['buurt_id']
 		energy_label = dwelling.attributes['energy_label']
 		gas_use_percentile_national = dwelling.attributes['gas_use_percentile_national']
+		gas_use_percentile_neighbourhood = dwelling.attributes['gas_use_percentile_neighbourhood']
 		elec_use_percentile_national = dwelling.attributes['elec_use_percentile_national']
 		elec_use_percentile_neighbourhood = dwelling.attributes['elec_use_percentile_neighbourhood']
 
 		# Base probability of having different types of electric heating
-		if buurt_id not in self.buurten_hybrid_heat_pump_data:
+		if buurt_id not in self.buurten_elec_high_gas_data:
 			self.load_installation_type_data(buurt_id)
-		hybrid_heat_pump_p = self.buurten_hybrid_heat_pump_data[buurt_id] / 100
+		elec_high_gas_p = self.buurten_elec_high_gas_data[buurt_id] / 100
 		elec_low_gas_p = self.buurten_elec_low_gas_data[buurt_id] / 100
 		elec_no_gas_p = self.buurten_elec_no_gas_data[buurt_id] / 100
 
@@ -91,17 +85,19 @@ class ElectricSpaceHeatingModule(BaseModule):
 			electric_heat_pump_p = 0.
 
 		# If there is a high electricity use we modify the probability of the hybrid heat pump according to the gas use
-
+		hybrid_heat_pump_p = elec_high_gas_p
 		if elec_use_percentile_national > 0.7:
-			hybrid_heat_pump_p = self.modify_probability(hybrid_heat_pump_p, gas_use_percentile_national)
+			hybrid_heat_pump_p = self.modify_probability_up(elec_high_gas_p, gas_use_percentile_national)
 
 		# Modify probabilities for electric boiler
-		elec_low_gas_p = self.modify_probability(elec_low_gas_p, elec_use_percentile_neighbourhood)
-		elec_no_gas_p = self.modify_probability(elec_no_gas_p, elec_use_percentile_neighbourhood)
+		elec_boiler_space_p = elec_low_gas_p + elec_no_gas_p
+		elec_boiler_space_p = self.modify_probability_up(elec_boiler_space_p, elec_use_percentile_neighbourhood)
+		elec_boiler_space_p = self.modify_probability_down(elec_boiler_space_p, gas_use_percentile_neighbourhood)
 
 		dwelling.attributes['hybrid_heat_pump_p'] = hybrid_heat_pump_p
 		dwelling.attributes['electric_heat_pump_p'] = electric_heat_pump_p
-		dwelling.attributes['elec_boiler_space_p'] = elec_low_gas_p + elec_no_gas_p
+		dwelling.attributes['elec_boiler_space_p'] = elec_boiler_space_p
+		dwelling.attributes['elec_high_gas_p'] = elec_high_gas_p
 		dwelling.attributes['elec_low_gas_p'] = elec_low_gas_p
 		dwelling.attributes['elec_no_gas_p'] = elec_no_gas_p
 

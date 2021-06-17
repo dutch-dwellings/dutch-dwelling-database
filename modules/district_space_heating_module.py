@@ -6,7 +6,7 @@ import sys
 sys.path.append(os.path.dirname(__file__))
 from base_module import BaseModule
 
-class DistrictHeatingModule(BaseModule):
+class DistrictSpaceHeatingModule(BaseModule):
 
 	def __init__(self, connection):
 		super().__init__(connection)
@@ -43,7 +43,7 @@ class DistrictHeatingModule(BaseModule):
 
 	def process(self, dwelling):
 		super().process(dwelling)
-		# Get basic dwelling attributes
+		# Get dwelling attributes
 		vbo_id = dwelling.attributes['vbo_id']
 		buurt_id = dwelling.attributes['buurt_id']
 		postal_code = dwelling.attributes['pc6']
@@ -58,15 +58,15 @@ class DistrictHeatingModule(BaseModule):
 		dwelling.attributes['district_high_gas_p'] = district_high_gas_p
 		dwelling.attributes['district_low_gas_p'] = district_low_gas_p
 		dwelling.attributes['district_no_gas_p'] = district_no_gas_p
-		dwelling.attributes['district_heating_p'] = district_high_gas_p + district_low_gas_p + district_no_gas_p
+		dwelling.attributes['district_heating_space_p'] = district_high_gas_p + district_low_gas_p + district_no_gas_p
 
 	outputs = {
-		'district_heating': {
+		'district_heating_space': {
 			'type': 'boolean',
 			'sampling': True,
-			'distribution': 'district_heating_p'
+			'distribution': 'district_heating_space_p'
 		},
-		'district_heating_p': {
+		'district_heating_space_p': {
 			'type': 'float',
 			'sampling': False,
 		},

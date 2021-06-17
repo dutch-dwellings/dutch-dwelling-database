@@ -11,9 +11,6 @@ class EnergyLabelModule(BaseModule):
 	def __init__(self, connection):
 		super().__init__(connection)
 
-	def create_dicts(self):
-		self.buurten_verwarming_data = {}
-
 	def get_energy_label(self, vbo_id):
 		cursor = self.connection.cursor()
 		# Get energy label of dwelling
