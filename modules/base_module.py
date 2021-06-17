@@ -26,6 +26,7 @@ class BaseModule:
 			)
 
 	def modify_probability_up(self, probability, percentile):
+		# A high value for percentile will increase the probability
 		if probability > 0.5:
 			probability = probability + 2 * (1 - probability) * (percentile - 0.5)
 		else:
@@ -33,6 +34,7 @@ class BaseModule:
 		return probability
 
 	def modify_probability_down(self, probability, percentile):
+		# A high value for percentile will decrease the probability
 		if probability > 0.5:
 			probability = probability - 2 * (1 - probability) * (percentile - 0.5)
 		else:
