@@ -5,7 +5,7 @@ from psycopg2 import sql
 from utils.database_utils import get_connection, get_bag_sample, get_neighbourhoods_sample
 from utils.create_results_table import main as create_results_table
 
-from modules.dwelling import Dwelling
+from modules.classes import Dwelling
 
 from modules.energy_label_module import EnergyLabelModule
 from modules.gas_consumption_comparison_module import GasConsumptionComparisonModule
@@ -35,7 +35,7 @@ def main():
 
 	print("Getting a BAG sample...")
 	#sample = get_bag_sample(connection, 1000)
-	sample = get_neighbourhoods_sample(connection, 'BU0344%', 1000)
+	sample = get_neighbourhoods_sample(connection, 'BU0344%', 1000000)
 
 	print("Initiating modules...")
 	# Create neccesary dwelling attributes

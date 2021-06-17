@@ -46,17 +46,17 @@ class ElectricSpaceHeatingModule(BaseModule):
 	def heat_pump_probability_modification(self):
 		cursor = self.connection.cursor()
 		# create dictionary with buurt_id and number of dwellings
-		query = "SELECT COUNT(energieklasse) FROM energy_labels"
+		query = "SELECT COUNT(vbo_id) FROM bag WHERE bouwjaar IS NOT null"
 		cursor.execute(query)
 		results = cursor.fetchall()
-		total_dwellings_with_energy_label = float(results[0][0])
+		total_dwellings = float(results[0][0])
 
 		query = "SELECT COUNT(energieklasse) FROM energy_labels WHERE energieklasse = 'A+++' OR energieklasse = 'A++' OR energieklasse = 'A+' OR energieklasse = 'A' OR energieklasse = 'B' OR energieklasse = 'C'"
 		cursor.execute(query)
 		heat_pump_eligible_dwellings = float(results[0][0])
 		cursor.close()
-		# Probability is increased using new% = (old% * N_nbh)/(N_eligible)
-		self.electric_heat_pump_p = 0.0155 * total_dwellings_with_energy_label/heat_pump_eligible_dwellings # 0.0155 base percentage taken from WoON
+		# Probability is increased using new% = (old% * N_total)/(N_eligible)
+		self.electric_heat_pump_p = 0.0155 * total_dwellings/heat_pump_eligible_dwellings # 0.0155 base probability taken from WoON
 
 	def process(self, dwelling):
 		super().process(dwelling)
@@ -126,14 +126,6 @@ class ElectricSpaceHeatingModule(BaseModule):
 			'distribution': 'elec_boiler_space_p'
 		},
 		'elec_boiler_space_p': {
-			'type': 'float',
-			'sampling': False,
-		},
-		'elec_low_gas_p': {
-			'type': 'float',
-			'sampling': False,
-		},
-		'elec_no_gas_p': {
 			'type': 'float',
 			'sampling': False,
 		}

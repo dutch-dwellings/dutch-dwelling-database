@@ -42,12 +42,12 @@ class ElectricWaterHeatingModule(BaseModule):
 			'type': 'float',
 			'sampling': False,
 		},
-		'block_heating_water': {
+		'electric_heat_pump_water': {
 			'type': 'boolean',
 			'sampling': True,
-			'distribution': 'block_heating_water_p'
+			'distribution': 'electric_heat_pump_water_p'
 		},
-		'block_heating_water_p': {
+		'electric_heat_pump_water_p': {
 			'type': 'float',
 			'sampling': False,
 		}

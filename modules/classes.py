@@ -53,3 +53,12 @@ class Dwelling:
 	# As of now, we can only assume that BAG-data is always present,
 	# so only use BAG column_names here.
 	default_outputs = {'vbo_id': {}}
+
+class pc6:
+
+	def __init__(self, postal_code):
+		self.postal_code = postal_code
+		self.dwellings = {}
+
+	def add_dwelling(self, vbo_id):
+		self.dwellings.append(vbo_id)

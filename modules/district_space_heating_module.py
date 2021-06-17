@@ -47,6 +47,7 @@ class DistrictSpaceHeatingModule(BaseModule):
 		vbo_id = dwelling.attributes['vbo_id']
 		buurt_id = dwelling.attributes['buurt_id']
 		postal_code = dwelling.attributes['pc6']
+		gas_use_percentile_neighbourhood = dwelling.attributes['gas_use_percentile_neighbourhood']
 
 		# Base probability of having different types of electric heating
 		if buurt_id not in self.buurten_district_high_gas_data:
@@ -54,6 +55,10 @@ class DistrictSpaceHeatingModule(BaseModule):
 		district_high_gas_p = self.buurten_district_high_gas_data[buurt_id] / 100
 		district_low_gas_p = self.buurten_district_low_gas_data[buurt_id] / 100
 		district_no_gas_p = self.buurten_district_no_gas_data[buurt_id] / 100
+
+		# Modify probabilities according to gas use
+		district_high_gas_p = self.modify_probability_up(district_high_gas_p, gas_use_percentile_neighbourhood)
+		district_low_gas_p = self.modify_probability_down(district_low_gas_p, gas_use_percentile_neighbourhood)
 
 		dwelling.attributes['district_high_gas_p'] = district_high_gas_p
 		dwelling.attributes['district_low_gas_p'] = district_low_gas_p
@@ -67,18 +72,6 @@ class DistrictSpaceHeatingModule(BaseModule):
 			'distribution': 'district_heating_space_p'
 		},
 		'district_heating_space_p': {
-			'type': 'float',
-			'sampling': False,
-		},
-		'district_high_gas_p': {
-			'type': 'float',
-			'sampling': False,
-		},
-		'district_low_gas_p': {
-			'type': 'float',
-			'sampling': False,
-		},
-		'district_no_gas_p': {
 			'type': 'float',
 			'sampling': False,
 		}
