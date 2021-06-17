@@ -6,9 +6,7 @@ from scipy.interpolate import interp1d
 import collections
 from utils.database_utils import get_connection, get_neighbourhood_dwellings
 from modules.dwelling import Dwelling
-from modules.energy_label_module import EnergyLabelModule as energy_label_module
-# Required for relative imports to also work when called
-# from project root directory.
+
 sys.path.append(os.path.dirname(__file__))
 from base_module import BaseModule
 
@@ -20,13 +18,14 @@ class GasBoilerModule(BaseModule):
 		self.create_dicts()
 
 	def create_dicts(self):
-		self.buurten_verwarming_data = {}
+		self.buurten_gas_boiler_data = {}
+		self.buurten_block_heating_data = {}
 		self.neighbourhood_gas_check_dict = {}
 		self.postcode_gas_use_data = {}
 		self.gas_benchmark_dict = {}
 
 	def load_installation_type_data(self, buurt_id):
-		# Add percentage of dwellings with boiler in neighbourhood to dict
+		# Add percentage of dwellings with gas boiler in neighbourhood to dict
 		cursor = self.connection.cursor()
 		query = "SELECT woningen FROM cbs_84983ned_woningen_hoofdverwarmings_buurt_2019_typed WHERE area_code = %s AND type_verwarmingsinstallatie LIKE 'A050112'AND woningen IS NOT null"
 		# A050112 is the code for a gas boiler
@@ -34,7 +33,16 @@ class GasBoilerModule(BaseModule):
 		results = cursor.fetchall()
 		if results is not None:
 			results = results[0][0]
-		self.buurten_verwarming_data[buurt_id] = results
+		self.buurten_gas_boiler_data[buurt_id] = results
+
+		# Add percentage of dwellings with block heating in neighbourhood to dict
+		query = "SELECT woningen FROM cbs_84983ned_woningen_hoofdverwarmings_buurt_2019_typed WHERE area_code = %s AND type_verwarmingsinstallatie LIKE 'A050113'AND woningen IS NOT null"
+		# A050113 is the code for a block heating
+		cursor.execute(query, (buurt_id,))
+		results = cursor.fetchall()
+		if results is not None:
+			results = results[0][0]
+		self.buurten_block_heating_data[buurt_id] = results
 		cursor.close()
 
 	def load_gas_use_data(self, postal_code):
@@ -196,9 +204,10 @@ class GasBoilerModule(BaseModule):
 		buurt_id = dwelling.attributes['buurt_id']
 
 		# Get base probability of having a boiler / category 7
-		if buurt_id not in self.buurten_verwarming_data:
+		if buurt_id not in self.buurten_gas_boiler_data:
  			self.load_installation_type_data(buurt_id)
-		boiler_p = self.buurten_verwarming_data.get(buurt_id, 0) / 100
+		gas_boiler_p = self.buurten_gas_boiler_data.get(buurt_id, 0) / 100
+		block_heating_p = self.buurten_block_heating_data.get(buurt_id, 0) / 100
 
 		# Check if neighbourhood has already been through the gas usage ranking process
 		if buurt_id not in self.neighbourhood_gas_check_dict:
@@ -210,11 +219,13 @@ class GasBoilerModule(BaseModule):
 		index = [i for i, tupl in enumerate(sorted_usage) if tupl[0] == vbo_id].pop()
 		# Calculate the ranking of the dwelling [0,1]
 		gas_use_percentile_neighbourhood = (index+1)/len(sorted_usage)
-		gas_boiler_p = self.modify_probability(boiler_p, gas_use_percentile_neighbourhood)
+		gas_boiler_p = self.modify_probability(gas_boiler_p, gas_use_percentile_neighbourhood)
+		block_heating_p = self.modify_probability(block_heating_p, gas_use_percentile_neighbourhood)
 
 		dwelling.attributes['gas_use_percentile_national'] = self.neighbourhood_gas_check_dict[buurt_id][vbo_id]
 		dwelling.attributes['gas_use_percentile_neighbourhood'] = gas_use_percentile_neighbourhood
-		dwelling.attributes['gas_boiler_p'] = boiler_p
+		dwelling.attributes['gas_boiler_p'] = gas_boiler_p
+		dwelling.attributes['block_heating_p'] = block_heating_p
 
 	outputs = {
 		'gas_boiler': {
@@ -223,6 +234,15 @@ class GasBoilerModule(BaseModule):
 			'distribution': 'gas_boiler_p'
 		},
 		'gas_boiler_p': {
+			'type': 'float',
+			'sampling': False,
+		},
+		'block_heating': {
+			'type': 'boolean',
+			'sampling': True,
+			'distribution': 'block_heating_p'
+		},
+		'block_heating_p': {
 			'type': 'float',
 			'sampling': False,
 		}

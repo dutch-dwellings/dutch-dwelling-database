@@ -7,11 +7,10 @@ from utils.create_results_table import main as create_results_table
 
 from modules.dwelling import Dwelling
 
-
 from modules.energy_label_module import EnergyLabelModule
 from modules.district_heating_module import DistrictHeatingModule
-from modules.gas_boiler_module import GasBoilerModule
-from modules.electric_heating_module import ElectricHeatingModule
+from modules.gas_space_heating_module import GasBoilerModule
+from modules.electric_space_heating_module import ElectricHeatingModule
 from modules.sampling_module import SamplingModule
 
 
@@ -27,13 +26,14 @@ def main():
 	create_results_table()
 
 	print("Getting a BAG sample...")
+	#sample = get_bag_sample(connection, 1000)
 	sample = get_neighbourhoods_sample(connection, 'BU0034%')
 
 	print("Initiating modules...")
 	energy_label_module = EnergyLabelModule(connection)
 	district_heating_module = DistrictHeatingModule(connection)
-	gas_boiler_module = GasBoilerModule(connection)
-	electric_heating_module = ElectricHeatingModule(connection)
+	gas_space_heating_module = GasBoilerModule(connection)
+	electric_space_heating_module = ElectricHeatingModule(connection)
 	sampling_module = SamplingModule(connection)
 
 	print("Processing entries...")
@@ -41,8 +41,8 @@ def main():
 		dwelling = Dwelling(dict(entry), connection)
 		energy_label_module.process(dwelling)
 		district_heating_module.process(dwelling)
-		gas_boiler_module.process(dwelling)
-		electric_heating_module.process(dwelling)
+		gas_space_heating_module.process(dwelling)
+		electric_space_heating_module.process(dwelling)
 		sampling_module.process(dwelling)
 		dwelling.save()
 		i += 1
