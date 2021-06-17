@@ -8,9 +8,12 @@ from utils.create_results_table import main as create_results_table
 from modules.dwelling import Dwelling
 
 from modules.energy_label_module import EnergyLabelModule
+from modules.gas_consumption_comparison_module import GasConsumptionComparisonModule
+from modules.electricity_consumption_comparison_module import ElectricityConsumptionComparisonModule
 from modules.district_heating_module import DistrictHeatingModule
-from modules.gas_space_heating_module import GasBoilerModule
-from modules.electric_space_heating_module import ElectricHeatingModule
+from modules.gas_space_heating_module import GasSpaceHeatingModule
+from modules.gas_water_heating_module import GasWaterHeatingModule
+from modules.electric_space_heating_module import ElectricSpaceHeatingModule
 from modules.sampling_module import SamplingModule
 
 
@@ -27,22 +30,28 @@ def main():
 
 	print("Getting a BAG sample...")
 	#sample = get_bag_sample(connection, 1000)
-	sample = get_neighbourhoods_sample(connection, 'BU0034%')
+	sample = get_neighbourhoods_sample(connection, 'BU0344%')
 
 	print("Initiating modules...")
 	energy_label_module = EnergyLabelModule(connection)
+	gas_consumption_comparison_module = GasConsumptionComparisonModule(connection)
+	elec_consumption_comparison_module = ElectricityConsumptionComparisonModule(connection)
 	district_heating_module = DistrictHeatingModule(connection)
-	gas_space_heating_module = GasBoilerModule(connection)
-	electric_space_heating_module = ElectricHeatingModule(connection)
+	gas_space_heating_module = GasSpaceHeatingModule(connection)
+	electric_space_heating_module = ElectricSpaceHeatingModule(connection)
+	gas_water_heating_module = GasWaterHeatingModule(connection)
 	sampling_module = SamplingModule(connection)
 
 	print("Processing entries...")
 	for entry in sample:
 		dwelling = Dwelling(dict(entry), connection)
 		energy_label_module.process(dwelling)
+		gas_consumption_comparison_module.process(dwelling)
+		elec_consumption_comparison_module.process(dwelling)
 		district_heating_module.process(dwelling)
 		gas_space_heating_module.process(dwelling)
 		electric_space_heating_module.process(dwelling)
+		gas_water_heating_module.process(dwelling)
 		sampling_module.process(dwelling)
 		dwelling.save()
 		i += 1
