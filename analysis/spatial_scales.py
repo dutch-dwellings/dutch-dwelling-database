@@ -138,7 +138,7 @@ if run_includes['postcode']:
 	print(cursor.fetchall()[0][0])
 
 	print("\nNumber of dwellings per postcode:")
-	dwelling_postcode_count_query = "SELECT pc6, COUNT(pc6) FROM bag GROUP BY pc6 ORDER BY COUNT(pc6)"
+	dwelling_postcode_count_query = "SELECT pc6, COUNT(pc6) FROM bag WHERE pc6 != '' GROUP BY pc6 ORDER BY COUNT(pc6)"
 	get_ranges(dwelling_postcode_count_query)
 
 if run_includes['postcode4']:
