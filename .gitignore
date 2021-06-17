@@ -3,6 +3,7 @@ data
 
 # large CSV output from analysis
 energy_labels_epi_imputed.csv
+energy_labels_epi_imputed_pc6_average.csv
 
 # Sublime Text
 *.sublime-project

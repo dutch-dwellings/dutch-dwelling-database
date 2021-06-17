@@ -33,25 +33,34 @@ def get_boundaries(cursor):
 	print(results)
 
 
-def get_labels_with_imputed_epi(cursor):
+def get_labels_with_imputed_epi_and_pc6_average(cursor):
 	query = '''
 	SELECT
-		bag.pc6, bag.bouwjaar, bag.woningtype, epi_imputed
+	bag.bouwjaar, bag.woningtype, epi_imputed, q.epi_pc6_average
 	FROM
-		energy_labels, bag
+		energy_labels, bag,
+		(SELECT pc6, AVG(epi_imputed) as epi_pc6_average FROM energy_labels GROUP BY pc6) q
 	WHERE
 		energy_labels.vbo_id = bag.vbo_id
 		AND energieklasse IS NOT NULL
+		AND q.pc6 = bag.pc6
 	'''
-	print('Executing query... (this can take a minute or so)')
-	cursor.execute(query)
-	return cursor
+
+	# inspired by https://stackoverflow.com/a/22789702/7770056
+	outputquery = f"COPY ({query}) TO STDOUT WITH CSV HEADER"
+
+	current_dir = os.path.dirname(os.path.realpath(__file__))
+	filename = 'energy_labels_epi_imputed_pc6_average.csv'
+	path = os.path.join(current_dir, filename)
+	with open(path, 'w') as f:
+		print('Executing query... (this can take a minute or so)')
+		cursor.copy_expert(outputquery, f)
 
 def main():
 	connection = get_connection()
 	cursor = connection.cursor()
 	# get_boundaries(cursor)
-	get_labels_with_imputed_epi(cursor)
+	get_labels_with_imputed_epi_and_pc6_average(cursor)
 
 if __name__ == "__main__":
 	main()
