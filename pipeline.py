@@ -7,19 +7,11 @@ from utils.create_results_table import main as create_results_table
 
 from modules.dwelling import Dwelling
 
-<<<<<<< HEAD
-comparison = 0
-=======
-comparison = 1
+
 from modules.energy_label_module import EnergyLabelModule
->>>>>>> heatpump
 from modules.district_heating_module import DistrictHeatingModule
-if comparison == 1:
-	from modules.gas_boiler_module_nbh_comparison_refactored import GasBoilerModule
-	from modules.electric_heating_module_nbh_comparison_refactored import ElectricHeatingModule
-else:
-	from modules.gas_boiler_module import GasBoilerModule
-	from modules.electric_heating_module import ElectricHeatingModule
+from modules.gas_boiler_module import GasBoilerModule
+from modules.electric_heating_module import ElectricHeatingModule
 from modules.sampling_module import SamplingModule
 
 
