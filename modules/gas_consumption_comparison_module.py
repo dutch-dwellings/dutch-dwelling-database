@@ -1,6 +1,5 @@
 import os
 import sys
-import re
 from scipy.interpolate import interp1d
 from utils.database_utils import get_connection, get_neighbourhood_dwellings
 from modules.dwelling import Dwelling
@@ -174,7 +173,7 @@ class GasConsumptionComparisonModule(BaseModule):
 	def process(self, dwelling):
 		super().process(dwelling)
 
-		# Get basic dwelling attributes
+		# Get dwelling attributes
 		vbo_id = dwelling.attributes['vbo_id']
 		buurt_id = dwelling.attributes['buurt_id']
 

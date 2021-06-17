@@ -92,10 +92,10 @@ def get_bag_sample(connection, n=1000):
 	cursor.close()
 	return sample
 
-def get_neighbourhoods_sample(connection, buurt_id):
+def get_neighbourhoods_sample(connection, buurt_id, limit):
 	cursor = connection.cursor(cursor_factory=DictCursor)
-	query = "SELECT * FROM bag WHERE buurt_id LIKE %s AND bouwjaar IS NOT null"
-	cursor.execute(query, (buurt_id,))
+	query = "SELECT * FROM bag WHERE buurt_id LIKE %s AND bouwjaar IS NOT null LIMIT %s"
+	cursor.execute(query, (buurt_id, limit))
 	sample = cursor.fetchall()
 	cursor.close()
 	return sample
