@@ -7,6 +7,7 @@ from utils.create_results_table import main as create_results_table
 
 from modules.classes import Dwelling
 
+from modules.regions_module import RegionsModule
 from modules.energy_label_module import EnergyLabelModule
 from modules.gas_consumption_comparison_module import GasConsumptionComparisonModule
 from modules.electricity_consumption_comparison_module import ElectricityConsumptionComparisonModule
@@ -41,6 +42,7 @@ def main():
 
 	Modules = [
 		# Create neccesary dwelling attributes
+		RegionsModule,
 		EnergyLabelModule,
 		GasConsumptionComparisonModule,
 		ElectricityConsumptionComparisonModule,
