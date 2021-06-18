@@ -47,6 +47,18 @@ def drop_demolished_dwellings():
 	except UndefinedColumn:
 		print('Already dropped.')
 
+def drop_dwellings_without_construction_year():
+	print('Dropping buildings without construction year...')
+	drop_demolished_statement = "DELETE FROM bag WHERE bouwjaar IS NULL"
+	execute(drop_demolished_statement)
+
+	not_null_statement = '''
+	ALTER TABLE bag
+	ALTER COLUMN bouwjaar
+	SET NOT NULL'''
+	print('\tSetting column to NOT NULL')
+	execute(not_null_statement)
+
 def main():
 
 	if not table_empty(TABLE_NAME):
@@ -63,6 +75,7 @@ def main():
 
 	update_unknown_construction_year()
 	drop_demolished_dwellings()
+	drop_dwellings_without_construction_year()
 
 if __name__ == "__main__":
 	main()
