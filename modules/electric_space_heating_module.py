@@ -11,34 +11,7 @@ class ElectricSpaceHeatingModule(BaseModule):
 
 	def __init__(self, connection, **kwargs):
 		super().__init__(connection)
-		self.buurten_elec_high_gas_data = {}
-		self.buurten_elec_low_gas_data = {}
-		self.buurten_elec_no_gas_data = {}
 		self.heat_pump_probability_modification()
-
-	def load_installation_type_data(self, buurt_id):
-		# Add percentage of dwellings with hybrid heat pump in neighbourhood to dict
-		cursor = self.connection.cursor()
-		query_hybrid_heat_pumps = "SELECT woningen FROM cbs_84983ned_woningen_hoofdverwarmings_buurt_2019_typed WHERE area_code = %s AND type_verwarmingsinstallatie LIKE 'A050117'AND woningen IS NOT null"
-		# A050117 is the code for a gas boiler
-		cursor.execute(query_hybrid_heat_pumps, (buurt_id,))
-		results = cursor.fetchall()
-		self.buurten_elec_high_gas_data[buurt_id] = results[0][0]
-
-		# Add percentage of dwellings with eelctric heating and low gas use in neighbourhood to dict
-		query_low_gas ="SELECT woningen FROM cbs_84983ned_woningen_hoofdverwarmings_buurt_2019_typed WHERE area_code = %s AND type_verwarmingsinstallatie LIKE 'A050118'AND woningen IS NOT null"
-		# A050118 is the code for electric heating with low gas use
-		cursor.execute(query_low_gas, (buurt_id,))
-		results = cursor.fetchall()
-		self.buurten_elec_low_gas_data[buurt_id] = results[0][0]
-
-		# Add percentage of dwellings with eelctric heating and no gas use in neighbourhood to dict
-		query_no_gas = "SELECT woningen FROM cbs_84983ned_woningen_hoofdverwarmings_buurt_2019_typed WHERE area_code = %s AND type_verwarmingsinstallatie LIKE 'A050119'AND woningen IS NOT null"
-		# A050119 is the code for electric heating with no gas use
-		cursor.execute(query_no_gas, (buurt_id,))
-		results = cursor.fetchall()
-		self.buurten_elec_no_gas_data[buurt_id] = results[0][0]
-		cursor.close()
 
 	def heat_pump_probability_modification(self):
 		cursor = self.connection.cursor()
@@ -60,19 +33,17 @@ class ElectricSpaceHeatingModule(BaseModule):
 
 		# Get dwelling attributes
 		vbo_id = dwelling.attributes['vbo_id']
-		buurt_id = dwelling.attributes['buurt_id']
 		energy_label = dwelling.attributes['energy_label']
 		gas_use_percentile_national = dwelling.attributes['gas_use_percentile_national']
 		gas_use_percentile_neighbourhood = dwelling.attributes['gas_use_percentile_neighbourhood']
 		elec_use_percentile_national = dwelling.attributes['elec_use_percentile_national']
 		elec_use_percentile_neighbourhood = dwelling.attributes['elec_use_percentile_neighbourhood']
 
+		buurt = dwelling.attributes['buurt']
 		# Base probability of having different types of electric heating
-		if buurt_id not in self.buurten_elec_high_gas_data:
-			self.load_installation_type_data(buurt_id)
-		elec_high_gas_p = self.buurten_elec_high_gas_data[buurt_id] / 100
-		elec_low_gas_p = self.buurten_elec_low_gas_data[buurt_id] / 100
-		elec_no_gas_p = self.buurten_elec_no_gas_data[buurt_id] / 100
+		elec_high_gas_p = buurt.attributes['elec_high_gas_share']
+		elec_low_gas_p  = buurt.attributes['elec_low_gas_share']
+		elec_no_gas_p   = buurt.attributes['elec_no_gas_share']
 
 		# Modify probabilities for heat pumps
 		# We assume there are only electric heat pumps in dwellings with energylabel C or higher
@@ -127,3 +98,53 @@ class ElectricSpaceHeatingModule(BaseModule):
 			'sampling': False,
 		}
 	}
+
+class ElectricSpaceHeatingRegionalModule(BaseModule):
+
+	def process_buurt(self, buurt):
+		self.add_installation_type_shares(buurt)
+
+	def add_installation_type_shares(self, buurt):
+
+		buurt_id = buurt.attributes['buurt_id']
+		cursor = self.connection.cursor()
+
+		# Add share of dwellings with hybrid heat pump
+		# A050117 is the code for a gas boiler
+		query_hybrid_heat_pumps = '''
+		SELECT woningen::float / 100
+		FROM cbs_84983ned_woningen_hoofdverwarmings_buurt_2019_typed
+		WHERE
+			area_code = %s
+			AND type_verwarmingsinstallatie = 'A050117'
+			AND woningen IS NOT null'''
+		cursor.execute(query_hybrid_heat_pumps, (buurt_id,))
+		buurt.attributes['elec_high_gas_share'] = cursor.fetchone()[0]
+
+		# Add share of dwellings with electric heating and low gas use
+		# A050118 is the code for electric heating with low gas use
+		query_low_gas = '''
+		SELECT woningen::float / 100
+		FROM cbs_84983ned_woningen_hoofdverwarmings_buurt_2019_typed
+		WHERE
+			area_code = %s
+			AND type_verwarmingsinstallatie = 'A050118'
+			AND woningen IS NOT null'''
+		cursor.execute(query_low_gas, (buurt_id,))
+		buurt.attributes['elec_low_gas_share'] = cursor.fetchone()[0]
+
+		# Add share of dwellings with electric heating and no gas use
+		# A050119 is the code for electric heating with no gas use
+		query_no_gas = '''
+		SELECT woningen::float / 100
+		FROM cbs_84983ned_woningen_hoofdverwarmings_buurt_2019_typed
+		WHERE
+			area_code = %s
+			AND type_verwarmingsinstallatie = 'A050119'
+			AND woningen IS NOT null'''
+		cursor.execute(query_no_gas, (buurt_id,))
+		buurt.attributes['elec_no_gas_share'] = cursor.fetchone()[0]
+
+		cursor.close()
+
+	supports = ['buurt']
