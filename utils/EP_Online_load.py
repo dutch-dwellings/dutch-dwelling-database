@@ -5,17 +5,17 @@ import sys
 import time
 import lxml.etree as ET
 
-
 from dotenv import dotenv_values
 from psycopg2 import sql
 from psycopg2.extras import execute_values
+from psycopg2.errors import DuplicateObject, ForeignKeyViolation
 
 env = dotenv_values(".env")
 
 # Required for relative imports to also work when called
 # from project root directory.
 sys.path.append(os.path.dirname(__file__))
-from database_utils import get_connection, table_empty, execute, execute_file
+from database_utils import get_connection, table_empty, execute, execute_file, delete_column
 from file_utils import data_dir
 
 FILENAME = 'EP_Online_v20210501_xml.xml'
@@ -147,6 +147,80 @@ def load_energy_labels_data():
 	connection.commit()
 	connection.close()
 
+def delete_labels_without_vbo_id():
+	# Around 88 000 energy labels have no associated vbo_id,
+	# this is unhelpful in analysis because we can't link them
+	# to building years or dwelling types from the BAG.
+	# Note: delete_labels_not_in_bag() is not enough since it
+	# ignores labels with NULL as vbo_id.
+	print('Deleting labels without vbo_id...')
+	delete_statement = "DELETE FROM energy_labels WHERE vbo_id IS NULL"
+	connection = get_connection()
+	cursor = connection.cursor()
+	cursor.execute(delete_statement)
+	print(f'\tDeleted {cursor.rowcount} labels')
+
+	# After this, we can set the column to not accept
+	# NULL values anymore
+	not_null_statement = '''
+	ALTER TABLE energy_labels
+	ALTER COLUMN vbo_id
+	SET NOT NULL'''
+	print('\tSetting column to NOT NULL')
+	cursor.execute(not_null_statement)
+
+	cursor.close()
+	connection.commit()
+	connection.close()
+
+def delete_labels_not_in_bag():
+	# Sidenote: my naive first query was:
+	# DELETE FROM energy_labels WHERE vbo_id NOT IN (SELECT vbo_id FROM bag)
+	# but that takes ages!
+	# This with the JOIN method seems backwards ("JOIN and then check for NULL
+	# to see if the JOIN was succesful?!"), but is much faster.
+	print('\tDeleting labels not in BAG...')
+	delete_statement = '''
+	DELETE FROM energy_labels
+	WHERE vbo_id IN (
+		SELECT energy_labels.vbo_id
+		FROM energy_labels
+		LEFT JOIN bag
+		ON energy_labels.vbo_id = bag.vbo_id
+		WHERE bag.vbo_id IS NULL
+	)'''
+	connection = get_connection()
+	cursor = connection.cursor()
+	cursor.execute(delete_statement)
+	print(f'\tDeleted {cursor.rowcount} labels')
+	cursor.close()
+	connection.commit()
+	connection.close()
+
+def add_foreign_key_constraint():
+	print('Adding foreign key constraint...')
+	# Adding ON DELETE CASCADE make sure the database deletes
+	# a label when the corresponding dwelling is deleted from
+	# the BAG table.
+	foreign_key_constraint_statement = '''
+	ALTER TABLE energy_labels
+	ADD CONSTRAINT fk_energy_labels_vbo_id
+	FOREIGN KEY (vbo_id)
+	REFERENCES bag (vbo_id)
+	ON DELETE CASCADE
+	'''
+	try:
+		execute(foreign_key_constraint_statement)
+	except DuplicateObject:
+		print('\tForeign key constraint already exists.')
+	# Happens if we still need to delete the labels without
+	# a corresponding dwelling in the BAG.
+	except ForeignKeyViolation:
+		print('Not yet possible due to ForeignKeyViolation...')
+		delete_labels_not_in_bag()
+		print('Retrying...')
+		add_foreign_key_constraint()
+
 def add_functions():
 	print('Adding functions for energy labels...')
 	filename = 'EP_Online_add_functions.sql'
@@ -173,6 +247,16 @@ def main():
 		load_energy_labels_data()
 		print(f'\nProcessed {i:,} records in {(time.time() - start_time):.2f} seconds.')
 		print(f'Max memory usage: {(resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1000000):.3f} (MB on macOS; probably GB on Linux).')
+
+	delete_labels_without_vbo_id()
+	add_foreign_key_constraint()
+	# Even after deleting labels for dwellings not in the BAG,
+	# there are still ~6000 labels left for buildings
+	# with 'gebouwklasse' U, but we assume their gebouwklasse are wrong
+	# since the BAG has them with a VBO function of 'residential'.
+	# Thus, we can delete the column, to make sure we don't use it
+	# anywhere else (since the column has lost its semantics after this).
+	delete_column('energy_labels', 'gebouwklasse')
 
 	add_functions()
 	add_column_epi_imputed()
