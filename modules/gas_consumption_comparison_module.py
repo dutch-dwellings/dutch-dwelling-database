@@ -36,10 +36,6 @@ class GasConsumptionComparisonModule(BaseModule):
 		for entry in sample:
 			dwelling = Dwelling(dict(entry), connection)
 
-			blockPrint()
-			RegionsModule(connection).process(dwelling)
-			enablePrint()
-
 			# Dwelling pc6 needs to have:
 			# postcode gas use
 			vbo_id = dwelling.attributes['vbo_id']

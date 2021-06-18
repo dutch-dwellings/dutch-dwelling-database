@@ -52,10 +52,6 @@ class ElectricityConsumptionComparisonModule(BaseModule):
 
 		for entry in sample:
 			dwelling = Dwelling(dict(entry), connection)
-			
-			blockPrint()
-			RegionsModule(connection).process(dwelling)
-			enablePrint()
 
 			# Dwelling pc6 needs to have:
 			# postcode electricity use

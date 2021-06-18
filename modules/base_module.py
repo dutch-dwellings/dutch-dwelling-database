@@ -41,15 +41,6 @@ class BaseModule:
 			probability = probability - 2 * (probability) * (percentile - 0.5)
 		return probability
 
-	# Disable printing, from https://stackoverflow.com/questions/8391411/how-to-block-calls-to-print
-	def blockPrint():
-	    sys.stdout = open(os.devnull, 'w')
-
-	# Restore printing
-	def enablePrint():
-	    sys.stdout = sys.__stdout__
-
-
 	def process(self, dwelling):
 		dwelling.outputs.update(self.outputs)
 
