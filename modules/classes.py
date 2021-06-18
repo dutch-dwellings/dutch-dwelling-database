@@ -54,12 +54,19 @@ class Dwelling:
 	# so only use BAG column_names here.
 	default_outputs = {'vbo_id': {}}
 
-class PC6:
+class Region:
+	pass
+
+class PC6(Region):
 
 	def __init__(self, pc6, pc6_modules):
-		self.attributes = {
-			'pc6': pc6
-		}
-
+		self.attributes = {'pc6': pc6}
 		for module in pc6_modules:
 			module.process_pc6(self)
+
+class Buurt(Region):
+
+	def __init__(self, buurt_id, buurt_modules):
+		self.attributes = {'buurt_id': buurt_id}
+		for module in buurt_modules:
+			module.process_buurt(self)
