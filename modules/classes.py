@@ -10,6 +10,7 @@ class Dwelling:
 		# instead of a class variable.
 		self.outputs = self.default_outputs.copy()
 		self.sampling_outputs = {}
+		self.regions = {}
 
 	def __str__(self):
 		pp = pprint.PrettyPrinter(indent=4)
