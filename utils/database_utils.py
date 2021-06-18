@@ -25,6 +25,30 @@ def get_cursor():
 	connection = get_connection()
 	return connection.cursor()
 
+def execute(statement, parameters=None, fetch=None):
+	connection = get_connection()
+	cursor = connection.cursor()
+	try:
+		cursor.execute(statement, parameters)
+		if fetch == 'one':
+			return cursor.fetchone()
+		elif fetch == 'all':
+			return cursor.fetchall()
+		else:
+			return None
+	except Exception as e:
+		raise(e)
+	# Even when an error is raised during execution,
+	# we need to clean up the cursor and connection.
+	finally:
+		cursor.close()
+		connection.commit()
+		connection.close()
+
+def execute_file(path):
+	with open(path, 'r') as file:
+		execute(file.read())
+
 def create_database(dbname=env['POSTGRES_DBNAME']):
 
 	create_statement = sql.SQL("CREATE DATABASE {}").format(sql.Identifier(dbname))
@@ -48,9 +72,49 @@ def create_database(dbname=env['POSTGRES_DBNAME']):
 	cursor.close()
 	connection.close()
 
-def execute_file(path):
-	with open(path, 'r') as file:
-		execute(file.read())
+def create_table(table_name, columns):
+	'''
+	Create a new table (will not create if table
+	already exists) with name 'table_name',
+	and columns defined in a list with tuples
+	(column_name, data_type).
+	E.g.
+		columns = [('id', 'int'), ('neighbourhood', 'character varying')]
+	'''
+
+	# use IF NOT EXISTS to make the statement idempotent
+	create_statement = sql.SQL("CREATE TABLE IF NOT EXISTS {table_name} (%s);").format(
+		table_name=sql.Identifier(table_name),
+		# columns=sql.Identifier(columns_sql)
+		)
+
+	# TODO: check whether we can do this more
+	# elegantly using e.g. psycopg2.sql
+	columns_sql = ', '.join([' '.join(column) for column in columns])
+
+	execute(create_statement, (AsIs(columns_sql),))
+
+def table_exists(table_name, dbname=env['POSTGRES_DBNAME']):
+	'''
+	Check whether a table with name 'table_name' exists.
+	Return True or False.
+	'''
+	# Adapted from https://stackoverflow.com/a/1874268/7770056
+	query = "SELECT exists(SELECT * FROM information_schema.tables WHERE table_catalog = %s AND table_name = %s)"
+	return execute(query, (dbname, table_name), fetch='one')[0]
+
+def table_empty(table_name):
+	'''
+	Check whether the table with name 'table_name' is empty.
+	Assumes the table exists. Return True or False.
+	'''
+	query = sql.SQL("SELECT COUNT(*) FROM (SELECT * FROM {table_name} LIMIT 1) sq").format(
+		table_name=sql.Identifier(table_name))
+	result = execute(query, fetch='one')[0]
+	if result == 1:
+		return False
+	else:
+		return True
 
 def add_column(table_name, column_name, data_type, connection):
 	cursor = connection.cursor()
@@ -66,6 +130,87 @@ def add_column(table_name, column_name, data_type, connection):
 	# in PostgreSQL, because e.g. "varchar" does work.
 	cursor.execute(alter_statement, (AsIs(data_type),))
 
+def rename_column(table_name, col_name, new_col_name):
+	statement = sql.SQL("ALTER TABLE {table_name} RENAME COLUMN {col_name} TO {new_col_name}").format(
+		table_name=sql.Identifier(table_name),
+		col_name=sql.Identifier(col_name),
+		new_col_name=sql.Identifier(new_col_name)
+	)
+	try:
+		execute(statement)
+	except UndefinedColumn:
+		print(f'Did not rename column {col_name} to {new_col_name} since it does not exist.')
+
+def delete_column(table_name, col_name):
+	statement = sql.SQL("ALTER TABLE {table_name} DROP COLUMN {col_name}").format(
+		table_name=sql.Identifier(table_name),
+		col_name=sql.Identifier(col_name)
+	)
+	try:
+		execute(statement)
+	except UndefinedColumn:
+		print(f'Did not drop column {col_name} since it does not exist.')
+
+def get_column_type(table_name, column_name):
+	query = '''
+	SELECT udt_name
+	FROM information_schema.columns
+	WHERE table_name = %s
+	AND column_name = %s
+	'''
+	return execute(query, (table_name, column_name), fetch='one')[0]
+
+def add_index(table_name, column_name):
+	'''
+	Create index on 'column_name' in
+	'table_name'. Check whether index already
+	exists to make it idempotent.
+	'''
+	index_name = f'{table_name}_{column_name}_idx'
+	statement = sql.SQL("CREATE INDEX IF NOT EXISTS {index_name} ON {table_name} ({column_name})").format(
+			index_name = sql.Identifier(index_name),
+			table_name = sql.Identifier(table_name),
+			column_name = sql.Identifier(column_name)
+		)
+	execute(statement)
+
+def make_primary_key(table_name, column_name):
+	'''
+	Make 'column_name' the primary key for 'table_name',
+	if no primary key has yet been set.
+	'''
+	statement = sql.SQL("ALTER TABLE {table_name} ADD PRIMARY KEY ({column_name})").format(
+			table_name = sql.Identifier(table_name),
+			column_name = sql.Identifier(column_name)
+		)
+	try:
+		execute(statement)
+	# Happens when we already added a primary key,
+	# so we catch it and do nothing, makes it idempotent.
+	except InvalidTableDefinition as e:
+		print(f"Table '{table_name}' already has primary key on column '{column_name}'")
+
+def insert_dict(table_name, row_dict, cursor):
+	'''
+	Insert into 'table_name' the 'row_dict' where
+	every key is a column_name in the table.
+	'''
+
+	# implementation adapted from
+	# https://stackoverflow.com/a/29471241/7770056
+
+	columns = row_dict.keys()
+	values = list(row_dict.values())
+
+	# We cannot insert an empty dict into the database.
+	if len(columns) == 0:
+		return
+
+	insert_statement = sql.SQL('INSERT INTO {table_name} (%s) VALUES %s').format(
+		table_name = sql.Identifier(table_name)
+	)
+
+	cursor.execute(insert_statement, (AsIs(', '.join(columns)), tuple(values)))
 
 def get_bag_sample(connection, n=1000):
 	'''
@@ -107,149 +252,3 @@ def get_neighbourhood_dwellings(connection, buurt_id):
 	dwellings = cursor.fetchall()
 	cursor.close()
 	return dwellings
-
-def insert_dict(table_name, row_dict, cursor):
-	'''
-	Insert into 'table_name' the 'row_dict' where
-	every key is a column_name in the table.
-	'''
-
-	# implementation adapted from
-	# https://stackoverflow.com/a/29471241/7770056
-
-	columns = row_dict.keys()
-	values = list(row_dict.values())
-
-	# We cannot insert an empty dict into the database.
-	if len(columns) == 0:
-		return
-
-	insert_statement = sql.SQL('INSERT INTO {table_name} (%s) VALUES %s').format(
-		table_name = sql.Identifier(table_name)
-	)
-
-	cursor.execute(insert_statement, (AsIs(', '.join(columns)), tuple(values)))
-
-def create_table(table_name, columns):
-	'''
-	Create a new table (will not create if table
-	already exists) with name 'table_name',
-	and columns defined in a list with tuples
-	(column_name, data_type).
-	E.g.
-		columns = [('id', 'int'), ('neighbourhood', 'character varying')]
-	'''
-
-	# use IF NOT EXISTS to make the statement idempotent
-	create_statement = sql.SQL("CREATE TABLE IF NOT EXISTS {table_name} (%s);").format(
-		table_name=sql.Identifier(table_name),
-		# columns=sql.Identifier(columns_sql)
-		)
-
-	# TODO: check whether we can do this more
-	# elegantly using e.g. psycopg2.sql
-	columns_sql = ', '.join([' '.join(column) for column in columns])
-
-	execute(create_statement, (AsIs(columns_sql),))
-
-def add_index(table_name, column_name):
-	'''
-	Create index on 'column_name' in
-	'table_name'. Check whether index already
-	exists to make it idempotent.
-	'''
-	index_name = f'{table_name}_{column_name}_idx'
-	statement = sql.SQL("CREATE INDEX IF NOT EXISTS {index_name} ON {table_name} ({column_name})").format(
-			index_name = sql.Identifier(index_name),
-			table_name = sql.Identifier(table_name),
-			column_name = sql.Identifier(column_name)
-		)
-	execute(statement)
-
-def make_primary_key(table_name, column_name):
-	'''
-	Make 'column_name' the primary key for 'table_name',
-	if no primary key has yet been set.
-	'''
-	statement = sql.SQL("ALTER TABLE {table_name} ADD PRIMARY KEY ({column_name})").format(
-			table_name = sql.Identifier(table_name),
-			column_name = sql.Identifier(column_name)
-		)
-	try:
-		execute(statement)
-	# Happens when we already added a primary key,
-	# so we catch it and do nothing, makes it idempotent.
-	except InvalidTableDefinition as e:
-		print(f"Table '{table_name}' already has primary key on column '{column_name}'")
-
-def table_exists(table_name, dbname=env['POSTGRES_DBNAME']):
-	'''
-	Check whether a table with name 'table_name' exists.
-	Return True or False.
-	'''
-	# Adapted from https://stackoverflow.com/a/1874268/7770056
-	query = "SELECT exists(SELECT * FROM information_schema.tables WHERE table_catalog = %s AND table_name = %s)"
-	return execute(query, (dbname, table_name), fetch='one')[0]
-
-def table_empty(table_name):
-	'''
-	Check whether the table with name 'table_name' is empty.
-	Assumes the table exists. Return True or False.
-	'''
-	query = sql.SQL("SELECT COUNT(*) FROM (SELECT * FROM {table_name} LIMIT 1) sq").format(
-		table_name=sql.Identifier(table_name))
-	result = execute(query, fetch='one')[0]
-	if result == 1:
-		return False
-	else:
-		return True
-
-def execute(statement, parameters=None, fetch=None):
-	connection = get_connection()
-	cursor = connection.cursor()
-	try:
-		cursor.execute(statement, parameters)
-		if fetch == 'one':
-			return cursor.fetchone()
-		elif fetch == 'all':
-			return cursor.fetchall()
-		else:
-			return None
-	except Exception as e:
-		raise(e)
-	# Even when an error is raised during execution,
-	# we need to clean up the cursor and connection.
-	finally:
-		cursor.close()
-		connection.commit()
-		connection.close()
-
-def rename_column(table_name, col_name, new_col_name):
-	statement = sql.SQL("ALTER TABLE {table_name} RENAME COLUMN {col_name} TO {new_col_name}").format(
-		table_name=sql.Identifier(table_name),
-		col_name=sql.Identifier(col_name),
-		new_col_name=sql.Identifier(new_col_name)
-	)
-	try:
-		execute(statement)
-	except UndefinedColumn:
-		print(f'Did not rename column {col_name} to {new_col_name} since it does not exist.')
-
-def delete_column(table_name, col_name):
-	statement = sql.SQL("ALTER TABLE {table_name} DROP COLUMN {col_name}").format(
-		table_name=sql.Identifier(table_name),
-		col_name=sql.Identifier(col_name)
-	)
-	try:
-		execute(statement)
-	except UndefinedColumn:
-		print(f'Did not drop column {col_name} since it does not exist.')
-
-def get_column_type(table_name, column_name):
-	query = '''
-	SELECT udt_name
-	FROM information_schema.columns
-	WHERE table_name = %s
-	AND column_name = %s
-	'''
-	return execute(query, (table_name, column_name), fetch='one')[0]
