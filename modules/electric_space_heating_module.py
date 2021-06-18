@@ -28,11 +28,11 @@ class ElectricSpaceHeatingModule(BaseModule):
 
 		cursor = self.connection.cursor()
 
-		dwellings_count_query = "SELECT COUNT(vbo_id) FROM bag WHERE bouwjaar IS NOT null"
+		dwellings_count_query = "SELECT COUNT(vbo_id) FROM bag"
 		cursor.execute(dwellings_count_query)
 		dwellings_count = cursor.fetchone()[0]
 
-		c_plus_labels_count_query = "SELECT COUNT(energieklasse) FROM energy_labels WHERE energieklasse >= 'C' AND gebouwklasse = 'W'"
+		c_plus_labels_count_query = "SELECT COUNT(energieklasse) FROM energy_labels WHERE energieklasse >= 'C'"
 		cursor.execute(c_plus_labels_count_query)
 		heat_pump_eligible_dwellings = cursor.fetchone()[0]
 
