@@ -62,7 +62,7 @@ class DistrictSpaceHeatingRegionalModule(BaseModule):
 			area_code = %s
 			AND type_verwarmingsinstallatie = 'A050114'
 			AND woningen IS NOT null'''
-		cursor.execute(query_boiler_heating, (buurt_id,))
+		cursor.execute(query_district_high_gas, (buurt_id,))
 		buurt.attributes['district_high_gas_share'] = cursor.fetchone()[0]
 
 		# Add percentage of dwellings with block heating in neighbourhood to dict
@@ -74,7 +74,7 @@ class DistrictSpaceHeatingRegionalModule(BaseModule):
 			area_code = %s
 			AND type_verwarmingsinstallatie = 'A050115'
 			AND woningen IS NOT null'''
-		cursor.execute(query_block_heating, (buurt_id,))
+		cursor.execute(query_district_low_gas, (buurt_id,))
 		buurt.attributes['district_low_gas_share'] = cursor.fetchone()[0]
 
 		# Add percentage of dwellings with block heating in neighbourhood to dict
@@ -86,7 +86,7 @@ class DistrictSpaceHeatingRegionalModule(BaseModule):
 			area_code = %s
 			AND type_verwarmingsinstallatie = 'A050116'
 			AND woningen IS NOT null'''
-		cursor.execute(query_block_heating, (buurt_id,))
+		cursor.execute(query_district_no_gas, (buurt_id,))
 		buurt.attributes['district_no_gas_share'] = cursor.fetchone()[0]
 
 		cursor.close()
