@@ -9,9 +9,6 @@ class GasSpaceHeatingModule(BaseModule):
 
 	def __init__(self, connection, **kwargs):
 		super().__init__(connection)
-		self.buurten_boiler_heating_data = {}
-		self.buurten_block_heating_data = {}
-		self.buurten_district_high_gas_data = {}
 
 	def process(self, dwelling):
 		super().process(dwelling)

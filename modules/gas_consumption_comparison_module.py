@@ -3,6 +3,7 @@ import sys
 from scipy.interpolate import interp1d
 from utils.database_utils import get_connection, get_neighbourhood_dwellings
 from modules.classes import Dwelling
+from modules.RegionsModule import RegionsModule
 
 # Required for relative imports to also work when called
 # from project root directory.
@@ -15,21 +16,7 @@ class GasConsumptionComparisonModule(BaseModule):
 	def __init__(self, connection, **kwargs):
 		super().__init__(connection)
 		self.neighbourhood_gas_check_dict = {}
-		self.postcode_gas_use_data = {}
 		self.gas_benchmark_dict = {}
-
-	def load_gas_use_data(self, postal_code):
-		# Add gas use of postal code to dict
-		cursor = self.connection.cursor()
-		query = "SELECT gemiddelde_aardgaslevering_woningen FROM cbs_pc6_2019_energy_use WHERE gemiddelde_aardgaslevering_woningen IS NOT null AND pc6 = %s"
-		cursor.execute(query, (postal_code,))
-		results = cursor.fetchall()
-		if results is None or results == []:
-			results = 0
-		else:
-			results = results[0][0]
-		self.postcode_gas_use_data[postal_code] = results
-		cursor.close()
 
 	def neighbourhood_gas_use_comparison(self,buurt_id):
 		percentile_gas_use_dict = {}
@@ -49,13 +36,18 @@ class GasConsumptionComparisonModule(BaseModule):
 
 		for entry in sample:
 			dwelling = Dwelling(dict(entry), connection)
+
+			blockPrint()
+			RegionsModule(connection).process(dwelling)
+			enablePrint()
+
+			# Dwelling pc6 needs to have:
+			# postcode gas use
 			vbo_id = dwelling.attributes['vbo_id']
 			postal_code = dwelling.attributes['pc6']
 
 			# Gas use in postal code
-			if postal_code not in self.postcode_gas_use_data:
-				self.load_gas_use_data(postal_code)
-			postal_code_gas_use = self.postcode_gas_use_data[postal_code]
+			postal_code_gas_use = pc6.attributes['gas_use']
 
 			# Get dwellings attributes which serve as CBS data lookup values
 			vbo_id = dwelling.attributes['vbo_id']
@@ -189,3 +181,21 @@ class GasConsumptionComparisonModule(BaseModule):
 
 		dwelling.attributes['gas_use_percentile_national'] = self.neighbourhood_gas_check_dict[buurt_id][vbo_id]
 		dwelling.attributes['gas_use_percentile_neighbourhood'] = gas_use_percentile_neighbourhood
+
+class GasConsumptionComparisonRegionalModule(BaseModule):
+
+	def process_pc6(self, pc6):
+		self.load_gas_use_data(pc6)
+
+	def load_gas_use_data(self, pc6):
+		# Add gas use of postal code to dict
+		cursor = self.connection.cursor()
+		query = '''
+		SELECT gemiddelde_aardgaslevering_woningen
+		FROM cbs_pc6_2019_energy_use
+		WHERE
+			gemiddelde_elektriciteitslevering_woningen IS NOT NULL
+			AND pc6 = %s'''
+		cursor.execute(query, (pc6,))
+		pc6.attributes['gas_use'] = cursor.fetchone()[0]
+		cursor.close()

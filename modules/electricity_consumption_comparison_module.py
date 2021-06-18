@@ -3,6 +3,7 @@ import sys
 from scipy.interpolate import interp1d
 from utils.database_utils import get_connection, get_neighbourhood_dwellings
 from modules.classes import Dwelling
+from modules.RegionsModule import RegionsModule
 
 # Required for relative imports to also work when called
 # from project root directory.
@@ -13,52 +14,8 @@ class ElectricityConsumptionComparisonModule(BaseModule):
 
 	def __init__(self, connection, **kwargs):
 		super().__init__(connection)
-		self.postcode_elec_use_data = {}
 		self.neighbourhood_elec_check_dict = {}
-		self.postcode_household_size_data  = {}
 		self.elec_benchmark_dict = {}
-
-	def load_elec_use_data(self, postal_code):
-		# Add elec use of postal code to dict
-		cursor = self.connection.cursor()
-		query = "SELECT gemiddelde_elektriciteitslevering_woningen FROM cbs_pc6_2019_energy_use WHERE gemiddelde_elektriciteitslevering_woningen IS NOT NULL AND pc6 = %s"
-		cursor.execute(query, (postal_code,))
-		results = cursor.fetchall()
-		if results is None or results == []:
-			results = 0
-		else:
-			results = results[0][0]
-		self.postcode_elec_use_data[postal_code] = results
-		cursor.close()
-
-	def load_cbs_kerncijfers_data(self, postal_code):
-		# Add average pc6 household size to dict
-		cursor = self.connection.cursor()
-		query = " SELECT gem_hh_gr FROM cbs_pc6_2017_kerncijfers WHERE gem_hh_gr IS NOT null AND pc6 = %s"
-		cursor.execute(query, (postal_code,))
-		results = cursor.fetchall()
-		if results is None or results == []:
-			results = 0
-		else:
-			results = results[0][0]
-		self.postcode_household_size_data[postal_code] = results
-		cursor.close()
-
-	def get_neighbourhood_energy_labels(self,buurt_id):
-		percentile_gas_use_dict = {}
-		connection = get_connection()
-		sample = get_neighbourhood_dwellings(connection, buurt_id)
-
-		cursor = self.connection.cursor()
-		query = "SELECT energy_labels.vbo_id, energieklasse FROM energy_labels, bag WHERE energy_labels.vbo_id = bag.vbo_id AND bag.buurt_id = %s"
-		cursor.execute(query, (buurt_id,))
-		results = cursor.fetchall()
-		self.energy_labels_neighbourhood = {
-			vbo_id: energy_label
-			for (vbo_id, energy_label)
-			in results
-		}
-		cursor.close()
 
 	def create_benchmark(self, dwelling_characteristics_tuple):
 		# Look up electricity use data for dwellings characteristics
@@ -93,36 +50,29 @@ class ElectricityConsumptionComparisonModule(BaseModule):
 		# Get all dwellings in the neighbourhood
 		sample = get_neighbourhood_dwellings(connection, buurt_id)
 
-		cursor = self.connection.cursor()
-		query = "SELECT energy_labels.vbo_id, energieklasse FROM energy_labels, bag WHERE energy_labels.vbo_id = bag.vbo_id AND bag.buurt_id = %s"
-		cursor.execute(query, (buurt_id,))
-		results = cursor.fetchall()
-		self.energy_labels_neighbourhood = {
-			vbo_id: energy_label
-			for (vbo_id, energy_label)
-			in results
-		}
-		cursor.close()
-
 		for entry in sample:
 			dwelling = Dwelling(dict(entry), connection)
+			
+			blockPrint()
+			RegionsModule(connection).process(dwelling)
+			enablePrint()
+
+			# Dwelling pc6 needs to have:
+			# postcode electricity use
+			# postcode household size
 			vbo_id = dwelling.attributes['vbo_id']
 			postal_code = dwelling.attributes['pc6']
 
 			# Electricity use in postal code
-			if postal_code not in self.postcode_elec_use_data:
-				self.load_elec_use_data(postal_code)
-			postal_code_elec_use = self.postcode_elec_use_data[postal_code]
+			postal_code_elec_use = pc6.attributes['elec_use']
 
 			# Get dwellings attributes
 			floor_space = dwelling.attributes['oppervlakte']
 			building_type = dwelling.attributes['woningtype']
-			if postal_code not in self.postcode_household_size_data:
-				self.load_cbs_kerncijfers_data(postal_code)
-			household_size = round(self.postcode_household_size_data[postal_code])
+			household_size = round(pc6.attributes['household_size'])
 			if household_size <= 0:
 				household_size = 1
-			energy_label = self.energy_labels_neighbourhood.get(vbo_id, None)
+			energy_label = dwelling.attributes['energy_label']
 
 			# Get electricity use per person for comparison with benchmark
 			dwelling_elec_use_per_person = postal_code_elec_use / household_size
@@ -219,3 +169,35 @@ class ElectricityConsumptionComparisonModule(BaseModule):
 
 		dwelling.attributes['elec_use_percentile_national'] = elec_use_percentile_national
 		dwelling.attributes['elec_use_percentile_neighbourhood'] = elec_use_percentile_neighbourhood
+
+class ElectricityConsumptionComparisonRegionalModule(BaseModule):
+
+	def process_pc6(self, pc6):
+		self.load_elec_use_data(pc6)
+		self.load_cbs_kerncijfers_data(pc6)
+
+	def load_elec_use_data(self, pc6):
+		# Add elec use of postal code to dict
+		cursor = self.connection.cursor()
+		query = '''
+		SELECT gemiddelde_elektriciteitslevering_woningen
+		FROM cbs_pc6_2019_energy_use
+		WHERE
+			gemiddelde_elektriciteitslevering_woningen IS NOT NULL
+			AND pc6 = %s'''
+		cursor.execute(query, (pc6,))
+		pc6.attributes['elec_use'] = cursor.fetchone()[0]
+		cursor.close()
+
+	def load_cbs_kerncijfers_data(self, pc6):
+		# Add average pc6 household size to dict
+		cursor = self.connection.cursor()
+		query = '''
+		SELECT gem_hh_gr
+		FROM cbs_pc6_2017_kerncijfers
+		WHERE
+			gem_hh_gr IS NOT null
+			AND pc6 = %s'''
+		cursor.execute(query, (pc6,))
+		pc6.attributes['household_size'] = cursor.fetchone()[0]
+		cursor.close()
