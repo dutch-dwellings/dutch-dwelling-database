@@ -38,38 +38,32 @@ def main():
 	sample = get_neighbourhoods_sample(connection, 'BU0344%', 1000000)
 
 	print("Initiating modules...")
-	# Create neccesary dwelling attributes
-	energy_label_module = EnergyLabelModule(connection)
-	gas_consumption_comparison_module = GasConsumptionComparisonModule(connection)
-	elec_consumption_comparison_module = ElectricityConsumptionComparisonModule(connection)
-	# Space heating
-	district_space_heating_module = DistrictSpaceHeatingModule(connection)
-	gas_space_heating_module = GasSpaceHeatingModule(connection)
-	electric_space_heating_module = ElectricSpaceHeatingModule(connection)
-	# Water heating
-	district_water_heating_module = DistrictWaterHeatingModule(connection)
-	gas_water_heating_module = GasWaterHeatingModule(connection)
-	electric_water_heating_module = ElectricWaterHeatingModule(connection)
-	# Sampling
-	sampling_module = SamplingModule(connection)
+
+	Modules = [
+		# Create neccesary dwelling attributes
+		EnergyLabelModule,
+		GasConsumptionComparisonModule,
+		ElectricityConsumptionComparisonModule,
+		# Space heating
+		DistrictSpaceHeatingModule,
+		GasSpaceHeatingModule,
+		ElectricSpaceHeatingModule,
+		# Water heating
+		DistrictWaterHeatingModule,
+		GasWaterHeatingModule,
+		ElectricWaterHeatingModule,
+		# Sampling
+		SamplingModule
+	]
+	modules = [Module(connection) for Module in Modules]
 
 	print("Processing entries...")
 	for entry in sample:
 		dwelling = Dwelling(dict(entry), connection)
-		# Create neccesary dwelling attributes
-		energy_label_module.process(dwelling)
-		gas_consumption_comparison_module.process(dwelling)
-		elec_consumption_comparison_module.process(dwelling)
-		# Space heating
-		district_space_heating_module.process(dwelling)
-		gas_space_heating_module.process(dwelling)
-		electric_space_heating_module.process(dwelling)
-		# Water heating
-		district_water_heating_module.process(dwelling)
-		gas_water_heating_module.process(dwelling)
-		electric_water_heating_module.process(dwelling)
-		# Sampling
-		sampling_module.process(dwelling)
+
+		for module in modules:
+			module.process(dwelling)
+
 		dwelling.save()
 		i += 1
 		if i % 100 == 0:
