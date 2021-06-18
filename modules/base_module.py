@@ -7,7 +7,7 @@ from utils.database_utils import add_column
 
 class BaseModule:
 
-	def __init__(self, connection):
+	def __init__(self, connection, **kwargs):
 		print(f'   Initiating module {self.__class__.__name__}')
 		self.connection = connection
 		self.create_required_columns()
@@ -52,3 +52,16 @@ class BaseModule:
 	#	- distribution: attribute name of distribution to sample from
 	#		(mandatory when sampling=True)
 	outputs = {}
+
+class BaseRegionalModule:
+
+	def __init__(self, connection):
+		print(f'   Initiating regional module {self.__class__.__name__}')
+		self.connection = connection
+
+	# Indicates support for different regional types.
+	# Current options: ['pc6'].
+	# If you want to add a new region type, then also
+	# add that type to the definition of
+	# RegionsModule.regional_modules
+	supports = []

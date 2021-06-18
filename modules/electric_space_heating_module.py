@@ -9,7 +9,7 @@ from base_module import BaseModule
 
 class ElectricSpaceHeatingModule(BaseModule):
 
-	def __init__(self, connection):
+	def __init__(self, connection, **kwargs):
 		super().__init__(connection)
 		self.buurten_elec_high_gas_data = {}
 		self.buurten_elec_low_gas_data = {}

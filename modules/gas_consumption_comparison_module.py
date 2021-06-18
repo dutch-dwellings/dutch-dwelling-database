@@ -12,7 +12,7 @@ from base_module import BaseModule
 
 class GasConsumptionComparisonModule(BaseModule):
 
-	def __init__(self, connection):
+	def __init__(self, connection, **kwargs):
 		super().__init__(connection)
 		self.neighbourhood_gas_check_dict = {}
 		self.postcode_gas_use_data = {}

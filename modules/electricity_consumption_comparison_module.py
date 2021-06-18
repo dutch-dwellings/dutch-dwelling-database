@@ -11,7 +11,7 @@ from base_module import BaseModule
 
 class ElectricityConsumptionComparisonModule(BaseModule):
 
-	def __init__(self, connection):
+	def __init__(self, connection, **kwargs):
 		super().__init__(connection)
 		self.postcode_elec_use_data = {}
 		self.neighbourhood_elec_check_dict = {}

@@ -8,7 +8,7 @@ from base_module import BaseModule
 
 class DistrictSpaceHeatingModule(BaseModule):
 
-	def __init__(self, connection):
+	def __init__(self, connection, **kwargs):
 		super().__init__(connection)
 		self.buurten_district_high_gas_data = {}
 		self.buurten_district_low_gas_data = {}

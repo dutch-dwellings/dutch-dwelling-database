@@ -7,7 +7,7 @@ from base_module import BaseModule
 
 class GasSpaceHeatingModule(BaseModule):
 
-	def __init__(self, connection):
+	def __init__(self, connection, **kwargs):
 		super().__init__(connection)
 		self.buurten_boiler_heating_data = {}
 		self.buurten_block_heating_data = {}

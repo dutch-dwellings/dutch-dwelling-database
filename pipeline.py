@@ -8,7 +8,7 @@ from utils.create_results_table import main as create_results_table
 from modules.classes import Dwelling
 
 from modules.regions_module import RegionsModule
-from modules.energy_label_module import EnergyLabelModule
+from modules.energy_label_module import EnergyLabelModule, EnergyLabelRegionalModule
 from modules.gas_consumption_comparison_module import GasConsumptionComparisonModule
 from modules.electricity_consumption_comparison_module import ElectricityConsumptionComparisonModule
 
@@ -40,8 +40,16 @@ def main():
 
 	print("Initiating modules...")
 
+	RegionalModules = [
+		EnergyLabelRegionalModule
+	]
+	regional_modules = [RegionalModule(connection) for RegionalModule in RegionalModules]
+
 	Modules = [
-		# Create neccesary dwelling attributes
+		# Create neccesary dwelling attributes.
+		# RegionsModule should not be confused with a 'RegionalModule':
+		# RegionsModule adds regions, works on dwellings;
+		# a RegionalModule works on regions.
 		RegionsModule,
 		EnergyLabelModule,
 		GasConsumptionComparisonModule,
@@ -57,7 +65,13 @@ def main():
 		# Sampling
 		SamplingModule
 	]
-	modules = [Module(connection) for Module in Modules]
+
+	# Optional variables that only some modules require.
+	kwargs = {
+		'regional_modules': regional_modules
+	}
+
+	modules = [Module(connection, **kwargs) for Module in Modules]
 
 	print("Processing entries...")
 	for entry in sample:

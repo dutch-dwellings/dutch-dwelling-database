@@ -7,7 +7,7 @@ from base_module import BaseModule
 
 class GasWaterHeatingModule(BaseModule):
 
-	def process(self, dwelling):
+	def process(self, dwelling, **kwargs):
 		super().process(dwelling)
 
 		# Get dwelling attributes
