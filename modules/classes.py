@@ -57,7 +57,9 @@ class Dwelling:
 class PC6:
 
 	def __init__(self, pc6, pc6_modules):
-		self.pc6 = pc6
+		self.attributes = {
+			'pc6': pc6
+		}
 
 		for module in pc6_modules:
 			module.process_pc6(self)

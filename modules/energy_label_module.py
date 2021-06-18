@@ -28,6 +28,11 @@ class EnergyLabelModule(BaseModule):
 class EnergyLabelRegionalModule(BaseRegionalModule):
 
 	def process_pc6(self, pc6):
-		pass
+		get_pc6_epi_average = "SELECT AVG(epi_imputed) FROM energy_labels WHERE pc6 = %s"
+		cursor = self.connection.cursor()
+		cursor.execute(get_pc6_epi_average, (pc6.attributes['pc6'],))
+		epi_average = cursor.fetchone()[0]
+		pc6.attributes['epi_average'] = epi_average
+		cursor.close()
 
 	supports = ['pc6']
