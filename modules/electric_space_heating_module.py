@@ -11,22 +11,34 @@ class ElectricSpaceHeatingModule(BaseModule):
 
 	def __init__(self, connection, **kwargs):
 		super().__init__(connection)
-		self.heat_pump_probability_modification()
+		self.electric_heat_pump_base_p = self.get_electric_heat_pump_base_p()
 
-	def heat_pump_probability_modification(self):
+	def get_electric_heat_pump_base_p(self):
+		'''
+		Get the base probability of a dwelling having a heat pump,
+		assuming only building with an energy label C or higher
+		have a heat pump.
+		Uses data from the WoON survey to establish national percentage
+		of dwellings with heat pump.
+		Uses data from the BAG to get the total number of dwellings.
+		'''
+		# National percentage of dwellings with heat pump,
+		# estimated from the WoON survey.
+		WOON_HEAT_PUMP_P = 0.0155
+
 		cursor = self.connection.cursor()
-		# create dictionary with buurt_id and number of dwellings
-		query = "SELECT COUNT(vbo_id) FROM bag WHERE bouwjaar IS NOT null"
-		cursor.execute(query)
-		results = cursor.fetchall()
-		total_dwellings = float(results[0][0])
 
-		query = "SELECT COUNT(energieklasse) FROM energy_labels WHERE energieklasse = 'A+++' OR energieklasse = 'A++' OR energieklasse = 'A+' OR energieklasse = 'A' OR energieklasse = 'B' OR energieklasse = 'C'"
-		cursor.execute(query)
-		heat_pump_eligible_dwellings = float(results[0][0])
+		dwellings_count_query = "SELECT COUNT(vbo_id) FROM bag WHERE bouwjaar IS NOT null"
+		cursor.execute(dwellings_count_query)
+		dwellings_count = cursor.fetchone()[0]
+
+		c_plus_labels_count_query = "SELECT COUNT(energieklasse) FROM energy_labels WHERE energieklasse >= 'C' AND gebouwklasse = 'W'"
+		cursor.execute(c_plus_labels_count_query)
+		heat_pump_eligible_dwellings = cursor.fetchone()[0]
+
 		cursor.close()
-		# Probability is increased using new% = (old% * N_total)/(N_eligible)
-		self.electric_heat_pump_p = 0.0155 * total_dwellings/heat_pump_eligible_dwellings # 0.0155 base probability taken from WoON
+
+		return WOON_HEAT_PUMP_P * dwellings_count / heat_pump_eligible_dwellings
 
 	def process(self, dwelling):
 		super().process(dwelling)
@@ -47,10 +59,10 @@ class ElectricSpaceHeatingModule(BaseModule):
 
 		# Modify probabilities for heat pumps
 		# We assume there are only electric heat pumps in dwellings with energylabel C or higher
-		if energy_label == 'A+++' or energy_label == 'A++' or energy_label == 'A+' or energy_label == 'A' or energy_label == 'B' or energy_label == 'C':
-			electric_heat_pump_p = self.electric_heat_pump_p
+		if energy_label in ['A+++++', 'A++++', 'A+++', 'A++', 'A+', 'A', 'B', 'C']:
+			electric_heat_pump_p = self.electric_heat_pump_base_p
 		else:
-			electric_heat_pump_p = 0.
+			electric_heat_pump_p = 0
 
 		# If there is a high electricity use we modify the probability of the hybrid heat pump according to the gas use
 		hybrid_heat_pump_p = elec_high_gas_p
