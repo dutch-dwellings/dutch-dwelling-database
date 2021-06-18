@@ -2,13 +2,13 @@ import os
 import sys
 from scipy.interpolate import interp1d
 from utils.database_utils import get_connection, get_neighbourhood_dwellings
-from modules.classes import Dwelling
-from modules.RegionsModule import RegionsModule
 
 # Required for relative imports to also work when called
 # from project root directory.
 sys.path.append(os.path.dirname(__file__))
 from base_module import BaseModule
+from classes import Dwelling
+from regions_module import RegionsModule
 
 class ElectricityConsumptionComparisonModule(BaseModule):
 
