@@ -12,8 +12,8 @@ from modules.energy_label_module import EnergyLabelModule, EnergyLabelRegionalMo
 from modules.gas_consumption_comparison_module import GasConsumptionComparisonModule
 from modules.electricity_consumption_comparison_module import ElectricityConsumptionComparisonModule
 
-from modules.district_space_heating_module import DistrictSpaceHeatingModule
-from modules.gas_space_heating_module import GasSpaceHeatingModule
+from modules.district_space_heating_module import DistrictSpaceHeatingModule, DistrictSpaceHeatingRegionalModule
+from modules.gas_space_heating_module import GasSpaceHeatingModule, GasSpaceHeatingRegionalModule
 from modules.electric_space_heating_module import ElectricSpaceHeatingModule, ElectricSpaceHeatingRegionalModule
 
 from modules.gas_water_heating_module import GasWaterHeatingModule
@@ -42,6 +42,8 @@ def main():
 
 	RegionalModules = [
 		EnergyLabelRegionalModule,
+		DistrictSpaceHeatingRegionalModule,
+		GasSpaceHeatingRegionalModule,
 		ElectricSpaceHeatingRegionalModule
 	]
 	regional_modules = [RegionalModule(connection) for RegionalModule in RegionalModules]
