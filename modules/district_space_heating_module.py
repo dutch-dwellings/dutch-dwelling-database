@@ -10,9 +10,6 @@ class DistrictSpaceHeatingModule(BaseModule):
 
 	def __init__(self, connection):
 		super().__init__(connection)
-		self.create_dicts()
-
-	def create_dicts(self):
 		self.buurten_district_high_gas_data = {}
 		self.buurten_district_low_gas_data = {}
 		self.buurten_district_no_gas_data = {}

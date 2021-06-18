@@ -14,9 +14,6 @@ class GasConsumptionComparisonModule(BaseModule):
 
 	def __init__(self, connection):
 		super().__init__(connection)
-		self.create_dicts()
-
-	def create_dicts(self):
 		self.neighbourhood_gas_check_dict = {}
 		self.postcode_gas_use_data = {}
 		self.gas_benchmark_dict = {}

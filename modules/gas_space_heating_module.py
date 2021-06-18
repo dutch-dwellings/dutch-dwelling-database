@@ -9,9 +9,6 @@ class GasSpaceHeatingModule(BaseModule):
 
 	def __init__(self, connection):
 		super().__init__(connection)
-		self.create_dicts()
-
-	def create_dicts(self):
 		self.buurten_boiler_heating_data = {}
 		self.buurten_block_heating_data = {}
 		self.buurten_district_high_gas_data = {}

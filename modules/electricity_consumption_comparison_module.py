@@ -13,9 +13,6 @@ class ElectricityConsumptionComparisonModule(BaseModule):
 
 	def __init__(self, connection):
 		super().__init__(connection)
-		self.create_dicts()
-
-	def create_dicts(self):
 		self.postcode_elec_use_data = {}
 		self.neighbourhood_elec_check_dict = {}
 		self.postcode_household_size_data  = {}

@@ -11,13 +11,10 @@ class ElectricSpaceHeatingModule(BaseModule):
 
 	def __init__(self, connection):
 		super().__init__(connection)
-		self.create_dicts()
-		self.heat_pump_probability_modification()
-
-	def create_dicts(self):
 		self.buurten_elec_high_gas_data = {}
 		self.buurten_elec_low_gas_data = {}
 		self.buurten_elec_no_gas_data = {}
+		self.heat_pump_probability_modification()
 
 	def load_installation_type_data(self, buurt_id):
 		# Add percentage of dwellings with hybrid heat pump in neighbourhood to dict
