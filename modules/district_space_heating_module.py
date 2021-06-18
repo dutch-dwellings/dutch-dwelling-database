@@ -17,9 +17,7 @@ class DistrictSpaceHeatingModule(BaseModule):
 	def process(self, dwelling):
 		super().process(dwelling)
 		# Get dwelling attributes
-		vbo_id = dwelling.attributes['vbo_id']
 		buurt_id = dwelling.attributes['buurt_id']
-		postal_code = dwelling.attributes['pc6']
 		gas_use_percentile_neighbourhood = dwelling.attributes['gas_use_percentile_neighbourhood']
 
 		# Base probability of having different types of electric heating

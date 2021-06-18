@@ -11,7 +11,6 @@ class GasWaterHeatingModule(BaseModule):
 		super().process(dwelling)
 
 		# Get dwelling attributes
-		vbo_id = dwelling.attributes['vbo_id']
 		gas_use_percentile_neighbourhood = dwelling.attributes['gas_use_percentile_neighbourhood']
 
 		boiler_heating_space_p = dwelling.attributes['boiler_heating_space_p']

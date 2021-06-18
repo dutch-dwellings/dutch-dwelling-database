@@ -15,7 +15,6 @@ class DistrictWaterHeatingModule(BaseModule):
 		super().process(dwelling)
 
 		# Get dwelling attributes
-		vbo_id = dwelling.attributes['vbo_id']
 		gas_use_percentile_neighbourhood = dwelling.attributes['gas_use_percentile_neighbourhood']
 		district_high_gas_p = dwelling.attributes['district_high_gas_p']
 		district_low_gas_p = dwelling.attributes['district_low_gas_p']

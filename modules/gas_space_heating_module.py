@@ -17,7 +17,6 @@ class GasSpaceHeatingModule(BaseModule):
 		super().process(dwelling)
 
 		# Get dwelling attributes
-		vbo_id = dwelling.attributes['vbo_id']
 		buurt_id = dwelling.attributes['buurt_id']
 		gas_use_percentile_neighbourhood = dwelling.attributes['gas_use_percentile_neighbourhood']
 
