@@ -8,9 +8,6 @@ from base_module import BaseModule
 
 class EnergyLabelModule(BaseModule):
 
-	def __init__(self, connection):
-		super().__init__(connection)
-
 	def get_energy_label(self, vbo_id):
 		cursor = self.connection.cursor()
 		# Get energy label of dwelling
@@ -25,6 +22,5 @@ class EnergyLabelModule(BaseModule):
 	def process(self, dwelling):
 		super().process(dwelling)
 		vbo_id = dwelling.attributes['vbo_id']
-		buurt_id = dwelling.attributes['buurt_id']
 		energy_label = self.get_energy_label(vbo_id)
 		dwelling.attributes['energy_label'] = energy_label

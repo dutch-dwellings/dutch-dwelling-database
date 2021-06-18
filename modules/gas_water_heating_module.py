@@ -7,9 +7,6 @@ from base_module import BaseModule
 
 class GasWaterHeatingModule(BaseModule):
 
-	def __init__(self, connection):
-		super().__init__(connection)
-
 	def process(self, dwelling):
 		super().process(dwelling)
 

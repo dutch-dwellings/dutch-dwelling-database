@@ -22,7 +22,7 @@ class ElectricityConsumptionComparisonModule(BaseModule):
 		self.elec_benchmark_dict = {}
 
 	def load_elec_use_data(self, postal_code):
-		# Add e;ec use of postal code to dict
+		# Add elec use of postal code to dict
 		cursor = self.connection.cursor()
 		query = "SELECT gemiddelde_elektriciteitslevering_woningen FROM cbs_pc6_2019_energy_use WHERE gemiddelde_elektriciteitslevering_woningen IS NOT NULL AND pc6 = %s"
 		cursor.execute(query, (postal_code,))
