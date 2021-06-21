@@ -16,13 +16,15 @@ class DistrictWaterHeatingModule(BaseModule):
 
 		# Get dwelling attributes
 		gas_use_percentile_neighbourhood = dwelling.attributes['gas_use_percentile_neighbourhood']
+		elec_use_percentile_neighbourhood = dwelling.attributes['elec_use_percentile_neighbourhood']
 		district_high_gas_p = dwelling.attributes['district_high_gas_p']
 		district_low_gas_p = dwelling.attributes['district_low_gas_p']
 		district_no_gas_p = dwelling.attributes['district_no_gas_p']
 
 		# Water district heating
-		district_heating_water_p = district_high_gas_p + district_low_gas_p + district_no_gas_p
+		district_heating_water_p = 0.5 district_high_gas_p + 0.5 district_low_gas_p + district_no_gas_p  # 0.5 could be improved by looking for literature
 		district_heating_water_p = self.modify_probability_down(district_heating_water_p, gas_use_percentile_neighbourhood)
+		district_heating_water_p = self.modify_probability_down(district_heating_water_p, elec_use_percentile_neighbourhood)
 
 		dwelling.attributes['district_heating_water_p'] = district_heating_water_p
 

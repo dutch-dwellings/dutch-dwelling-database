@@ -37,7 +37,9 @@ class ElectricSpaceHeatingModule(BaseModule):
 		heat_pump_eligible_dwellings = cursor.fetchone()[0]
 
 		cursor.close()
-
+		print(dwellings_count)
+		print(heat_pump_eligible_dwellings)
+		print(WOON_HEAT_PUMP_P * dwellings_count / heat_pump_eligible_dwellings)
 		return WOON_HEAT_PUMP_P * dwellings_count / heat_pump_eligible_dwellings
 
 	def process(self, dwelling):

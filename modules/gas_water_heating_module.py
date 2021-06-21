@@ -21,11 +21,11 @@ class GasWaterHeatingModule(BaseModule):
 		block_heating_space_p = dwelling.attributes['block_heating_space_p']
 
 		# Individual gas boiler
-		gas_boiler_water_p = boiler_heating_space_p + district_low_gas_p + district_high_gas_p + elec_high_gas_p + elec_low_gas_p
+		gas_boiler_water_p = boiler_heating_space_p + elec_high_gas_p + elec_low_gas_p + 0.5 block_heating_space_p + 0.5 district_low_gas_p + 0.5 district_high_gas_p # 0.5 could be improved by looking for literature
 		gas_boiler_water_p = self.modify_probability_up(gas_boiler_water_p, gas_use_percentile_neighbourhood)
 
 		# Block gas boiler
-		block_heating_water_p = block_heating_space_p
+		block_heating_water_p = 0.5 block_heating_space_p # 0.5 could be improved by looking for literature
 
 		dwelling.attributes['gas_boiler_water_p'] = gas_boiler_water_p
 		dwelling.attributes['block_heating_water_p'] = block_heating_water_p
