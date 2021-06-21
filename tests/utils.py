@@ -41,7 +41,7 @@ def get_mock_cursor(query_dict):
 
 	def mock_cursor_fetchone():
 		if mock_cursor.results is None:
-			raise mockProgrammingError('Mock cursor error: fetchone() while no results from query')
+			raise mockProgrammingError('Mock cursor error: fetchone() while no results from query, or no query executed yet')
 		if mock_cursor.results == []:
 			return None
 		else:
@@ -55,19 +55,3 @@ def get_mock_cursor(query_dict):
 	mock_cursor.fetchone = mock_cursor_fetchone
 
 	return mock_cursor
-
-def main():
-	query_dict = {
-		'test': [('a', 123), ('b', 456), ('c', 789)]
-	}
-	connection = get_mock_connection(query_dict)
-	cursor = connection.cursor()
-	cursor.execute('test')
-	print(cursor.fetchone())
-	print(cursor.fetchall())
-	print(cursor.fetchall())
-	cursor.close()
-	connection.close()
-
-if __name__ == '__main__':
-	main()
