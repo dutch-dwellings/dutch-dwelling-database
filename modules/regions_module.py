@@ -33,10 +33,11 @@ class RegionsModule(BaseModule):
 			pc6_instance = self.pc6s[pc6]
 		else:
 			pc6_modules = self.regional_modules['pc6']
-			pc6_instance = PC6(pc6, pc6_modules)
+			pc6_instance = PC6(pc6, pc6_modules, self.connection)
 			self.pc6s[pc6] = pc6_instance
 
 		dwelling.regions['pc6'] = pc6_instance
+		pc6_instance.add_dwelling(dwelling)
 
 	def add_buurt(self, dwelling):
 		buurt_id = dwelling.attributes['buurt_id']
@@ -45,7 +46,8 @@ class RegionsModule(BaseModule):
 			buurt_instance = self.buurten[buurt_id]
 		else:
 			buurt_modules = self.regional_modules['buurt']
-			buurt_instance = Buurt(buurt_id, buurt_modules)
+			buurt_instance = Buurt(buurt_id, buurt_modules, self.connection)
 			self.buurten[buurt_id] = buurt_instance
 
 		dwelling.regions['buurt'] = buurt_instance
+		buurt_instance.add_dwelling(dwelling)

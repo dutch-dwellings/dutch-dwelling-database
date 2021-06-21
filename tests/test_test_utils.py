@@ -32,10 +32,10 @@ class TestTestUtils(unittest.TestCase):
 		self.assertEqual(result, row)
 
 	def test_cursor_query_can_take_args(self):
-		query = ('foo', 'spam')
+		query = ('foo', ('spam',))
 		row = ('bar',)
 		mock_cursor = get_mock_cursor({query: [row]})
-		mock_cursor.execute('foo', 'spam')
+		mock_cursor.execute('foo', ('spam',))
 		result = mock_cursor.fetchone()
 		self.assertEqual(result, row)
 
