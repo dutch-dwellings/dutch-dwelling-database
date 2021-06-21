@@ -20,7 +20,6 @@ class TestCBSUtils(unittest.TestCase):
 		}
 		self.assertEqual(sanitized_keys, expected_dict)
 
-
 	def test_get_sanitize_key_dict_unique(self):
 		# Should not strip when keys would clash,
 		# but should strip when keys do not clash

@@ -55,19 +55,46 @@ class Dwelling:
 	# so only use BAG column_names here.
 	default_outputs = {'vbo_id': {}}
 
+class PlaceholderDwelling(Dwelling):
+
+	def __init__(self, vbo_id):
+		pass
+
 class Region:
-	pass
+
+	def __init__(self):
+		self.dwellings = []
 
 class PC6(Region):
 
-	def __init__(self, pc6, pc6_modules):
+	def __init__(self, pc6, pc6_modules, connection):
+		super().__init__()
 		self.attributes = {'pc6': pc6}
+		self.connection = connection
+		self.dwellings = self.get_placeholder_dwellings()
 		for module in pc6_modules:
 			module.process_pc6(self)
 
+	def get_placeholder_dwellings(self):
+		query = "SELECT vbo_id FROM bag WHERE pc6 = %s"
+		cursor = self.connection.cursor()
+		cursor.execute(query, self.attributes['pc6'])
+		placeholder_dwellings = [PlaceholderDwelling(vbo_id) for (vbo_id) in cursor.fetchall()]
+		return placeholder_dwellings
+
 class Buurt(Region):
 
-	def __init__(self, buurt_id, buurt_modules):
+	def __init__(self, buurt_id, buurt_modules, connection):
+		super().__init__()
 		self.attributes = {'buurt_id': buurt_id}
+		self.connection = connection
+		self.dwellings = self.get_placeholder_dwellings()
 		for module in buurt_modules:
 			module.process_buurt(self)
+
+	def get_placeholder_dwellings(self):
+		query = "SELECT vbo_id FROM bag WHERE buurt_id = %s"
+		cursor = self.connection.cursor()
+		cursor.execute(query, self.attributes['buurt_id'])
+		placeholder_dwellings = [PlaceholderDwelling(vbo_id) for (vbo_id) in cursor.fetchall()]
+		return placeholder_dwellings
