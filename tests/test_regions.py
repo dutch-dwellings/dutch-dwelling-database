@@ -8,6 +8,7 @@ from unittest.mock import Mock
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from modules.classes import Dwelling, PlaceholderDwelling, Region, PC6, Buurt
+from modules.base_module import BaseModule
 
 from tests.utils import get_mock_connection
 
@@ -74,6 +75,38 @@ class TestRegion(unittest.TestCase):
 
 		add_dwelling_partial = partial(self.region.add_dwelling, dwelling)
 		self.assertRaises(ValueError, add_dwelling_partial)
+
+	def test_updates_dwelling_with_placeholder_processed_by_when_adding(self):
+		self.placeholder_dwelling.processed_by = ['BaseModule']
+
+		# dwelling with same vbo_id as placeholder
+		attributes = {'vbo_id': self.vbo_id}
+		dwelling = Dwelling(attributes, self.connection)
+
+		self.region.add_dwelling(dwelling)
+		self.assertEqual(dwelling.processed_by, ['BaseModule'])
+
+	def test_updating_dwelling_with_placeholder_processed_by_doesnt_duplicate(self):
+		self.placeholder_dwelling.processed_by = ['BaseModule']
+
+		# dwelling with same vbo_id as placeholder
+		attributes = {'vbo_id': self.vbo_id}
+		dwelling = Dwelling(attributes, self.connection)
+		dwelling.processed_by = ['BaseModule']
+
+		self.region.add_dwelling(dwelling)
+		self.assertEqual(dwelling.processed_by, ['BaseModule'])
+
+	def test_updating_dwelling_with_placeholder_processed_by_doesnt_override(self):
+		self.placeholder_dwelling.processed_by = ['BaseModule']
+
+		# dwelling with same vbo_id as placeholder
+		attributes = {'vbo_id': self.vbo_id}
+		dwelling = Dwelling(attributes, self.connection)
+		dwelling.processed_by = ['OtherModule']
+
+		self.region.add_dwelling(dwelling)
+		self.assertEqual(dwelling.processed_by, ['OtherModule', 'BaseModule'])
 
 class TestPC6(unittest.TestCase):
 

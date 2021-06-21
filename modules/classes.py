@@ -87,6 +87,8 @@ class Region:
 			else:
 				dwelling.attributes[key] = placeholder_dwelling.attributes[key]
 
+		dwelling.processed_by += [module for module in placeholder_dwelling.processed_by if module not in dwelling.processed_by]
+
 	def get_index_of_placeholder_dwelling(self, vbo_id):
 		'''
 		Gets the index in self.dwellings of the placeholder dwelling
