@@ -6,7 +6,8 @@ import unittest
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from utils.database_utils import get_connection
-from modules.gas_boiler_module import GasBoilerModule
+from modules.gas_space_heating_module import GasSpaceHeatingModule
+
 
 class TestPerformance(unittest.TestCase):
 
