@@ -11,7 +11,6 @@ from modules.gas_space_heating_module import GasSpaceHeatingModule
 
 class TestPerformance(unittest.TestCase):
 
-	@unittest.skip('This is too slow to be a unit test')
 	def test_gas_boiler_module_performance(self):
 		print('init')
 		connection = get_connection()
