@@ -43,6 +43,18 @@ class TestRegion(unittest.TestCase):
 		add_dwelling_partial = partial(self.region.add_dwelling, dwelling)
 		self.assertRaises(ValueError, add_dwelling_partial)
 
+	def test_raises_when_adding_existing_dwelling(self):
+		attributes_1 = {'vbo_id': '0363010000000002'}
+		dwelling_1 = Dwelling(attributes_1, self.connection)
+		attributes_2 = attributes_1.copy()
+		dwelling_2 = Dwelling(attributes_2, self.connection)
+
+		self.region.dwellings = [dwelling_1]
+		# Attempt to add the same dwelling.
+		add_dwelling_partial = partial(self.region.add_dwelling, dwelling_2)
+
+		self.assertRaises(ValueError, add_dwelling_partial)
+
 	def test_updates_dwelling_with_placeholder_dwelling_values_when_adding(self):
 		self.placeholder_dwelling.attributes['foo'] = 'bar'
 
