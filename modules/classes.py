@@ -11,6 +11,7 @@ class Dwelling:
 		self.outputs = self.default_outputs.copy()
 		self.sampling_outputs = {}
 		self.regions = {}
+		self.processed_by = []
 
 	def __str__(self):
 		pp = pprint.PrettyPrinter(indent=4)

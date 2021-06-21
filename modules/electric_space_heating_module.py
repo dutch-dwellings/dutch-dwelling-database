@@ -43,7 +43,10 @@ class ElectricSpaceHeatingModule(BaseModule):
 		return WOON_HEAT_PUMP_P * dwellings_count / heat_pump_eligible_dwellings
 
 	def process(self, dwelling):
-		super().process(dwelling)
+		continue_processing = super().process(dwelling)
+		# Dwelling has already been processed by this module
+		if not continue_processing:
+			return
 
 		# Get dwelling attributes
 		energy_label = dwelling.attributes['energy_label']

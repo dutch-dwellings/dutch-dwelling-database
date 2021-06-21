@@ -10,6 +10,11 @@ from base_module import BaseModule
 class SamplingModule(BaseModule):
 
 	def process(self, dwelling):
+		continue_processing = super().process(dwelling)
+		# Dwelling has already been processed by this module
+		if not continue_processing:
+			return
+
 		for name, options in dwelling.outputs.items():
 			if options.get('sampling', False) == True:
 				distribution_value = dwelling.attributes[options['distribution']]

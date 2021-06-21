@@ -8,7 +8,10 @@ from base_module import BaseModule
 class ElectricCookingModule(BaseModule):
 
 	def process(self, dwelling, **kwargs):
-		super().process(dwelling)
+		continue_processing = super().process(dwelling)
+		# Dwelling has already been processed by this module
+		if not continue_processing:
+			return
 
 		# Get dwelling attributes
 		elec_use_percentile_neighbourhood = dwelling.attributes['elec_use_percentile_neighbourhood']

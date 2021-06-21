@@ -162,7 +162,10 @@ class GasConsumptionComparisonModule(BaseModule):
 		return interpolated_function
 
 	def process(self, dwelling):
-		super().process(dwelling)
+		continue_processing = super().process(dwelling)
+		# Dwelling has already been processed by this module
+		if not continue_processing:
+			return
 
 		# Get dwelling attributes
 		vbo_id = dwelling.attributes['vbo_id']

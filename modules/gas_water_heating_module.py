@@ -8,7 +8,10 @@ from base_module import BaseModule
 class GasWaterHeatingModule(BaseModule):
 
 	def process(self, dwelling, **kwargs):
-		super().process(dwelling)
+		continue_processing = super().process(dwelling)
+		# Dwelling has already been processed by this module
+		if not continue_processing:
+			return
 
 		# Get dwelling attributes
 		gas_use_percentile_neighbourhood = dwelling.attributes['gas_use_percentile_neighbourhood']

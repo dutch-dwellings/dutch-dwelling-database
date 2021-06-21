@@ -12,7 +12,10 @@ class DistrictWaterHeatingModule(BaseModule):
 		super().__init__(connection)
 
 	def process(self, dwelling):
-		super().process(dwelling)
+		continue_processing = super().process(dwelling)
+		# Dwelling has already been processed by this module
+		if not continue_processing:
+			return
 
 		# Get dwelling attributes
 		gas_use_percentile_neighbourhood = dwelling.attributes['gas_use_percentile_neighbourhood']

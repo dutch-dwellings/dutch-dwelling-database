@@ -20,7 +20,11 @@ class EnergyLabelModule(BaseModule):
 		cursor.close()
 
 	def process(self, dwelling):
-		super().process(dwelling)
+		continue_processing = super().process(dwelling)
+		# Dwelling has already been processed by this module
+		if not continue_processing:
+			return
+
 		vbo_id = dwelling.attributes['vbo_id']
 		energy_label = self.get_energy_label(vbo_id)
 		dwelling.attributes['energy_label'] = energy_label

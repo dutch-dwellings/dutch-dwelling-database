@@ -8,7 +8,8 @@ from utils.database_utils import add_column
 class BaseModule:
 
 	def __init__(self, connection, **kwargs):
-		print(f'   Initiating module {self.__class__.__name__}')
+		if 'silent' not in kwargs or not kwargs['silent']:
+			print(f'   Initiating module {self.__class__.__name__}')
 		self.connection = connection
 		self.create_required_columns()
 
@@ -42,7 +43,16 @@ class BaseModule:
 		return probability
 
 	def process(self, dwelling):
-		dwelling.outputs.update(self.outputs)
+		# Check whether this module has already processed
+		# this dwelling.
+		if self.__class__.__name__ not in dwelling.processed_by:
+			dwelling.outputs.update(self.outputs)
+			dwelling.processed_by.append(self.__class__.__name__)
+			return True
+		# Module has already been seen, we need to signal
+		# to child modules that we shouldn't continue processing.
+		else:
+			return False
 
 	# Outputs need to be a dict, where:
 	# - the keys are valid PostgreSQL identifiers
