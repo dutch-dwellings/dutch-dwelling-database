@@ -14,7 +14,7 @@ class GasSpaceHeatingModule(BaseModule):
 		super().process(dwelling)
 
 		# Get dwelling attributes
-		buurt_id = dwelling.attributes['buurt_id']
+		buurt = dwelling.regions['buurt']
 		gas_use_percentile_neighbourhood = dwelling.attributes['gas_use_percentile_neighbourhood']
 
 		# Get base probability of having different heating types

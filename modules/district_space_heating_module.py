@@ -14,7 +14,7 @@ class DistrictSpaceHeatingModule(BaseModule):
 	def process(self, dwelling):
 		super().process(dwelling)
 		# Get dwelling attributes
-		buurt_id = dwelling.attributes['buurt_id']
+		buurt = dwelling.regions['buurt']
 		gas_use_percentile_neighbourhood = dwelling.attributes['gas_use_percentile_neighbourhood']
 
 		# Base probability of having different types of electric heating
@@ -23,8 +23,8 @@ class DistrictSpaceHeatingModule(BaseModule):
 		district_no_gas_p = buurt.attributes['district_no_gas_share']
 
 		# Modify probabilities according to gas use
-		district_high_gas_p = self.modify_probability_up(district_high_gas_p, gas_use_percentile_neighbourhood)
-		district_low_gas_p = self.modify_probability_down(district_low_gas_p, gas_use_percentile_neighbourhood)
+		district_high_gas_p_mod = self.modify_probability_up(district_high_gas_p, gas_use_percentile_neighbourhood)
+		district_low_gas_p_mod = self.modify_probability_down(district_low_gas_p, gas_use_percentile_neighbourhood)
 
 		dwelling.attributes['district_high_gas_p'] = district_high_gas_p
 		dwelling.attributes['district_low_gas_p'] = district_low_gas_p

@@ -17,6 +17,122 @@ class ElectricityConsumptionComparisonModule(BaseModule):
 		self.neighbourhood_elec_check_dict = {}
 		self.elec_benchmark_dict = {}
 
+	def neighbourhood_elec_use_comparison(self,buurt_id):
+
+		# Create dictionary with vbo_ids  : percentile of gas use
+		percentile_elec_use_dict = {}
+		# Get dwellings in neighbourhood
+		connection = get_connection()
+		dwellings_in_neighbourhood = get_neighbourhood_dwellings(connection, buurt_id)
+		# Compare dwellings to national benchmarks
+		self.benchmark_comparison(connection, dwellings_in_neighbourhood, percentile_elec_use_dict)
+
+		return(percentile_elec_use_dict)
+
+	def benchmark_comparison(self, connection, dwellings_in_neighbourhood, percentile_elec_use_dict):
+
+		for entry in dwellings_in_neighbourhood:
+			dwelling = Dwelling(dict(entry), connection)
+
+			vbo_id = dwelling.attributes['vbo_id']
+			floor_space = dwelling.attributes['oppervlakte']
+
+			# Total electricity use in postal code
+			postal_code_elec_use = 10 # pc6.attributes['total_elec_use']
+			# Total floor space in postal code
+			postal_code_floor_space = 20 # pc6.attributes['floor_space']
+			# Average electricity use per unit of floor space
+			elec_use_floor_space = postal_code_elec_use / postal_code_floor_space
+			# Electricity use of a dwelling
+			elec_use_dwelling = elec_use_floor_space * floor_space
+			# Household size of dwelling (Want this per m2?)
+			avg_household_size = 2 #round(pc6.attributes['household_size'])
+			if avg_household_size <= 0:
+				avg_household_size = 1
+			dwelling.attributes['household_size'] = avg_household_size
+			# Get electricity use per person for comparison with benchmark
+			dwelling_elec_use_per_person = elec_use_dwelling / avg_household_size
+
+			# Interpolation process
+			dwelling_elec_use_percentile = 0
+			dwelling_characteristics_tuple = self.create_characteristics_tuple(dwelling)
+			# Get benchmark for specific dwelling type, floor space and number of inhabitants
+			if dwelling_characteristics_tuple not in self.elec_benchmark_dict:
+				self.elec_benchmark_dict[dwelling_characteristics_tuple] = self.create_benchmark(dwelling_characteristics_tuple)
+
+			# Comparison with benchmark
+			benchmark = self.elec_benchmark_dict[dwelling_characteristics_tuple]
+
+			# If there is not electricity use, we cannot compare
+			if postal_code_elec_use == 0:
+				pass
+			# If there is not benchmark data, we cannot compare
+			# TODO: set benchmark to more general data in def create_benchmark(self) if no data is available
+			elif benchmark == None:
+				pass
+			else:
+				# See where electricity use compares against the interpolated benchmark
+				dwelling_elec_use_percentile = float(benchmark(dwelling_elec_use_per_person))/100
+				# Extrapolation can give values outside of the domain
+				if dwelling_elec_use_percentile < 0:
+					dwelling_elec_use_percentile = 0
+				elif dwelling_elec_use_percentile > 1:
+					dwelling_elec_use_percentile = 1
+				else:
+					pass
+			percentile_elec_use_dict[vbo_id] = dwelling_elec_use_percentile
+
+	def create_characteristics_tuple(self, dwelling):
+		# Get dwellings attributes
+		floor_space = dwelling.attributes['oppervlakte']
+		building_type = dwelling.attributes['woningtype']
+		energy_label = 'A' # dwelling.attributes['energy_label']
+		household_size = dwelling.attributes['household_size']
+
+		# Harmonize building type terminology between bag and CBS
+		if building_type == 'twee_onder_1_kap':
+			building_type = '2-onder-1-kapwoning'
+		elif building_type =='tussenwoning':
+			building_type = 'Tussenwoning'
+		elif building_type == 'vrijstaand':
+			building_type = 'Vrijstaande woning'
+		elif building_type == 'hoekwoning':
+			building_type = 'Hoekwoning'
+		elif building_type == 'meergezinspand_hoog':
+			building_type = 'Appartement'
+		elif building_type == 'meergezinspand_laag_midden':
+			building_type = 'Appartement'
+
+		# Make floor areas searchable
+		if floor_space < 50:
+			floor_space_string = '15 tot 50 m²'
+		elif floor_space >= 50 and floor_space < 75:
+			floor_space_string = '50 tot 75 m²'
+		elif floor_space >= 75 and floor_space < 100:
+			floor_space_string = '75 tot 100 m²'
+		elif floor_space >= 100 and floor_space < 150:
+			floor_space_string = '100 tot 150 m²'
+		elif floor_space >= 150 and floor_space < 250:
+			floor_space_string = '150 tot 250 m²'
+		elif floor_space >= 250:
+			floor_space_string = '250 tot 500 m²'
+
+		# Make household sizes searchable
+		if household_size == 1:
+			household_size_string = '1 persoon'
+		elif household_size == 2:
+			household_size_string = '2 personen'
+		elif household_size == 3:
+			household_size_string = '3 personen'
+		elif household_size == 4:
+			household_size_string = '4 personen'
+		elif household_size >= 5:
+			household_size_string = '5 personen of meer'
+
+		dwelling_characteristics_tuple = (building_type, floor_space_string, household_size_string)
+
+		return dwelling_characteristics_tuple
+
 	def create_benchmark(self, dwelling_characteristics_tuple):
 		# Look up electricity use data for dwellings characteristics
 		cursor = self.connection.cursor()
@@ -42,106 +158,6 @@ class ElectricityConsumptionComparisonModule(BaseModule):
 		else:
 			interpolated_function = interp1d(benchmark_x_data, benchmark_y_data, fill_value='extrapolate')
 		return interpolated_function
-
-	def neighbourhood_elec_use_comparison(self,buurt_id):
-		# Output: Dictionary with vbo_id:percentile electricity use
-		percentile_elec_use_dict = {}
-		connection = get_connection()
-		# Get all dwellings in the neighbourhood
-		sample = get_neighbourhood_dwellings(connection, buurt_id)
-
-		for entry in sample:
-			dwelling = Dwelling(dict(entry), connection)
-
-			# Dwelling pc6 needs to have:
-			# postcode electricity use
-			# postcode household size
-			vbo_id = dwelling.attributes['vbo_id']
-			postal_code = dwelling.attributes['pc6']
-
-			# Electricity use in postal code
-			postal_code_elec_use = pc6.attributes['elec_use']
-
-			# Get dwellings attributes
-			floor_space = dwelling.attributes['oppervlakte']
-			building_type = dwelling.attributes['woningtype']
-			household_size = round(pc6.attributes['household_size'])
-			if household_size <= 0:
-				household_size = 1
-			energy_label = dwelling.attributes['energy_label']
-
-			# Get electricity use per person for comparison with benchmark
-			dwelling_elec_use_per_person = postal_code_elec_use / household_size
-
-			# Harmonize building type terminology between bag and CBS
-			if building_type == 'twee_onder_1_kap':
-				building_type = '2-onder-1-kapwoning'
-			elif building_type =='tussenwoning':
-				building_type = 'Tussenwoning'
-			elif building_type == 'vrijstaand':
-				building_type = 'Vrijstaande woning'
-			elif building_type == 'hoekwoning':
-				building_type = 'Hoekwoning'
-			elif building_type == 'meergezinspand_hoog':
-				building_type = 'Appartement'
-			elif building_type == 'meergezinspand_laag_midden':
-				building_type = 'Appartement'
-
-			# Make floor areas searchable
-			if floor_space < 50:
-				floor_space_string = '15 tot 50 m²'
-			elif floor_space >= 50 and floor_space < 75:
-				floor_space_string = '50 tot 75 m²'
-			elif floor_space >= 75 and floor_space < 100:
-				floor_space_string = '75 tot 100 m²'
-			elif floor_space >= 100 and floor_space < 150:
-				floor_space_string = '100 tot 150 m²'
-			elif floor_space >= 150 and floor_space < 250:
-				floor_space_string = '150 tot 250 m²'
-			elif floor_space >= 250:
-				floor_space_string = '250 tot 500 m²'
-
-			# Make household sizes searchable
-			if household_size == 1:
-				household_size_string = '1 persoon'
-			elif household_size == 2:
-				household_size_string = '2 personen'
-			elif household_size == 3:
-				household_size_string = '3 personen'
-			elif household_size == 4:
-				household_size_string = '4 personen'
-			elif household_size >= 5:
-				household_size_string = '5 personen of meer'
-
-			# Default value for percentile
-			dwelling_elec_use_percentile = 0
-			dwelling_characteristics_tuple = (building_type, floor_space_string, household_size_string)
-
-			# Get benchmark for specific dwelling type, floor space and number of inhabitants
-			if dwelling_characteristics_tuple not in self.elec_benchmark_dict:
-				self.elec_benchmark_dict[dwelling_characteristics_tuple] = self.create_benchmark(dwelling_characteristics_tuple)
-
-			benchmark = self.elec_benchmark_dict[dwelling_characteristics_tuple]
-
-			# If there is not electricity use, we cannot compare
-			if postal_code_elec_use == 0:
-				pass
-			# If there is not benchmark data, we cannot compare
-			# TODO: set benchmark to more general data in def create_benchmark(self) if no data is available
-			elif benchmark == None:
-				pass
-			else:
-				# See where electricity use compares against the interpolated benchmark
-				dwelling_elec_use_percentile = float(benchmark(dwelling_elec_use_per_person))/100
-				# Extrapolation can give values outside of the domain
-				if dwelling_elec_use_percentile < 0:
-					dwelling_elec_use_percentile = 0
-				elif dwelling_elec_use_percentile > 1:
-					dwelling_elec_use_percentile = 1
-				else:
-					pass
-			percentile_elec_use_dict[vbo_id] = dwelling_elec_use_percentile
-		return(percentile_elec_use_dict)
 
 	def process(self, dwelling):
 		super().process(dwelling)

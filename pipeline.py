@@ -20,6 +20,9 @@ from modules.gas_water_heating_module import GasWaterHeatingModule
 from modules.electric_water_heating_module import ElectricWaterHeatingModule
 from modules.district_water_heating_module import DistrictWaterHeatingModule
 
+from modules.gas_cooking_module import GasCookingModule
+from modules.electric_cooking_module import ElectricCookingModule
+
 from modules.sampling_module import SamplingModule
 
 
@@ -65,6 +68,9 @@ def main():
 		DistrictWaterHeatingModule,
 		GasWaterHeatingModule,
 		ElectricWaterHeatingModule,
+		# Cooking
+		GasCookingModule,
+		ElectricCookingModule,
 		# Sampling
 		SamplingModule
 	]

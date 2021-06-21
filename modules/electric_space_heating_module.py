@@ -50,7 +50,7 @@ class ElectricSpaceHeatingModule(BaseModule):
 		elec_use_percentile_national = dwelling.attributes['elec_use_percentile_national']
 		elec_use_percentile_neighbourhood = dwelling.attributes['elec_use_percentile_neighbourhood']
 
-		buurt = dwelling.attributes['buurt']
+		buurt = dwelling.regions['buurt']
 		# Base probability of having different types of electric heating
 		elec_high_gas_p = buurt.attributes['elec_high_gas_share']
 		elec_low_gas_p  = buurt.attributes['elec_low_gas_share']
@@ -61,7 +61,7 @@ class ElectricSpaceHeatingModule(BaseModule):
 		if energy_label in ['A+++++', 'A++++', 'A+++', 'A++', 'A+', 'A', 'B', 'C']:
 			electric_heat_pump_p = self.electric_heat_pump_base_p
 		else:
-			electric_heat_pump_p = 0
+			electric_heat_pump_p = 0.
 
 		# If there is a high electricity use we modify the probability of the hybrid heat pump according to the gas use
 		hybrid_heat_pump_p = elec_high_gas_p
