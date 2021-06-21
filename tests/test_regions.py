@@ -13,85 +13,54 @@ from tests.utils import get_mock_connection
 
 class TestRegion(unittest.TestCase):
 
+	def setUp(self):
+		self.region = Region()
+		self.connection = get_mock_connection()
+		self.vbo_id = '0363010000000001'
+		self.placeholder_attributes = {'vbo_id': self.vbo_id}
+		self.placeholder_dwelling = PlaceholderDwelling(self.placeholder_attributes, self.connection)
+		self.region.dwellings.append(self.placeholder_dwelling)
+
 	def test_can_save_dwellings(self):
 		region = Region()
 		self.assertTrue(hasattr(region, 'dwellings'))
 		self.assertEqual(region.dwellings, [])
 
 	def test_can_replace_placeholders(self):
-		connection = get_mock_connection()
-		region = Region()
-
-		vbo_id = '0363010000000001'
-		placeholder_attributes = {'vbo_id': vbo_id}
-		placeholder_dwelling = PlaceholderDwelling(placeholder_attributes, connection)
-		region.dwellings.append(placeholder_dwelling)
-		self.assertEqual(region.dwellings, [placeholder_dwelling])
-
-		connection = get_mock_connection()
 		# dwelling with same vbo_id as placeholder
-		attributes = {'vbo_id': vbo_id}
-		dwelling = Dwelling(attributes, connection)
+		attributes = self.placeholder_attributes.copy()
+		dwelling = Dwelling(attributes, self.connection)
 
-		region.add_dwelling(dwelling)
+		self.region.add_dwelling(dwelling)
 		# placeholder has been replaced
-		self.assertEqual(region.dwellings, [dwelling])
+		self.assertEqual(self.region.dwellings, [dwelling])
 
-	def test_raise_when_adding_dwelling_outside_region(self):
-		connection = get_mock_connection()
-		region = Region()
-
-		vbo_id = '0363010000000001'
-		placeholder_attributes = {'vbo_id': vbo_id}
-		placeholder_dwelling = PlaceholderDwelling(placeholder_attributes, connection)
-		region.dwellings.append(placeholder_dwelling)
-		self.assertEqual(region.dwellings, [placeholder_dwelling])
-
-		connection = get_mock_connection()
+	def test_raises_when_adding_dwelling_outside_region(self):
 		# dwelling with vbo_id that is not inside that region
 		attributes = {'vbo_id': '0363010000000002'}
-		dwelling = Dwelling(attributes, connection)
+		dwelling = Dwelling(attributes, self.connection)
 
-		add_dwelling_partial = partial(region.add_dwelling, dwelling)
+		add_dwelling_partial = partial(self.region.add_dwelling, dwelling)
 		self.assertRaises(ValueError, add_dwelling_partial)
 
 	def test_updates_dwelling_with_placeholder_dwelling_values_when_adding(self):
-		connection = get_mock_connection()
-		region = Region()
-
-		vbo_id = '0363010000000001'
-		placeholder_attributes = {'vbo_id': vbo_id}
-		placeholder_dwelling = PlaceholderDwelling(placeholder_attributes, connection)
-		placeholder_dwelling.attributes['foo'] = 'bar'
-		region.dwellings.append(placeholder_dwelling)
-		self.assertEqual(region.dwellings, [placeholder_dwelling])
+		self.placeholder_dwelling.attributes['foo'] = 'bar'
 
 		# dwelling with same vbo_id as placeholder
-		attributes = {'vbo_id': vbo_id}
-		dwelling = Dwelling(attributes, connection)
+		attributes = {'vbo_id': self.vbo_id}
+		dwelling = Dwelling(attributes, self.connection)
 
-		region.add_dwelling(dwelling)
+		self.region.add_dwelling(dwelling)
 		self.assertEqual(dwelling.attributes['foo'], 'bar')
 
 	def test_raises_when_adding_dwelling_with_conflicting_information(self):
-		connection = get_mock_connection()
-		region = Region()
+		self.placeholder_dwelling.attributes['foo'] = 'bar'
 
-		vbo_id = '0363010000000001'
-		placeholder_attributes = {
-			'vbo_id': vbo_id,
-			'foo': 'bar'
-		}
-		placeholder_dwelling = PlaceholderDwelling(placeholder_attributes, connection)
-		region.dwellings.append(placeholder_dwelling)
-		self.assertEqual(region.dwellings, [placeholder_dwelling])
-
-		connection = get_mock_connection()
 		# dwelling with same vbo_id as placeholder
-		attributes = {'vbo_id': vbo_id, 'foo': 'spam'}
-		dwelling = Dwelling(attributes, connection)
+		attributes = {'vbo_id': self.vbo_id, 'foo': 'spam'}
+		dwelling = Dwelling(attributes, self.connection)
 
-		add_dwelling_partial = partial(region.add_dwelling, dwelling)
+		add_dwelling_partial = partial(self.region.add_dwelling, dwelling)
 		self.assertRaises(ValueError, add_dwelling_partial)
 
 class TestPC6(unittest.TestCase):
