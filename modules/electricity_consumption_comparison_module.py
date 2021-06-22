@@ -17,45 +17,39 @@ class ElectricityConsumptionComparisonModule(BaseModule):
 		self.elec_benchmark_dict = {}
 
 	def neighbourhood_elec_use_comparison(self, buurt, pc6):
-
-		# Create dictionary with vbo_ids  : percentile of gas use
+		# Create dictionary with vbo_ids : percentile of gas use
 		percentile_elec_use_dict = {}
 		# Get dwellings in neighbourhood
-		connection = get_connection()
 		dwellings_in_neighbourhood = buurt.dwellings
-		# Compare dwellings to national benchmarks
-		self.benchmark_comparison(dwellings_in_neighbourhood, percentile_elec_use_dict, pc6, buurt)
-
-		return(percentile_elec_use_dict)
-
-	def benchmark_comparison(self, dwellings_in_neighbourhood, percentile_elec_use_dict, pc6, buurt):
 		# Total electricity use in postal code
 		postal_code_elec_use = pc6.attributes['total_elec_use']
 		# Total floor space in postal code
 		postal_code_floor_space = pc6.attributes['total_floor_space']
-		# Average electricity use per unit of floor space
+		# Assumption: Electricity use per m2 is the same for the entire pc6
 		elec_use_floor_space = postal_code_elec_use / postal_code_floor_space
-		# Household size of dwelling (Want this per m2?)
+		# Household size of dwelling
 		avg_household_size = round(pc6.attributes['household_size'])
 		if avg_household_size <= 0:
 			avg_household_size = 1
 
+		# Comparison process
 		for dwelling in dwellings_in_neighbourhood:
+			# Get basic attributes
 			vbo_id = dwelling.attributes['vbo_id']
 			floor_space = dwelling.attributes['oppervlakte']
 			dwelling.attributes['household_size'] = avg_household_size
 
 			# Electricity use of a dwelling
 			elec_use_dwelling = elec_use_floor_space * floor_space
-
 			# Get electricity use per person for comparison with benchmark
 			dwelling_elec_use_per_person = elec_use_dwelling / avg_household_size
-
-			# Interpolation process
 			dwelling_elec_use_percentile = 0
+
+			# Create tuple for looking up benchmark
 			dwelling_characteristics_tuple = self.create_characteristics_tuple(dwelling)
-			# Get benchmark for specific dwelling type, floor space and number of inhabitants
+			# Check if benchmark for combination of characteristics is already made
 			if dwelling_characteristics_tuple not in self.elec_benchmark_dict:
+				# If not, calculate the benchmark function
 				self.elec_benchmark_dict[dwelling_characteristics_tuple] = self.create_benchmark(dwelling_characteristics_tuple)
 
 			# Comparison with benchmark
@@ -65,7 +59,6 @@ class ElectricityConsumptionComparisonModule(BaseModule):
 			if postal_code_elec_use == 0:
 				pass
 			# If there is not benchmark data, we cannot compare
-			# TODO: set benchmark to more general data in def create_benchmark(self) if no data is available
 			elif benchmark == None:
 				pass
 			else:
@@ -78,7 +71,10 @@ class ElectricityConsumptionComparisonModule(BaseModule):
 					dwelling_elec_use_percentile = 1
 				else:
 					pass
+			# Add percentile compared to national data to dict
 			percentile_elec_use_dict[vbo_id] = dwelling_elec_use_percentile
+
+		return(percentile_elec_use_dict)
 
 	def create_characteristics_tuple(self, dwelling):
 		# Get dwellings attributes

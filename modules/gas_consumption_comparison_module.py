@@ -17,18 +17,10 @@ class GasConsumptionComparisonModule(BaseModule):
 		self.gas_benchmark_dict = {}
 
 	def neighbourhood_gas_use_comparison(self, buurt, pc6):
-
-		# Create dictionary with vbo_ids  : percentile of gas use
+		# Create dictionary with vbo_ids : percentile of gas use
 		percentile_gas_use_dict = {}
 		# Get dwellings in neighbourhood
-		connection = get_connection()
 		dwellings_in_neighbourhood = buurt.dwellings
-		# Compare dwellings to national benchmarks
-		self.benchmark_comparison(dwellings_in_neighbourhood, percentile_gas_use_dict, pc6, buurt)
-
-		return(percentile_gas_use_dict)
-
-	def benchmark_comparison(self, dwellings_in_neighbourhood, percentile_gas_use_dict, pc6, buurt):
 		# Total gas use in postal code
 		postal_code_gas_use = pc6.attributes['total_gas_use']
 		# Total floor space in postal code
@@ -36,18 +28,19 @@ class GasConsumptionComparisonModule(BaseModule):
 		# Assumption: Gas use per m2 is the same for the entire pc6
 		gas_use_floor_space = postal_code_gas_use/postal_code_floor_space
 
+		# Comparison process
 		for dwelling in dwellings_in_neighbourhood:
-
 			vbo_id = dwelling.attributes['vbo_id']
-			# Interpolation process
 			dwelling_gas_use_percentile = 0
+			# Create tuple for looking up benchmark
 			dwelling_characteristics_tuple = self.create_characteristics_tuple(dwelling)
+			# Check if benchmark for combination of characteristics is already made
 			if dwelling_characteristics_tuple not in self.gas_benchmark_dict:
+				# If not, calculate the benchmark function
 				self.gas_benchmark_dict[dwelling_characteristics_tuple] = self.create_benchmark(dwelling_characteristics_tuple)
 
 			# Comparison with benchmark
 			benchmark = self.gas_benchmark_dict[dwelling_characteristics_tuple]
-
 			# If there is not gas use, we cannot compare
 			if gas_use_floor_space == 0:
 				pass
@@ -64,9 +57,13 @@ class GasConsumptionComparisonModule(BaseModule):
 					dwelling_gas_use_percentile = 1
 				else:
 					pass
+			# Add percentile compared to national data to dict
 			percentile_gas_use_dict[vbo_id] = dwelling_gas_use_percentile
 
+		return(percentile_gas_use_dict)
+
 	def create_characteristics_tuple(self,dwelling):
+
 		# Get dwellings attributes which serve as CBS data lookup values
 		floor_space = dwelling.attributes['oppervlakte']
 		construction_year = dwelling.attributes['bouwjaar']
