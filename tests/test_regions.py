@@ -76,6 +76,29 @@ class TestRegion(unittest.TestCase):
 		add_dwelling_partial = partial(self.region.add_dwelling, dwelling)
 		self.assertRaises(ValueError, add_dwelling_partial)
 
+	def test_does_not_raise_when_adding_dwelling_with_same_information(self):
+		self.placeholder_dwelling.attributes['foo'] = 'bar'
+
+		# dwelling with same vbo_id as placeholder
+		attributes = {'vbo_id': self.vbo_id, 'foo': 'bar'}
+		dwelling = Dwelling(attributes, self.connection)
+
+		try:
+			self.region.add_dwelling(dwelling)
+		except ValueError:
+			self.fail('Should not raise ValueError')
+
+	def test_retains_info_when_adding_dwelling_with_same_information(self):
+		self.placeholder_dwelling.attributes['foo'] = 'bar'
+
+		# dwelling with same vbo_id as placeholder
+		attributes = {'vbo_id': self.vbo_id, 'foo': 'bar'}
+		dwelling = Dwelling(attributes, self.connection)
+
+		self.region.add_dwelling(dwelling)
+
+		self.assertEqual(dwelling.attributes, attributes)
+
 	def test_updates_dwelling_with_placeholder_processed_by_when_adding(self):
 		self.placeholder_dwelling.processed_by = ['BaseModule']
 
