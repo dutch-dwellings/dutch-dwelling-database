@@ -125,6 +125,20 @@ data = [
 ]
 
 
+# https://online.stat.psu.edu/onlinecourses/sites/stat501/files/data/soapsuds.txt
+data = [
+	# soap, suds
+	(4.0, 33),
+	(4.5, 42),
+	(5.0, 45),
+	(5.5, 51),
+	(6.0, 53),
+	(6.5, 61),
+	(7.0, 62)
+]
+
+
+
 n = len(data)
 
 x = [point[0] for point in data]
