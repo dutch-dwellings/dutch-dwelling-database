@@ -6,9 +6,8 @@ from utils.database_utils import get_connection, get_neighbourhood_dwellings
 # Required for relative imports to also work when called
 # from project root directory.
 sys.path.append(os.path.dirname(__file__))
-from base_module import BaseModule
+from base_module import BaseModule, BaseRegionalModule
 from classes import Dwelling
-from regions_module import RegionsModule
 
 class GasConsumptionComparisonModule(BaseModule):
 
@@ -17,33 +16,29 @@ class GasConsumptionComparisonModule(BaseModule):
 		self.neighbourhood_gas_check_dict = {}
 		self.gas_benchmark_dict = {}
 
-	def neighbourhood_gas_use_comparison(self,buurt_id):
+	def neighbourhood_gas_use_comparison(self, buurt, pc6):
 
 		# Create dictionary with vbo_ids  : percentile of gas use
 		percentile_gas_use_dict = {}
 		# Get dwellings in neighbourhood
 		connection = get_connection()
-		dwellings_in_neighbourhood = get_neighbourhood_dwellings(connection, buurt_id)
+		dwellings_in_neighbourhood = buurt.dwellings
 		# Compare dwellings to national benchmarks
-		self.benchmark_comparison(connection, dwellings_in_neighbourhood, percentile_gas_use_dict)
+		self.benchmark_comparison(dwellings_in_neighbourhood, percentile_gas_use_dict, pc6, buurt)
 
 		return(percentile_gas_use_dict)
 
-	def benchmark_comparison(self, connection, dwellings_in_neighbourhood, percentile_gas_use_dict):
+	def benchmark_comparison(self, dwellings_in_neighbourhood, percentile_gas_use_dict, pc6, buurt):
+		# Total gas use in postal code
+		postal_code_gas_use = pc6.attributes['total_gas_use']
+		# Total floor space in postal code
+		postal_code_floor_space = pc6.attributes['total_floor_space']
+		# Assumption: Gas use per m2 is the same for the entire pc6
+		gas_use_floor_space = postal_code_gas_use/postal_code_floor_space
 
-		for entry in dwellings_in_neighbourhood:
-			dwelling = Dwelling(dict(entry), connection)
+		for dwelling in dwellings_in_neighbourhood:
 
 			vbo_id = dwelling.attributes['vbo_id']
-
-			# Total gas use in postal code
-			postal_code_gas_use = 10 # pc6.attributes['total_gas_use']
-			# Total floor space in postal code
-			postal_code_floor_space = 20 # pc6.attributes['floor_space'] *
-
-			# Gas use per m2 is the same for the entire pc6
-			gas_use_floor_space = int(postal_code_gas_use)/postal_code_floor_space
-
 			# Interpolation process
 			dwelling_gas_use_percentile = 0
 			dwelling_characteristics_tuple = self.create_characteristics_tuple(dwelling)
@@ -72,12 +67,11 @@ class GasConsumptionComparisonModule(BaseModule):
 			percentile_gas_use_dict[vbo_id] = dwelling_gas_use_percentile
 
 	def create_characteristics_tuple(self,dwelling):
-
 		# Get dwellings attributes which serve as CBS data lookup values
 		floor_space = dwelling.attributes['oppervlakte']
-		building_year = dwelling.attributes['bouwjaar']
+		construction_year = dwelling.attributes['bouwjaar']
 		building_type = dwelling.attributes['woningtype']
-		energy_label = 'A' # dwelling.attributes['energy_label']
+		energy_label = dwelling.attributes['energy_label']
 
 		# Make energy labels searchable
 		for energy_label in ['A+++++', 'A++++', 'A+++', 'A++', 'A+']:
@@ -112,22 +106,22 @@ class GasConsumptionComparisonModule(BaseModule):
 			floor_space_string = '250 tot 500 m²'
 
 		# Make building years searchable
-		if building_year < 1946:
-			building_year_string = '1000 tot 1946'
-		elif building_year >= 1946 and building_year < 1965:
-			building_year_string = '1946 tot 1965'
-		elif building_year >= 1965 and building_year < 1975:
-			building_year_string = '1965 tot 1975'
-		elif building_year >= 1975 and building_year < 1992:
-			building_year_string = '1975 tot 1992'
-		elif building_year >= 1992 and building_year < 2000:
-			building_year_string = '1992 tot 2000'
-		elif building_year >= 2000 and building_year < 2014:
-			building_year_string = '2000 tot 2014'
-		elif building_year >= 2014:
-			building_year_string = 'Vanaf 2014'
+		if construction_year < 1946:
+			construction_year_string = '1000 tot 1946'
+		elif construction_year >= 1946 and construction_year < 1965:
+			construction_year_string = '1946 tot 1965'
+		elif construction_year >= 1965 and construction_year < 1975:
+			construction_year_string = '1965 tot 1975'
+		elif construction_year >= 1975 and construction_year < 1992:
+			construction_year_string = '1975 tot 1992'
+		elif construction_year >= 1992 and construction_year < 2000:
+			construction_year_string = '1992 tot 2000'
+		elif construction_year >= 2000 and construction_year < 2014:
+			construction_year_string = '2000 tot 2014'
+		elif construction_year >= 2014:
+			construction_year_string = 'Vanaf 2014'
 
-		dwelling_characteristics_tuple = (energy_label, building_type, floor_space_string, building_year_string)
+		dwelling_characteristics_tuple = (energy_label, building_type, floor_space_string, construction_year_string)
 
 		return dwelling_characteristics_tuple
 
@@ -169,12 +163,15 @@ class GasConsumptionComparisonModule(BaseModule):
 
 		# Get dwelling attributes
 		vbo_id = dwelling.attributes['vbo_id']
-		buurt_id = dwelling.attributes['buurt_id']
+		pc6 = dwelling.regions['pc6']
+		buurt = dwelling.regions['buurt']
+		buurt_id = buurt.attributes['buurt_id']
 
 		# Check if neighbourhood has already been through the gas usage ranking process
 		if buurt_id not in self.neighbourhood_gas_check_dict:
 			# If not, add to the dictionary
-			self.neighbourhood_gas_check_dict[buurt_id] = self.neighbourhood_gas_use_comparison(buurt_id)
+			self.neighbourhood_gas_check_dict[buurt_id] = self.neighbourhood_gas_use_comparison(buurt, pc6)
+
 		# Check percentile ranking within neighbourhood
 		sorted_usage = list({k: v for k, v in sorted(self.neighbourhood_gas_check_dict[buurt_id].items(), key=lambda item: item[1])}.items())
 		# Find the index of the dwelling in question
@@ -185,20 +182,59 @@ class GasConsumptionComparisonModule(BaseModule):
 		dwelling.attributes['gas_use_percentile_national'] = self.neighbourhood_gas_check_dict[buurt_id][vbo_id]
 		dwelling.attributes['gas_use_percentile_neighbourhood'] = gas_use_percentile_neighbourhood
 
-class GasConsumptionComparisonRegionalModule(BaseModule):
+class GasConsumptionComparisonRegionalModule(BaseRegionalModule):
 
 	def process_pc6(self, pc6):
 		self.load_gas_use_data(pc6)
+		self.load_floor_space_data(pc6)
 
 	def load_gas_use_data(self, pc6):
-		# Add gas use of postal code to dict
+		# Compute total gas use of postal code
 		cursor = self.connection.cursor()
-		query = '''
+		gas_consumption_query = '''
 		SELECT gemiddelde_aardgaslevering_woningen
 		FROM cbs_pc6_2019_energy_use
 		WHERE
 			gemiddelde_elektriciteitslevering_woningen IS NOT NULL
 			AND pc6 = %s'''
-		cursor.execute(query, (pc6,))
-		pc6.attributes['gas_use'] = cursor.fetchone()[0]
+		cursor.execute(gas_consumption_query, (pc6.attributes['pc6'],))
+		avg_gas_use = cursor.fetchone()
+		if avg_gas_use is None:
+			avg_gas_use = 0
+		elif avg_gas_use[0] is None:
+			avg_gas_use = 0
+		else:
+			avg_gas_use = avg_gas_use[0]
+
+		number_of_dwellings_query = '''
+		SELECT woning
+		FROM cbs_pc6_2017_kerncijfers
+		WHERE
+			woning IS NOT NULL
+			AND pc6 = %s'''
+		cursor.execute(number_of_dwellings_query,(pc6.attributes['pc6'],))
+		number_of_dwellings = cursor.fetchone()
+		if number_of_dwellings is None:
+			number_of_dwellings = 0
+		elif number_of_dwellings[0] is None:
+			number_of_dwellings = 0
+		else:
+			number_of_dwellings = number_of_dwellings[0]
+		pc6.attributes['number_of_dwellings'] = number_of_dwellings
+		pc6.attributes['total_gas_use'] = avg_gas_use * number_of_dwellings
 		cursor.close()
+
+	def load_floor_space_data(self, pc6):
+		# Compute total floor space in postal code
+		cursor = self.connection.cursor()
+		gas_consumption_query = '''
+		SELECT SUM(oppervlakte)
+		FROM bag
+		WHERE
+			oppervlakte IS NOT NULL
+			AND pc6 = %s'''
+		cursor.execute(gas_consumption_query, (pc6.attributes['pc6'],))
+		pc6.attributes['total_floor_space'] = cursor.fetchone()[0]
+		cursor.close()
+
+	supports = ['pc6']

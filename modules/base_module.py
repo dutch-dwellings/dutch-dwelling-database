@@ -70,7 +70,7 @@ class BaseRegionalModule:
 		self.connection = connection
 
 	# Indicates support for different regional types.
-	# Current options: ['pc6'].
+	# Current options: ['pc6'], ['buurt'].
 	# If you want to add a new region type, then also
 	# add that type to the definition of
 	# RegionsModule.regional_modules

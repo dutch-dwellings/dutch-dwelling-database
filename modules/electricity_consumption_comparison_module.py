@@ -6,9 +6,8 @@ from utils.database_utils import get_connection, get_neighbourhood_dwellings
 # Required for relative imports to also work when called
 # from project root directory.
 sys.path.append(os.path.dirname(__file__))
-from base_module import BaseModule
+from base_module import BaseModule, BaseRegionalModule
 from classes import Dwelling
-from regions_module import RegionsModule
 
 class ElectricityConsumptionComparisonModule(BaseModule):
 
@@ -17,39 +16,38 @@ class ElectricityConsumptionComparisonModule(BaseModule):
 		self.neighbourhood_elec_check_dict = {}
 		self.elec_benchmark_dict = {}
 
-	def neighbourhood_elec_use_comparison(self,buurt_id):
+	def neighbourhood_elec_use_comparison(self, buurt, pc6):
 
 		# Create dictionary with vbo_ids  : percentile of gas use
 		percentile_elec_use_dict = {}
 		# Get dwellings in neighbourhood
 		connection = get_connection()
-		dwellings_in_neighbourhood = get_neighbourhood_dwellings(connection, buurt_id)
+		dwellings_in_neighbourhood = buurt.dwellings
 		# Compare dwellings to national benchmarks
-		self.benchmark_comparison(connection, dwellings_in_neighbourhood, percentile_elec_use_dict)
+		self.benchmark_comparison(dwellings_in_neighbourhood, percentile_elec_use_dict, pc6, buurt)
 
 		return(percentile_elec_use_dict)
 
-	def benchmark_comparison(self, connection, dwellings_in_neighbourhood, percentile_elec_use_dict):
+	def benchmark_comparison(self, dwellings_in_neighbourhood, percentile_elec_use_dict, pc6, buurt):
+		# Total electricity use in postal code
+		postal_code_elec_use = pc6.attributes['total_elec_use']
+		# Total floor space in postal code
+		postal_code_floor_space = pc6.attributes['total_floor_space']
+		# Average electricity use per unit of floor space
+		elec_use_floor_space = postal_code_elec_use / postal_code_floor_space
+		# Household size of dwelling (Want this per m2?)
+		avg_household_size = round(pc6.attributes['household_size'])
+		if avg_household_size <= 0:
+			avg_household_size = 1
 
-		for entry in dwellings_in_neighbourhood:
-			dwelling = Dwelling(dict(entry), connection)
-
+		for dwelling in dwellings_in_neighbourhood:
 			vbo_id = dwelling.attributes['vbo_id']
 			floor_space = dwelling.attributes['oppervlakte']
+			dwelling.attributes['household_size'] = avg_household_size
 
-			# Total electricity use in postal code
-			postal_code_elec_use = 10 # pc6.attributes['total_elec_use']
-			# Total floor space in postal code
-			postal_code_floor_space = 20 # pc6.attributes['floor_space']
-			# Average electricity use per unit of floor space
-			elec_use_floor_space = postal_code_elec_use / postal_code_floor_space
 			# Electricity use of a dwelling
 			elec_use_dwelling = elec_use_floor_space * floor_space
-			# Household size of dwelling (Want this per m2?)
-			avg_household_size = 2 #round(pc6.attributes['household_size'])
-			if avg_household_size <= 0:
-				avg_household_size = 1
-			dwelling.attributes['household_size'] = avg_household_size
+
 			# Get electricity use per person for comparison with benchmark
 			dwelling_elec_use_per_person = elec_use_dwelling / avg_household_size
 
@@ -86,7 +84,7 @@ class ElectricityConsumptionComparisonModule(BaseModule):
 		# Get dwellings attributes
 		floor_space = dwelling.attributes['oppervlakte']
 		building_type = dwelling.attributes['woningtype']
-		energy_label = 'A' # dwelling.attributes['energy_label']
+		energy_label = dwelling.attributes['energy_label']
 		household_size = dwelling.attributes['household_size']
 
 		# Harmonize building type terminology between bag and CBS
@@ -167,12 +165,14 @@ class ElectricityConsumptionComparisonModule(BaseModule):
 
 		# Get dwelling attributes
 		vbo_id = dwelling.attributes['vbo_id']
-		buurt_id = dwelling.attributes['buurt_id']
+		pc6 = dwelling.regions['pc6']
+		buurt = dwelling.regions['buurt']
+		buurt_id = buurt.attributes['buurt_id']
 
 		# Check if neighbourhood has already been through the electricity usage ranking process
 		if buurt_id not in self.neighbourhood_elec_check_dict:
 			# If not, add to the dictionary
-			self.neighbourhood_elec_check_dict[buurt_id] = self.neighbourhood_elec_use_comparison(buurt_id)
+			self.neighbourhood_elec_check_dict[buurt_id] = self.neighbourhood_elec_use_comparison(buurt, pc6)
 		elec_use_percentile_national = self.neighbourhood_elec_check_dict[buurt_id][vbo_id]
 
 		# Check electricty consumption percentile ranking within neighbourhood
@@ -185,14 +185,14 @@ class ElectricityConsumptionComparisonModule(BaseModule):
 		dwelling.attributes['elec_use_percentile_national'] = elec_use_percentile_national
 		dwelling.attributes['elec_use_percentile_neighbourhood'] = elec_use_percentile_neighbourhood
 
-class ElectricityConsumptionComparisonRegionalModule(BaseModule):
+class ElectricityConsumptionComparisonRegionalModule(BaseRegionalModule):
 
 	def process_pc6(self, pc6):
 		self.load_elec_use_data(pc6)
 		self.load_cbs_kerncijfers_data(pc6)
 
 	def load_elec_use_data(self, pc6):
-		# Add elec use of postal code to dict
+		# Compute
 		cursor = self.connection.cursor()
 		query = '''
 		SELECT gemiddelde_elektriciteitslevering_woningen
@@ -200,8 +200,16 @@ class ElectricityConsumptionComparisonRegionalModule(BaseModule):
 		WHERE
 			gemiddelde_elektriciteitslevering_woningen IS NOT NULL
 			AND pc6 = %s'''
-		cursor.execute(query, (pc6,))
-		pc6.attributes['elec_use'] = cursor.fetchone()[0]
+		cursor.execute(query, (pc6.attributes['pc6'],))
+		avg_electricity_use = cursor.fetchone()
+		if avg_electricity_use is None:
+			avg_electricity_use = 0
+		elif avg_electricity_use[0] is None:
+			avg_electricity_use = 0
+		else:
+			avg_electricity_use = avg_electricity_use[0]
+		number_of_dwellings = pc6.attributes['number_of_dwellings']
+		pc6.attributes['total_elec_use'] = avg_electricity_use * number_of_dwellings
 		cursor.close()
 
 	def load_cbs_kerncijfers_data(self, pc6):
@@ -213,6 +221,15 @@ class ElectricityConsumptionComparisonRegionalModule(BaseModule):
 		WHERE
 			gem_hh_gr IS NOT null
 			AND pc6 = %s'''
-		cursor.execute(query, (pc6,))
-		pc6.attributes['household_size'] = cursor.fetchone()[0]
+		cursor.execute(query, (pc6.attributes['pc6'],))
+		household_size = cursor.fetchone()
+		if household_size is None:
+			household_size = 0
+		elif household_size[0] is None:
+			household_size = 0
+		else:
+			household_size = household_size[0]
+		pc6.attributes['household_size'] = household_size
 		cursor.close()
+
+	supports = ['pc6']

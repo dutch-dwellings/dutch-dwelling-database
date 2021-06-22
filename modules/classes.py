@@ -1,5 +1,10 @@
+import os
+import sys
 import pprint
 from utils.database_utils import insert_dict
+from modules.base_module import BaseModule
+from modules.energy_label_module import EnergyLabelModule
+from modules.base_bag_data_module import BaseBagDataModule
 
 class Dwelling:
 
@@ -121,6 +126,7 @@ class PC6(Region):
 		self.attributes = {'pc6': pc6}
 		self.connection = connection
 		self.dwellings = self.get_placeholder_dwellings()
+		#self.append_base_data(connection)
 		for module in pc6_modules:
 			module.process_pc6(self)
 
@@ -135,6 +141,15 @@ class PC6(Region):
 		]
 		return placeholder_dwellings
 
+	def append_base_data(self, connection):
+		sys.stdout = open(os.devnull, 'w')
+		energy_label_module = EnergyLabelModule(connection)
+		base_bag_data_module = BaseBagDataModule(connection)
+		sys.stdout = sys.__stdout__
+		for placeholder in self.dwellings:
+			energy_label_module.process(placeholder)
+			base_bag_data_module.process(placeholder)
+
 class Buurt(Region):
 
 	def __init__(self, buurt_id, buurt_modules, connection):
@@ -142,6 +157,7 @@ class Buurt(Region):
 		self.attributes = {'buurt_id': buurt_id}
 		self.connection = connection
 		self.dwellings = self.get_placeholder_dwellings()
+		self.append_base_data(connection)
 		for module in buurt_modules:
 			module.process_buurt(self)
 
@@ -150,8 +166,17 @@ class Buurt(Region):
 		cursor = self.connection.cursor()
 		cursor.execute(query, (self.attributes['buurt_id'],))
 		placeholder_dwellings = [
-			PlaceholderDwelling({'vbo_id': vbo_id}, self.connection)
-			for (vbo_id, )
-			in cursor.fetchall()
+		PlaceholderDwelling({'vbo_id': vbo_id}, self.connection)
+		for (vbo_id, )
+		in cursor.fetchall()
 		]
 		return placeholder_dwellings
+
+	def append_base_data(self, connection):
+		sys.stdout = open(os.devnull, 'w')
+		energy_label_module = EnergyLabelModule(connection)
+		base_bag_data_module = BaseBagDataModule(connection)
+		sys.stdout = sys.__stdout__
+		for placeholder in self.dwellings:
+			energy_label_module.process(placeholder)
+			base_bag_data_module.process(placeholder)
