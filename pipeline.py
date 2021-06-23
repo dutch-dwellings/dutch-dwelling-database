@@ -90,13 +90,8 @@ def main():
 		dwelling = Dwelling(dict(entry), connection)
 
 		for module in modules:
-
-			start = time.time()
 			module.process(dwelling)
-			# end = time.time()
-			# if end - start > 10**-4:
-			# 	print(module)
-			# 	print(end - start)
+
 		dwelling.save()
 		i += 1
 		if i % 100 == 0:
