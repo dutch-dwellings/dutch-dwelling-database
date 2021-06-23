@@ -126,7 +126,6 @@ class PC6(Region):
 		self.attributes = {'pc6': pc6}
 		self.connection = connection
 		self.dwellings = self.get_placeholder_dwellings()
-		#self.append_base_data(connection)
 		for module in pc6_modules:
 			module.process_pc6(self)
 
@@ -140,15 +139,6 @@ class PC6(Region):
 			in cursor.fetchall()
 		]
 		return placeholder_dwellings
-
-	def append_base_data(self, connection):
-		sys.stdout = open(os.devnull, 'w')
-		energy_label_module = EnergyLabelModule(connection)
-		base_bag_data_module = BaseBagDataModule(connection)
-		sys.stdout = sys.__stdout__
-		for placeholder in self.dwellings:
-			energy_label_module.process(placeholder)
-			base_bag_data_module.process(placeholder)
 
 class Buurt(Region):
 

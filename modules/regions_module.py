@@ -27,7 +27,6 @@ class RegionsModule(BaseModule):
 		# Dwelling has already been processed by this module
 		if not continue_processing:
 			return
-
 		self.add_pc6(dwelling)
 		self.add_buurt(dwelling)
 

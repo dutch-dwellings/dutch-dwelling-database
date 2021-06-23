@@ -3,7 +3,7 @@ import time
 from psycopg2 import sql
 
 
-from utils.database_utils import get_connection, get_bag_sample, get_neighbourhoods_sample
+from utils.database_utils import get_connection, get_bag_sample, get_neighbourhoods_sample, get_neighbourhoods_sample_UAE
 from utils.create_results_table import main as create_results_table
 
 from modules.classes import Dwelling
@@ -90,8 +90,13 @@ def main():
 		dwelling = Dwelling(dict(entry), connection)
 
 		for module in modules:
-			module.process(dwelling)
 
+			start = time.time()
+			module.process(dwelling)
+			# end = time.time()
+			# if end - start > 10**-4:
+			# 	print(module)
+			# 	print(end - start)
 		dwelling.save()
 		i += 1
 		if i % 100 == 0:

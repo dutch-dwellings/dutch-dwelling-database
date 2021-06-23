@@ -20,7 +20,7 @@ class ElectricCookingModule(BaseModule):
 
 		# Add and modify probabilities
 		electric_cooking_p = district_no_gas_p + elec_no_gas_p
-		electric_cooking_p = self.modify_probability_up(electric_cooking_p,elec_use_percentile_neighbourhood)
+		electric_cooking_p = self.modify_probability_up(electric_cooking_p, elec_use_percentile_neighbourhood)
 
 		dwelling.attributes['electric_cooking_p'] = electric_cooking_p
 

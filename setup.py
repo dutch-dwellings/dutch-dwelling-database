@@ -62,6 +62,9 @@ def CBS_kerncijfers():
 	print('Loading the data into Postgres...')
 	load_CBS_PC6_2017_kerncijfers()
 
+	print('Creating indexes...')
+	add_index('cbs_pc6_2017_kerncijfers', 'pc6')
+
 def create_types():
 	print('Adding new Postgres types...')
 
@@ -77,7 +80,7 @@ def create_types():
 		print("\tType 'energy_label_class' already exists.")
 
 def elec_consumption_households():
-	print('Creating table for CBS PC6...')
+	print('Creating table for household electricity consumption..')
 	create_elec_consumption_households_table()
 
 	print('Loading the data into Postgres...')

@@ -204,11 +204,10 @@ class GasConsumptionComparisonRegionalModule(BaseRegionalModule):
 			avg_gas_use = avg_gas_use[0]
 
 		number_of_dwellings_query = '''
-		SELECT woning
-		FROM cbs_pc6_2017_kerncijfers
+		SELECT COUNT(vbo_id)
+		FROM bag
 		WHERE
-			woning IS NOT NULL
-			AND pc6 = %s'''
+			pc6 = %s'''
 		cursor.execute(number_of_dwellings_query,(pc6.attributes['pc6'],))
 		number_of_dwellings = cursor.fetchone()
 		if number_of_dwellings is None:
@@ -217,6 +216,7 @@ class GasConsumptionComparisonRegionalModule(BaseRegionalModule):
 			number_of_dwellings = 0
 		else:
 			number_of_dwellings = number_of_dwellings[0]
+
 		pc6.attributes['number_of_dwellings'] = number_of_dwellings
 		pc6.attributes['total_gas_use'] = avg_gas_use * number_of_dwellings
 		cursor.close()

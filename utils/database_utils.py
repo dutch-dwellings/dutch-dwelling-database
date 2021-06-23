@@ -239,8 +239,16 @@ def get_bag_sample(connection, n=1000):
 
 def get_neighbourhoods_sample(connection, buurt_id, limit):
 	cursor = connection.cursor(cursor_factory=DictCursor)
-	query = "SELECT * FROM bag WHERE buurt_id LIKE %s AND bouwjaar IS NOT null LIMIT %s"
+	query = "SELECT * FROM bag WHERE buurt_id LIKE %s LIMIT %s"
 	cursor.execute(query, (buurt_id, limit))
+	sample = cursor.fetchall()
+	cursor.close()
+	return sample
+
+def get_neighbourhoods_sample_UAE(connection):
+	cursor = connection.cursor(cursor_factory=DictCursor)
+	query = "SELECT * FROM bag WHERE buurt_id LIKE 'BU0344%' OR buurt_id LIKE 'BU0034%' OR buurt_id LIKE 'BU0233%'"
+	cursor.execute(query)
 	sample = cursor.fetchall()
 	cursor.close()
 	return sample
