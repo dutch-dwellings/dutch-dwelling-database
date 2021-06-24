@@ -85,6 +85,7 @@ class ElectricSpaceHeatingModule(BaseModule):
 	outputs = {
 		'hybrid_heat_pump': {
 			'type': 'boolean',
+			'function' : 'space',
 			'sampling': True,
 			'distribution': 'hybrid_heat_pump_p'
 		},
@@ -94,6 +95,7 @@ class ElectricSpaceHeatingModule(BaseModule):
 		},
 		'electric_heat_pump': {
 			'type': 'boolean',
+			'function' : 'space',
 			'sampling': True,
 			'distribution': 'electric_heat_pump_p'
 		},
@@ -103,6 +105,7 @@ class ElectricSpaceHeatingModule(BaseModule):
 		},
 		'electric_boiler': {
 			'type': 'boolean',
+			'function' : 'space',
 			'sampling': True,
 			'distribution': 'elec_boiler_space_p'
 		},

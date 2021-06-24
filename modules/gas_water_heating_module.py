@@ -37,6 +37,7 @@ class GasWaterHeatingModule(BaseModule):
 		'gas_boiler_water': {
 			'type': 'boolean',
 			'sampling': True,
+			'function' : 'water',
 			'distribution': 'gas_boiler_water_p'
 		},
 		'gas_boiler_water_p': {
@@ -46,6 +47,7 @@ class GasWaterHeatingModule(BaseModule):
 		'block_heating_water': {
 			'type': 'boolean',
 			'sampling': True,
+			'function' : 'water',
 			'distribution': 'block_heating_water_p'
 		},
 		'block_heating_water_p': {

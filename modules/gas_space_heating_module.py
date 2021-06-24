@@ -35,6 +35,7 @@ class GasSpaceHeatingModule(BaseModule):
 	outputs = {
 		'gas_boiler_space': {
 			'type': 'boolean',
+			'function' : 'space',
 			'sampling': True,
 			'distribution': 'gas_boiler_space_p'
 		},
@@ -44,6 +45,7 @@ class GasSpaceHeatingModule(BaseModule):
 		},
 		'block_heating_space': {
 			'type': 'boolean',
+			'function' : 'space',
 			'sampling': True,
 			'distribution': 'block_heating_space_p'
 		},
