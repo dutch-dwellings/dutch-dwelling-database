@@ -133,7 +133,14 @@ def iqsize():
 	x = [[1, val[1], val[2]] for val in data]
 	y = [val[0] for val in data]
 	x_h = [1, 90, 70]
-	return x, y, x_h
+	x_h_dict = {
+		'Brain': 90,
+		'Height': 70,
+		'Weight': 155
+	}
+	df = pd.DataFrame(data, columns=['PIQ', 'Brain', 'Height', 'Weight'])
+	formula = 'PIQ ~ Brain + Height' # leave out 'Weight'
+	return x, y, x_h, df, formula, x_h_dict
 
 
 def get_labels():
@@ -187,7 +194,7 @@ def get_labels():
 	cursor.execute(query)
 	return cursor.fetchall()
 
-def labels():
+def get_energy_labels():
 	print('### energy labels ###')
 	results = get_labels()
 
@@ -202,9 +209,22 @@ def labels():
 	# type = 'tussenwoning'
 	x_h = [1, 2020, 1.5, 1, 0, 0, 0, 0, 0]
 
-	return x, y, x_h, df
+	x_h_dict = {
+		'bouwjaar': 2020,
+		'epi_pc6_average': 1.5,
+		'tussenwoning': 1,
+		'hoekwoning': 0,
+		'meergezinspand_hoog': 0,
+		'meergezinspand_laag_midden': 0,
+		'twee_onder_1_kap': 0,
+		'vrijstaand': 0
+	}
 
-def manual_statistics_multiple(x, y, x_h):
+	formula = 'epi_imputed ~ bouwjaar + epi_pc6_average + tussenwoning + hoekwoning + meergezinspand_hoog + meergezinspand_laag_midden + twee_onder_1_kap + vrijstaand'
+
+	return x, y, x_h, df, formula, x_h_dict
+
+def stat_manual(x, y, x_h):
 
 	print("\n=== manual ===")
 
@@ -275,89 +295,101 @@ def manual_statistics_multiple(x, y, x_h):
 
 	return list(b)
 
-def automatic_statistics_multiple(x, y, x_h):
-	print("\n\n=== automatic ===")
-	clf = linear_model.LinearRegression()
-	clf.fit(x, y)
-
-	b = [clf.intercept_, *clf.coef_[1:]]
-	print(f'b: {b}')
-	print(f'y_h_hat: {clf.predict([x_h])[0]}')
-
-	return b
-
-def automatic_statistics_statsmodel(x, y, x_h):
-	print("\n\n=== automatic (statsmodel / dataframe) ===")
-	# formula = 'epi_imputed ~ bouwjaar + epi_pc6_average + tussenwoning + hoekwoning + meergezinspand_hoog + meergezinspand_laag_midden + twee_onder_1_kap + vrijstaand'
-	# result = smf.ols(formula=formula, data=df).fit()
+def stat_statsmodel(x, y, x_h):
+	print("\n\n=== automatic (statsmodel) ===")
 	result = sm.OLS(y, x).fit()
-	print(result.params)
-	print(result.summary())
+	return process_statsmodel_result(result, x_h)
 
-	print(result.cov_type)
-	print(dir(result))
-	print(f'mse_resid: {result.mse_resid}')
-	MSE = result.mse_resid
-	print(f'mse_model: {result.mse_model}')
-	print(f'mse_total: {result.mse_total}')
+def stat_statsmodel_formula(df, formula, x_h, x_h_dict):
+	print("\n\n=== automatic (statsmodel - formula) ===")
+	print(formula)
 
+	result = smf.ols(formula=formula, data=df).fit()
+	return process_statsmodel_result(result, x_h, x_h_dict)
 
-	# Adapted from https://stackoverflow.com/a/47191929/7770056.
+def process_statsmodel_result(result, x_h, x_h_dict=None):
+
+	b = list(result.params)
+	print(f'b: {b}')
+
 	alpha = 0.05
-	prediction = result.get_prediction(x_h)
+	if x_h_dict:
+		prediction = result.get_prediction(x_h_dict)
+	else:
+		prediction = result.get_prediction(x_h)
 	y_h_hat = prediction.predicted_mean[0]
-	print(f'y_h_hat: {y_h_hat}')
+	frame = prediction.summary_frame(alpha=alpha)
+	PI_range_max = float(frame.obs_ci_upper)
+	PI_range_min = float(frame.obs_ci_lower)
+	PI_range = (PI_range_min, PI_range_max)
+	print(f'y_h_hat (automatic): {y_h_hat}')
+	print(f'PI_range (automatic): {PI_range}')
 
+	n = len(result.model.data.endog)
+	p = len(result.model.data.exog[1])
+
+	y_h_hat_manual = np.dot(b, x_h)
+	print(f'y_h_hat (manual): {y_h_hat_manual}')
+
+	s_2 = result.mse_resid
 	var_covar_matrix = result.cov_params()
 
-	se_2 = np.diag(var_covar_matrix)
-	se = np.sqrt(se_2)
-	print(f'se^2: {se_2}')
-	print(f'se: {se}')
+	print(f's_2: {s_2}')
 
 	# https://github.com/statsmodels/statsmodels/blob/main/statsmodels/regression/_prediction.py#L187
 	var_pred_mean = np.dot(x_h, np.dot(var_covar_matrix, x_h).T)
 	print(f'var_pred_mean: {var_pred_mean}')
-	n = len(x)
-	p = len(x[0])
+
+	# standard error of the prediction
+	se_pred_y_h = np.sqrt(s_2 + var_pred_mean)
+	print(f'se_pred_y_h: {se_pred_y_h}')
+
 	t_multiplier = stats.t.ppf(1 - alpha/2, n-p)
 	print(f't_multiplier: {t_multiplier}')
 
-	# var_resid = result.var_resid
-	se_obs = np.sqrt(MSE + var_pred_mean)
-	print(se_obs)
-
-	# https://github.com/statsmodels/statsmodels/blob/main/statsmodels/regression/_prediction.py#L57
-	# se_obs = np.sqrt(var_pred_mean + var_resid)
+	PI_range_min_manual = y_h_hat_manual - t_multiplier * se_pred_y_h
+	PI_range_max_manual = y_h_hat_manual + t_multiplier * se_pred_y_h
+	PI_range_manual = (PI_range_min_manual, PI_range_max_manual)
+	print(f'PI_range (manual): {PI_range_manual}')
 
 
-	frame = prediction.summary_frame(alpha=alpha)
-	print(frame)
+	prstd, iv_l, iv_u = wls_prediction_std(result)
 
+	y_0 = result.model.data.endog[0]
+	x_0 = result.model.data.exog[0]
+	print(f'\nx_0: {x_0}')
+	print(f'y_0: {y_0}')
+	y_0_hat = result.fittedvalues[0]
+	print(f'y_0_hat: {y_0_hat}')
+	y_0_hat_ranges = (iv_l[0], iv_u[0])
+	print(f'y_0_hat_ranges: {y_0_hat_ranges}')
+	print(f'y_0 within ranges of prediction: {y_0_hat_ranges[0] < y_0_hat < y_0_hat_ranges[1]}')
 
-	PI_range_max = float(frame.obs_ci_upper)
-	PI_range_min = float(frame.obs_ci_lower)
-	PI_range = (PI_range_min, PI_range_max)
-	print(f'PI_range: {PI_range}')
-
-	return list(result.params)
+	y = result.model.data.endog
+	# Number of right predictions, where the true y-value
+	# falls within the lower and upper prediction ranges.
+	hits = ((iv_l < y) & (y < iv_u)).sum()
+	print(f'\nright predictions: {hits/len(y)*100}%')
+	return b
 
 def main():
 
 	# x, y, x_h = soapsuds()
 	# x, y, x_h = pastry()
 	# x, y, x_h = bodyfat()
-	x, y, x_h = iqsize()
-	# x, y, x_h, df = labels()
+	x, y, x_h, df, formula, x_h_dict = iqsize()
+	# x, y, x_h, df, formula, x_h_dict = get_energy_labels()
+
 
 	print('Applying manual statistics')
-	b_manual = manual_statistics_multiple(x, y, x_h)
-	b_automatic = automatic_statistics_multiple(x, y, x_h)
-	b_statistics = automatic_statistics_statsmodel(x, y, x_h)
+	b_manual = stat_manual(x, y, x_h)
+	b_statsmodel = stat_statsmodel(x, y, x_h)
+	b_statsmodel_formula = stat_statsmodel_formula(df, formula, x_h, x_h_dict)
 
 	print("\n\n=== Coefficients ===")
-	print(f'b_manual:     {b_manual}')
-	print(f'b_automatic:  {b_automatic}')
-	print(f'b_statistics: {b_statistics}')
+	print(f'b_manual:             {b_manual}')
+	print(f'b_statsmodel:         {b_statsmodel}')
+	print(f'b_statsmodel_formula: {b_statsmodel_formula}')
 
-main()
+if __name__ == '__main__':
+	main()
