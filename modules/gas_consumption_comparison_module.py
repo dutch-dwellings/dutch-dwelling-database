@@ -1,7 +1,6 @@
 import os
 import sys
 from scipy.interpolate import interp1d
-from utils.database_utils import get_connection, get_neighbourhood_dwellings
 
 # Required for relative imports to also work when called
 # from project root directory.
@@ -13,11 +12,10 @@ class GasConsumptionComparisonModule(BaseModule):
 
 	def __init__(self, connection, **kwargs):
 		super().__init__(connection)
-		self.neighbourhood_gas_check_dict = {}
 		self.gas_benchmark_dict = {}
 
 	def neighbourhood_gas_use_comparison(self, buurt, pc6):
-		# Create dictionary with vbo_ids : percentile of gas use
+		# Create dictionary with vbo_ids : percentile of gas users
 		percentile_gas_use_dict = {}
 		# Get dwellings in neighbourhood
 		dwellings_in_neighbourhood = buurt.dwellings
@@ -162,21 +160,20 @@ class GasConsumptionComparisonModule(BaseModule):
 		vbo_id = dwelling.attributes['vbo_id']
 		pc6 = dwelling.regions['pc6']
 		buurt = dwelling.regions['buurt']
-		buurt_id = buurt.attributes['buurt_id']
 
 		# Check if neighbourhood has already been through the gas usage ranking process
-		if buurt_id not in self.neighbourhood_gas_check_dict:
-			# If not, add to the dictionary
-			self.neighbourhood_gas_check_dict[buurt_id] = self.neighbourhood_gas_use_comparison(buurt, pc6)
+		if vbo_id not in buurt.gas_use:
+			# If not, add gas use to the neighbourhood
+			buurt.gas_use = self.neighbourhood_gas_use_comparison(buurt, pc6)
 
 		# Check percentile ranking within neighbourhood
-		sorted_usage = list({k: v for k, v in sorted(self.neighbourhood_gas_check_dict[buurt_id].items(), key=lambda item: item[1])}.items())
+		sorted_usage = list({k: v for k, v in sorted(buurt.gas_use.items(), key=lambda item: item[1])}.items())
 		# Find the index of the dwelling in question
 		index = [i for i, tupl in enumerate(sorted_usage) if tupl[0] == vbo_id].pop()
 		# Calculate the ranking of the dwelling [0,1]
 		gas_use_percentile_neighbourhood = (index+1)/len(sorted_usage)
 
-		dwelling.attributes['gas_use_percentile_national'] = self.neighbourhood_gas_check_dict[buurt_id][vbo_id]
+		dwelling.attributes['gas_use_percentile_national'] = buurt.gas_use[vbo_id]
 		dwelling.attributes['gas_use_percentile_neighbourhood'] = gas_use_percentile_neighbourhood
 
 class GasConsumptionComparisonRegionalModule(BaseRegionalModule):

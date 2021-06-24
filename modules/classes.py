@@ -147,6 +147,8 @@ class Buurt(Region):
 		self.attributes = {'buurt_id': buurt_id}
 		self.connection = connection
 		self.dwellings = self.get_placeholder_dwellings()
+		self.gas_use = {}
+		self.elec_use = {}
 		self.append_base_data(connection)
 		for module in buurt_modules:
 			module.process_buurt(self)

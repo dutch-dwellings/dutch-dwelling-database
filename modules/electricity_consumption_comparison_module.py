@@ -1,7 +1,6 @@
 import os
 import sys
 from scipy.interpolate import interp1d
-from utils.database_utils import get_connection, get_neighbourhood_dwellings
 
 # Required for relative imports to also work when called
 # from project root directory.
@@ -13,11 +12,10 @@ class ElectricityConsumptionComparisonModule(BaseModule):
 
 	def __init__(self, connection, **kwargs):
 		super().__init__(connection)
-		self.neighbourhood_elec_check_dict = {}
 		self.elec_benchmark_dict = {}
 
 	def neighbourhood_elec_use_comparison(self, buurt, pc6):
-		# Create dictionary with vbo_ids : percentile of gas use
+		# Create dictionary with vbo_ids : percentile of gas users
 		percentile_elec_use_dict = {}
 		# Get dwellings in neighbourhood
 		dwellings_in_neighbourhood = buurt.dwellings
@@ -163,22 +161,20 @@ class ElectricityConsumptionComparisonModule(BaseModule):
 		vbo_id = dwelling.attributes['vbo_id']
 		pc6 = dwelling.regions['pc6']
 		buurt = dwelling.regions['buurt']
-		buurt_id = buurt.attributes['buurt_id']
 
 		# Check if neighbourhood has already been through the electricity usage ranking process
-		if buurt_id not in self.neighbourhood_elec_check_dict:
+		if vbo_id not in buurt.elec_use:
 			# If not, add to the dictionary
-			self.neighbourhood_elec_check_dict[buurt_id] = self.neighbourhood_elec_use_comparison(buurt, pc6)
-		elec_use_percentile_national = self.neighbourhood_elec_check_dict[buurt_id][vbo_id]
+			buurt.elec_use = self.neighbourhood_elec_use_comparison(buurt, pc6)
 
 		# Check electricty consumption percentile ranking within neighbourhood
-		sorted_usage = list({k: v for k, v in sorted(self.neighbourhood_elec_check_dict[buurt_id].items(), key=lambda item: item[1])}.items())
+		sorted_usage = list({k: v for k, v in sorted(buurt.elec_use.items(), key=lambda item: item[1])}.items())
 		# Find the index of the dwelling in question
 		index = [i for i, tupl in enumerate(sorted_usage) if tupl[0] == vbo_id].pop()
 		# Calculate the ranking of the dwelling [0,1]
 		elec_use_percentile_neighbourhood = (index+1)/len(sorted_usage)
 
-		dwelling.attributes['elec_use_percentile_national'] = elec_use_percentile_national
+		dwelling.attributes['elec_use_percentile_national'] = buurt.elec_use[vbo_id]
 		dwelling.attributes['elec_use_percentile_neighbourhood'] = elec_use_percentile_neighbourhood
 
 class ElectricityConsumptionComparisonRegionalModule(BaseRegionalModule):
