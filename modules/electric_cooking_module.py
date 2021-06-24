@@ -28,6 +28,7 @@ class ElectricCookingModule(BaseModule):
 		'electric_cooking': {
 			'type': 'boolean',
 			'sampling': True,
+			'function' : 'cooking',
 			'distribution': 'electric_cooking_p'
 		},
 		'electric_cooking_p': {
