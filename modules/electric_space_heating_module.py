@@ -68,7 +68,7 @@ class ElectricSpaceHeatingModule(BaseModule):
 		# If there is a high electricity use we modify the probability of the hybrid heat pump according to the gas use
 		hybrid_heat_pump_p = elec_high_gas_p
 		if elec_use_percentile_national > 0.7:
-			hybrid_heat_pump_p = self.modify_probability_up(elec_high_gas_p, gas_use_percentile_national)
+			hybrid_heat_pump_p = self.modify_probability_up(hybrid_heat_pump_p, gas_use_percentile_national)
 
 		# Modify probabilities for electric boiler
 		elec_boiler_space_p = elec_low_gas_p + elec_no_gas_p

@@ -23,6 +23,8 @@ class SamplingModule(BaseModule):
 					dwelling.attributes['district_heating_water'] = False
 				elif name == 'electric_heat_pump_water' and dwelling.attributes['electric_heat_pump'] == False:
 					dwelling.attributes['electric_heat_pump_water'] = False
+				elif name == 'block_heating_water' and dwelling.attributes['block_heating_space'] == False:
+					dwelling.attributes['block_heating_water'] = False
 
 		self.check_space_heating(dwelling)
 		self.check_water_heating(dwelling)

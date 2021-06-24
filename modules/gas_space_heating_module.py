@@ -19,11 +19,11 @@ class GasSpaceHeatingModule(BaseModule):
 
 		# Get base probability of having different heating types
 		boiler_heating_space_p = buurt.attributes['gas_boiler_heating_share']
-		block_heating_space_p = buurt.attributes['gas_block_heating_share']
+		block_heating_space_p_base = buurt.attributes['gas_block_heating_share']
 		district_high_space_p = buurt.attributes['district_high_gas_share']
 
 		gas_boiler_space_p = boiler_heating_space_p + 0.5 * district_high_space_p
-		block_heating_space_p = block_heating_space_p + 0.5 * district_high_space_p # 0.5 could be improved by looking for literature
+		block_heating_space_p = block_heating_space_p_base + 0.5 * district_high_space_p # 0.5 could be improved by looking for literature
 		gas_boiler_space_p = self.modify_probability_up(gas_boiler_space_p, gas_use_percentile_neighbourhood)
 		block_heating_space_p = self.modify_probability_up(block_heating_space_p, gas_use_percentile_neighbourhood)
 
@@ -31,6 +31,7 @@ class GasSpaceHeatingModule(BaseModule):
 		dwelling.attributes['district_high_space_p'] = district_high_space_p
 		dwelling.attributes['gas_boiler_space_p'] = gas_boiler_space_p
 		dwelling.attributes['block_heating_space_p'] = block_heating_space_p
+		dwelling.attributes['block_heating_space_p_base'] = block_heating_space_p_base
 
 	outputs = {
 		'gas_boiler_space': {

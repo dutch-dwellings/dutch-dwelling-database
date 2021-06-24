@@ -21,7 +21,7 @@ class GasCookingModule(BaseModule):
 		elec_high_gas_p = dwelling.attributes['elec_high_gas_p']
 		elec_low_gas_p = dwelling.attributes['elec_low_gas_p']
 		boiler_heating_space_p = dwelling.attributes['boiler_heating_space_p']
-		block_heating_space_p = dwelling.attributes['block_heating_space_p']
+		block_heating_space_p = dwelling.attributes['block_heating_space_p_base']
 
 		# Add and modify probabilities
 		gas_cooking_p = boiler_heating_space_p + district_high_gas_p + district_low_gas_p + elec_high_gas_p + elec_low_gas_p + block_heating_space_p
