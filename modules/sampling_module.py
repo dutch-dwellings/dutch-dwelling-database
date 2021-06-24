@@ -9,8 +9,6 @@ from base_module import BaseModule
 
 class SamplingModule(BaseModule):
 
-	functions = ('space', 'water', 'cooking')
-
 	def process(self, dwelling):
 		continue_processing = super().process(dwelling)
 		# Dwelling has already been processed by this module
@@ -21,6 +19,10 @@ class SamplingModule(BaseModule):
 			if options.get('sampling', False) == True:
 				distribution_value = dwelling.attributes[options['distribution']]
 				dwelling.attributes[name] = self.sample(distribution_value, options['type'], name)
+				if name == 'district_heating_water' and dwelling.attributes['district_heating_space'] == False:
+					dwelling.attributes['district_heating_water'] = False
+				elif name == 'electric_heat_pump_water' and dwelling.attributes['electric_heat_pump'] == False:
+					dwelling.attributes['electric_heat_pump_water'] = False
 
 		self.check_space_heating(dwelling)
 		self.check_water_heating(dwelling)
@@ -50,6 +52,10 @@ class SamplingModule(BaseModule):
 				if options.get('function', False) == function:
 					distribution_value = dwelling.attributes[options['distribution']]
 					dwelling.attributes[name] = self.sample(distribution_value, options['type'], name)
+					if name == 'district_heating_water' and dwelling.attributes['district_heating_space'] == False:
+						dwelling.attributes['district_heating_water'] = False
+					elif name == 'electric_heat_pump_water' and dwelling.attributes['electric_heat_pump'] == False:
+						dwelling.attributes['electric_heat_pump_water'] = False
 
 	def sample(self, value, output_type, name):
 		if output_type == 'boolean':
