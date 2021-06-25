@@ -40,8 +40,8 @@ def main():
 
 	print("Getting a BAG sample...")
 	#sample = get_bag_sample(connection, 1000)
-	#sample = get_neighbourhoods_sample_UAE(connection)
-	sample = get_neighbourhoods_sample(connection, 'BU0344%', 100000000)
+	# sample = get_neighbourhoods_sample_UAE(connection)
+	sample = get_neighbourhoods_sample(connection, 'BU034405%', 100000000)
 
 	print("Initiating modules...")
 

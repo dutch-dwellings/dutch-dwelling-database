@@ -83,7 +83,7 @@ class ElectricSpaceHeatingModule(BaseModule):
 		dwelling.attributes['elec_no_gas_p'] = elec_no_gas_p
 
 	outputs = {
-		'hybrid_heat_pump': {
+		'hybrid_heat_pump_space': {
 			'type': 'boolean',
 			'function' : 'space',
 			'sampling': True,
@@ -93,7 +93,7 @@ class ElectricSpaceHeatingModule(BaseModule):
 			'type': 'float',
 			'sampling': False,
 		},
-		'electric_heat_pump': {
+		'electric_heat_pump_space': {
 			'type': 'boolean',
 			'function' : 'space',
 			'sampling': True,
@@ -103,7 +103,7 @@ class ElectricSpaceHeatingModule(BaseModule):
 			'type': 'float',
 			'sampling': False,
 		},
-		'electric_boiler': {
+		'electric_boiler_space': {
 			'type': 'boolean',
 			'function' : 'space',
 			'sampling': True,

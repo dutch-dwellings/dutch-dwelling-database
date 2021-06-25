@@ -25,7 +25,7 @@ class ElectricWaterHeatingModule(BaseModule):
 		electric_heat_pump_p = dwelling.attributes['electric_heat_pump_p']
 
 		# Electric boiler
-		elec_boiler_water_p = district_no_gas_p + elec_no_gas_p
+		elec_boiler_water_p = 0.5 * district_no_gas_p + 0.5 * elec_no_gas_p
 		elec_boiler_water_p = self.modify_probability_up(elec_boiler_water_p, elec_use_percentile_neighbourhood)
 
 		# Heat pump
