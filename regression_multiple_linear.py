@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+from scipy import stats
 import statsmodels.formula.api as smf
 from statsmodels.sandbox.regression.predstd import wls_prediction_std
 
@@ -41,12 +42,13 @@ def get_energy_labels():
 	df = pd.DataFrame(results, columns=['epi_imputed', 'bouwjaar', 'epi_pc6_average', 'epi_inv_pc6_average', 'epi_log_pc6_average', 'woningtype', 'oppervlakte', 'nr_verdiepingen'])
 	return df
 
-def multiple_linear_regression(df, formula, alpha=0.05):
+def multiple_linear_regression(df, formula):
 	print("\n=== multiple linear regression ===")
 	print(f'formula: {formula}')
 	result = smf.ols(formula=formula, data=df).fit()
-	process_regression_result(result, alpha)
+	return result
 
+def get_regression_values(result):
 	beta = result.params
 	s_2 = result.mse_resid
 	var_covar_matrix = result.cov_params()
@@ -87,7 +89,7 @@ def process_regression_result(result, alpha=0.05):
 	R_2 = result.rsquared
 	print(f'R_2: {R_2}')
 
-	prstd, iv_l, iv_u = wls_prediction_std(result)
+	prstd, iv_l, iv_u = wls_prediction_std(result, alpha=alpha)
 	# These values are not the original epi_imputed,
 	# but have already been modified by Patsy to e.g. 1/epi_imputed
 	# or log(epi_imputed) where applicable.
@@ -97,34 +99,46 @@ def process_regression_result(result, alpha=0.05):
 	hits = ((iv_l < y) & (y < iv_u)).sum()
 	print(f'correct predictions: {hits/len(y)*100}%')
 
+	n = len(y)
+	p = len(result.model.data.exog[0])
+	deg_f = n - p
+
+	t_multiplier = stats.t.ppf(1-alpha/2, deg_f)
+	t_multiplier_5 = stats.t.ppf(1-0.05/2, deg_f)
+	print(f'\nt_multiplier: {t_multiplier}')
+	print(f'ratio to alpha=0.05: {t_multiplier/t_multiplier_5}')
+
 def compare_formulas(df):
-	# automatically codes 'woningtype'
-	formula = 'epi_imputed ~ bouwjaar + epi_pc6_average + woningtype'
-	beta, s_2, var_covar_matrix = multiple_linear_regression(df, formula)
+	formulas = [
+		# automatically codes 'woningtype'
+		'epi_imputed ~ bouwjaar + epi_pc6_average + woningtype'
+		# add oppervlakte, n_verdiepingen
+		'epi_imputed ~ bouwjaar + epi_pc6_average + woningtype + oppervlakte + nr_verdiepingen'
+		# cutoff building year at 1900
+		'epi_imputed ~ np.maximum(bouwjaar, 1900) + epi_pc6_average + woningtype'
+		# inverse
+		'I(1/epi_imputed) ~ np.maximum(bouwjaar, 1900) + I(1/epi_pc6_average) + woningtype'
+		'I(1/epi_imputed) ~ np.maximum(bouwjaar, 1900) + epi_inv_pc6_average + woningtype'
+		# log
+		'np.log(epi_imputed) ~ np.maximum(bouwjaar, 1900) + np.log(epi_pc6_average) + woningtype'
+		'np.log(epi_imputed) ~ np.maximum(bouwjaar, 1900) + epi_log_pc6_average + woningtype'
+	]
+	for formula in formulas:
+		result = multiple_linear_regression(df, formula)
+		process_regression_result(result, alpha=0.05)
 
-	# add oppervlakte, n_verdiepingen
-	formula = 'epi_imputed ~ bouwjaar + epi_pc6_average + woningtype + oppervlakte + nr_verdiepingen'
-	beta, s_2, var_covar_matrix = multiple_linear_regression(df, formula)
-
-	# cutoff building year at 1900
-	formula = 'epi_imputed ~ np.maximum(bouwjaar, 1900) + epi_pc6_average + woningtype'
-	beta, s_2, var_covar_matrix = multiple_linear_regression(df, formula)
-
-	formula = 'I(1/epi_imputed) ~ np.maximum(bouwjaar, 1900) + I(1/epi_pc6_average) + woningtype'
-	beta, s_2, var_covar_matrix = multiple_linear_regression(df, formula)
-
-	formula = 'I(1/epi_imputed) ~ np.maximum(bouwjaar, 1900) + epi_inv_pc6_average + woningtype'
-	beta, s_2, var_covar_matrix = multiple_linear_regression(df, formula)
-
-	formula = 'np.log(epi_imputed) ~ np.maximum(bouwjaar, 1900) + np.log(epi_pc6_average) + woningtype'
-	beta, s_2, var_covar_matrix = multiple_linear_regression(df, formula)
-
+def get_95_interval(df):
 	formula = 'np.log(epi_imputed) ~ np.maximum(bouwjaar, 1900) + epi_log_pc6_average + woningtype'
-	beta, s_2, var_covar_matrix = multiple_linear_regression(df, formula)
+	result = multiple_linear_regression(df, formula)
+
+	alphas = [0.05, 0.04, 0.03, 0.025, 0.02]
+	for alpha in alphas:
+		process_regression_result(result, alpha=alpha)
 
 def main():
 	df = get_energy_labels()
 	compare_formulas(df)
+	get_95_interval(df)
 
 if __name__ == '__main__':
 	main()

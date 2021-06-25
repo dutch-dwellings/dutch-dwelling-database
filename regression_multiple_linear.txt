@@ -163,3 +163,121 @@ s_2: 0.03451674063072099
 s: 0.18578681500774213
 R_2: 0.7065401189227938
 correct predictions: 93.198639063248%
+
+=== multiple linear regression ===
+formula: np.log(epi_imputed) ~ np.maximum(bouwjaar, 1900) + epi_log_pc6_average + woningtype
+
+--- processing regression results ---
+beta:
+Intercept                                   3.845226
+woningtype[T.meergezinspand_hoog]          -0.023008
+woningtype[T.meergezinspand_laag_midden]   -0.032551
+woningtype[T.tussenwoning]                 -0.030663
+woningtype[T.twee_onder_1_kap]             -0.004443
+woningtype[T.vrijstaand]                   -0.014757
+np.maximum(bouwjaar, 1900)                 -0.001914
+epi_log_pc6_average                         0.869052
+dtype: float64
+
+alpha: 0.05
+y_h_hat: 0.10644933558456265
+PI_range: (-0.2576864991831895, 0.4705851703523148)
+s_2: 0.03451674063072073
+s: 0.1857868150077414
+R_2: 0.706540118922796
+correct predictions: 93.198639063248%
+
+t_multiplier: 1.9599645281714109
+ratio to alpha=0.05: 1.0
+
+--- processing regression results ---
+beta:
+Intercept                                   3.845226
+woningtype[T.meergezinspand_hoog]          -0.023008
+woningtype[T.meergezinspand_laag_midden]   -0.032551
+woningtype[T.tussenwoning]                 -0.030663
+woningtype[T.twee_onder_1_kap]             -0.004443
+woningtype[T.vrijstaand]                   -0.014757
+np.maximum(bouwjaar, 1900)                 -0.001914
+epi_log_pc6_average                         0.869052
+dtype: float64
+
+alpha: 0.04
+y_h_hat: 0.10644933558456265
+PI_range: (-0.27511052776129213, 0.48800919893041744)
+s_2: 0.03451674063072073
+s: 0.1857868150077414
+R_2: 0.706540118922796
+correct predictions: 93.97601929895761%
+
+t_multiplier: 2.053749524566252
+ratio to alpha=0.05: 1.0478503539461195
+
+--- processing regression results ---
+beta:
+Intercept                                   3.845226
+woningtype[T.meergezinspand_hoog]          -0.023008
+woningtype[T.meergezinspand_laag_midden]   -0.032551
+woningtype[T.tussenwoning]                 -0.030663
+woningtype[T.twee_onder_1_kap]             -0.004443
+woningtype[T.vrijstaand]                   -0.014757
+np.maximum(bouwjaar, 1900)                 -0.001914
+epi_log_pc6_average                         0.869052
+dtype: float64
+
+alpha: 0.03
+y_h_hat: 0.10644933558456265
+PI_range: (-0.2967252720531719, 0.5096239432222972)
+s_2: 0.03451674063072073
+s: 0.1857868150077414
+R_2: 0.706540118922796
+correct predictions: 94.83035153866196%
+
+t_multiplier: 2.170091087391564
+ratio to alpha=0.05: 1.1072093684349456
+
+--- processing regression results ---
+beta:
+Intercept                                   3.845226
+woningtype[T.meergezinspand_hoog]          -0.023008
+woningtype[T.meergezinspand_laag_midden]   -0.032551
+woningtype[T.tussenwoning]                 -0.030663
+woningtype[T.twee_onder_1_kap]             -0.004443
+woningtype[T.vrijstaand]                   -0.014757
+np.maximum(bouwjaar, 1900)                 -0.001914
+epi_log_pc6_average                         0.869052
+dtype: float64
+
+alpha: 0.025
+y_h_hat: 0.10644933558456265
+PI_range: (-0.3099741880076723, 0.5228728591767976)
+s_2: 0.03451674063072073
+s: 0.1857868150077414
+R_2: 0.706540118922796
+correct predictions: 95.28156802426531%
+
+t_multiplier: 2.241403501134384
+ratio to alpha=0.05: 1.1435939114804017
+
+--- processing regression results ---
+beta:
+Intercept                                   3.845226
+woningtype[T.meergezinspand_hoog]          -0.023008
+woningtype[T.meergezinspand_laag_midden]   -0.032551
+woningtype[T.tussenwoning]                 -0.030663
+woningtype[T.twee_onder_1_kap]             -0.004443
+woningtype[T.vrijstaand]                   -0.014757
+np.maximum(bouwjaar, 1900)                 -0.001914
+epi_log_pc6_average                         0.869052
+dtype: float64
+
+alpha: 0.02
+y_h_hat: 0.10644933558456265
+PI_range: (-0.32575590286397815, 0.5386545740331035)
+s_2: 0.03451674063072073
+s: 0.1857868150077414
+R_2: 0.706540118922796
+correct predictions: 95.78276435522677%
+
+t_multiplier: 2.3263487285982056
+ratio to alpha=0.05: 1.1869340976127871
