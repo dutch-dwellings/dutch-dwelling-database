@@ -1,0 +1,165 @@
+Getting results...
+Converting to dataframe...
+
+=== multiple linear regression ===
+formula: epi_imputed ~ bouwjaar + epi_pc6_average + woningtype
+
+--- processing regression results ---
+beta:
+Intercept                                   4.718957
+woningtype[T.meergezinspand_hoog]          -0.042358
+woningtype[T.meergezinspand_laag_midden]   -0.057948
+woningtype[T.tussenwoning]                 -0.054020
+woningtype[T.twee_onder_1_kap]             -0.003314
+woningtype[T.vrijstaand]                   -0.016349
+bouwjaar                                   -0.002293
+epi_pc6_average                             0.895422
+dtype: float64
+
+alpha: 0.05
+y_h_hat: 1.1080227969055523
+PI_range: (0.4551346312938519, 1.7609109625172525)
+s_2: 0.1109636252625443
+s: 0.3331120310984644
+R_2: 0.6564472985388408
+correct predictions: 92.86241517920674%
+
+=== multiple linear regression ===
+formula: epi_imputed ~ bouwjaar + epi_pc6_average + woningtype + oppervlakte + nr_verdiepingen
+
+--- processing regression results ---
+beta:
+Intercept                                   4.737663
+woningtype[T.meergezinspand_hoog]          -0.062480
+woningtype[T.meergezinspand_laag_midden]   -0.066968
+woningtype[T.tussenwoning]                 -0.055104
+woningtype[T.twee_onder_1_kap]              0.000588
+woningtype[T.vrijstaand]                   -0.002350
+bouwjaar                                   -0.002295
+epi_pc6_average                             0.894282
+oppervlakte                                -0.000159
+nr_verdiepingen                             0.002780
+dtype: float64
+
+alpha: 0.05
+y_h_hat: 1.1086307427621278
+PI_range: (0.45465020851657, 1.7626112770076856)
+s_2: 0.11133524615705914
+s: 0.33366936652479673
+R_2: 0.6553533576622381
+correct predictions: 92.87581125915733%
+
+=== multiple linear regression ===
+formula: epi_imputed ~ np.maximum(bouwjaar, 1900) + epi_pc6_average + woningtype
+
+--- processing regression results ---
+beta:
+Intercept                                   6.623154
+woningtype[T.meergezinspand_hoog]          -0.039861
+woningtype[T.meergezinspand_laag_midden]   -0.055152
+woningtype[T.tussenwoning]                 -0.053911
+woningtype[T.twee_onder_1_kap]             -0.003387
+woningtype[T.vrijstaand]                   -0.013389
+np.maximum(bouwjaar, 1900)                 -0.003231
+epi_pc6_average                             0.861336
+dtype: float64
+
+alpha: 0.05
+y_h_hat: 1.075713149660455
+PI_range: (0.42614303700788314, 1.725283262313027)
+s_2: 0.10983860915764614
+s: 0.3314190838766623
+R_2: 0.6599304428675394
+correct predictions: 92.88817278864391%
+
+=== multiple linear regression ===
+formula: I(1/epi_imputed) ~ np.maximum(bouwjaar, 1900) + I(1/epi_pc6_average) + woningtype
+
+--- processing regression results ---
+beta:
+Intercept                                  -1.925082
+woningtype[T.meergezinspand_hoog]           0.010126
+woningtype[T.meergezinspand_laag_midden]    0.022182
+woningtype[T.tussenwoning]                  0.017488
+woningtype[T.twee_onder_1_kap]              0.015462
+woningtype[T.vrijstaand]                    0.033770
+np.maximum(bouwjaar, 1900)                  0.001026
+I(1 / epi_pc6_average)                      0.874026
+dtype: float64
+
+alpha: 0.05
+y_h_hat: 0.8930598806466632
+PI_range: (0.5546780040234807, 1.2314417572698457)
+s_2: 0.029806920969324167
+s: 0.17264680990196188
+R_2: 0.5818996630165219
+correct predictions: 97.51691145180106%
+
+=== multiple linear regression ===
+formula: I(1/epi_imputed) ~ np.maximum(bouwjaar, 1900) + epi_inv_pc6_average + woningtype
+
+--- processing regression results ---
+beta:
+Intercept                                  -2.184889
+woningtype[T.meergezinspand_hoog]           0.015421
+woningtype[T.meergezinspand_laag_midden]    0.021143
+woningtype[T.tussenwoning]                  0.019274
+woningtype[T.twee_onder_1_kap]              0.005178
+woningtype[T.vrijstaand]                    0.014218
+np.maximum(bouwjaar, 1900)                  0.001136
+epi_inv_pc6_average                         0.902676
+dtype: float64
+
+alpha: 0.05
+y_h_hat: 0.8820945607896269
+PI_range: (0.5669685732168108, 1.197220548362443)
+s_2: 0.025850644032818337
+s: 0.16078135474245245
+R_2: 0.6373941812881472
+correct predictions: 97.12493288469872%
+
+=== multiple linear regression ===
+formula: np.log(epi_imputed) ~ np.maximum(bouwjaar, 1900) + np.log(epi_pc6_average) + woningtype
+
+--- processing regression results ---
+beta:
+Intercept                                   3.607562
+woningtype[T.meergezinspand_hoog]          -0.019344
+woningtype[T.meergezinspand_laag_midden]   -0.033722
+woningtype[T.tussenwoning]                 -0.029422
+woningtype[T.twee_onder_1_kap]             -0.012654
+woningtype[T.vrijstaand]                   -0.030521
+np.maximum(bouwjaar, 1900)                 -0.001798
+np.log(epi_pc6_average)                     0.847814
+dtype: float64
+
+alpha: 0.05
+y_h_hat: 0.10149490739453451
+PI_range: (-0.2670079583421546, 0.4699977731312237)
+s_2: 0.03534961439299423
+s: 0.18801493130332556
+R_2: 0.6994590611298834
+correct predictions: 93.22994235016186%
+
+=== multiple linear regression ===
+formula: np.log(epi_imputed) ~ np.maximum(bouwjaar, 1900) + epi_log_pc6_average + woningtype
+
+--- processing regression results ---
+beta:
+Intercept                                   3.845226
+woningtype[T.meergezinspand_hoog]          -0.023008
+woningtype[T.meergezinspand_laag_midden]   -0.032551
+woningtype[T.tussenwoning]                 -0.030663
+woningtype[T.twee_onder_1_kap]             -0.004443
+woningtype[T.vrijstaand]                   -0.014757
+np.maximum(bouwjaar, 1900)                 -0.001914
+epi_log_pc6_average                         0.869052
+dtype: float64
+
+alpha: 0.05
+y_h_hat: 0.10644933558471656
+PI_range: (-0.257686499183037, 0.47058517035247005)
+s_2: 0.03451674063072099
+s: 0.18578681500774213
+R_2: 0.7065401189227938
+correct predictions: 93.198639063248%
