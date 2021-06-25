@@ -73,10 +73,10 @@ class SamplingModule(BaseModule):
 	def check_minimum_installations(self, dwelling):
 		for function in self.functions:
 			# Check whether an installation has been assigned
-			space_heating_installations_amount = self.count_installations(dwelling, function)
+			installations_amount = self.count_installations(dwelling, function)
 			tries = 0
 			# Sample until installation is assigned or assign gas after five failed attempts as it is the most common
-			while space_heating_installations_amount == 0:
+			while installations_amount == 0:
 				self.get_sampling_outputs_per_function(function, dwelling)
 				tries += 1
 				if tries >= 4:
@@ -86,7 +86,7 @@ class SamplingModule(BaseModule):
 						dwelling.attributes['gas_boiler_water'] = True
 					if function == 'space':
 						dwelling.attributes['gas_cooking'] = True
-				space_heating_installations_amount = self.count_installations(dwelling, function)
+				installations_amount = self.count_installations(dwelling, function)
 
 	def get_sampling_outputs_per_function(self, function, dwelling):
 		for name, options in dwelling.outputs.items():
