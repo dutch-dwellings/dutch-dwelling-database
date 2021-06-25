@@ -22,6 +22,9 @@ from utils.CBS_PC6_2017_kerncijfers_create_table import main as create_CBS_PC6_2
 from utils.CBS_PC6_2017_kerncijfers_download import main as download_CBS_PC6_2017_kerncijfers
 from utils.CBS_PC6_2017_kerncijfers_load import main as load_CBS_PC6_2017_kerncijfers
 
+from utils.verhuur_folckert_create_table import main as create_verhuur_folckert_table
+from utils.verhuur_folckert_load import main as load_verhuur_folckert
+
 from utils.elec_consumption_hh_create_table import main as create_elec_consumption_households_table
 from utils.elec_consumption_hh_load import main as load_elec_consumption_households
 
@@ -38,6 +41,10 @@ def bag():
 	add_index('bag', 'pc6')
 	add_index('bag', 'pand_id')
 	add_index('bag', 'buurt_id')
+
+def verhuur_folckert():
+	create_verhuur_folckert_table()
+	load_verhuur_folckert()
 
 def CBS_PC6():
 	print('Creating table for CBS PC6...')
@@ -228,6 +235,8 @@ def main():
 
 	print('\n====== WoON ======')
 	load_WoON()
+
+	verhuur_folckert()
 
 	print('\nFinished with the setup.')
 
