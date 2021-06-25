@@ -37,6 +37,7 @@ class DistrictSpaceHeatingModule(BaseModule):
 			'type': 'boolean',
 			'sampling': True,
 			'function' : 'space',
+			'report' : False,
 			'distribution': 'district_heating_space_p'
 		},
 		'district_heating_space_p': {

@@ -36,6 +36,7 @@ class DistrictWaterHeatingModule(BaseModule):
 			'type': 'boolean',
 			'sampling': True,
 			'function' : 'water',
+			'report' : False,
 			'distribution': 'district_heating_water_p'
 			},
 		'district_heating_water_p': {

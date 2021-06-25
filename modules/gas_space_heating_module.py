@@ -38,6 +38,7 @@ class GasSpaceHeatingModule(BaseModule):
 			'type': 'boolean',
 			'function' : 'space',
 			'sampling': True,
+			'report' : False,
 			'distribution': 'gas_boiler_space_p'
 		},
 		'gas_boiler_space_p': {
@@ -48,6 +49,7 @@ class GasSpaceHeatingModule(BaseModule):
 			'type': 'boolean',
 			'function' : 'space',
 			'sampling': True,
+			'report' : False,
 			'distribution': 'block_heating_space_p'
 		},
 		'block_heating_space_p': {

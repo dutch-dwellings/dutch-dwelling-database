@@ -35,15 +35,29 @@ class SamplingModule(BaseModule):
 		if not continue_processing:
 			return
 
+		# First sampling
 		for name, options in dwelling.outputs.items():
 			if options.get('sampling', False) == True:
 				distribution_value = dwelling.attributes[options['distribution']]
 				dwelling.attributes[name] = self.sample(distribution_value, options['type'], name)
 				self.check_water_space_dependency(dwelling, name)
 
+		# Minimum of one installation each for space heating, water heating and cooking
 		self.check_minimum_installations(dwelling)
-
+		# Produce more convenient output
 		self.produce_output_code(dwelling)
+
+	outputs = {
+		'space_heating': {
+			'type': 'varchar'
+		},
+		'water_heating': {
+			'type': 'varchar'
+		},
+		'cooking': {
+			'type': 'varchar'
+		}
+	}
 
 	def sample(self, value, output_type, name):
 		if output_type == 'boolean':
@@ -90,8 +104,7 @@ class SamplingModule(BaseModule):
 
 	def get_sampling_outputs_per_function(self, function, dwelling):
 		for name, options in dwelling.outputs.items():
-			if options.get('sampling', False) == True:
-				if options.get('function', False) == function:
+			if options.get('sampling', False) == True and options.get('function', False) == function:
 					distribution_value = dwelling.attributes[options['distribution']]
 					dwelling.attributes[name] = self.sample(distribution_value, options['type'], name)
 					self.check_water_space_dependency(dwelling, name)

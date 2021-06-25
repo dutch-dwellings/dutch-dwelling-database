@@ -30,7 +30,7 @@ class Dwelling:
 		Get the attributes and their values
 		that need to be output to the database.
 		'''
-		return {key: val for (key, val) in self.attributes.items() if key in self.outputs.keys()}
+		return {key: val for (key, val) in self.attributes.items() if key in self.outputs.keys() and self.outputs[key].get('report', True) is True}
 
 	def save(self):
 		'''

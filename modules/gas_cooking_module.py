@@ -34,6 +34,7 @@ class GasCookingModule(BaseModule):
 			'type': 'boolean',
 			'sampling': True,
 			'function' : 'cooking',
+			'report' : False,
 			'distribution': 'gas_cooking_p'
 		},
 		'gas_cooking_p': {

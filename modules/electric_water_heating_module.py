@@ -39,6 +39,7 @@ class ElectricWaterHeatingModule(BaseModule):
 			'type': 'boolean',
 			'sampling': True,
 			'function' : 'water',
+			'report' : False,
 			'distribution': 'elec_boiler_water_p'
 		},
 		'elec_boiler_water_p': {
@@ -49,6 +50,7 @@ class ElectricWaterHeatingModule(BaseModule):
 			'type': 'boolean',
 			'sampling': True,
 			'function' : 'water',
+			'report' : False,
 			'distribution': 'electric_heat_pump_water_p'
 		},
 		'electric_heat_pump_water_p': {

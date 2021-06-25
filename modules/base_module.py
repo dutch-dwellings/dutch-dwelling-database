@@ -19,12 +19,13 @@ class BaseModule:
 		exist.
 		'''
 		for output_name, options in self.outputs.items():
-			add_column(
-				table_name='results',
-				column_name=output_name,
-				data_type=options['type'],
-				connection=self.connection
-			)
+			if options.get('report', True):
+				add_column(
+					table_name='results',
+					column_name=output_name,
+					data_type=options['type'],
+					connection=self.connection
+				)
 
 	def modify_probability_up(self, probability, percentile):
 		# A high value for percentile will increase the probability
