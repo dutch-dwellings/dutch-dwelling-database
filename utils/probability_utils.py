@@ -27,9 +27,19 @@ class ProbabilityDistribution:
 		if normalize:
 			self.normalize()
 
-	def __add__(self, pd):
-		if type(pd) != ProbabilityDistribution:
-			raise TypeError(f"Unsupported operation '+' for ProbabilityDistribution and {type(pd)}")
+	def __add__(self, other):
+		if type(other) != ProbabilityDistribution:
+			# Special case, required for sum()
+			# to work, since that starts out with:
+			#    0 + ProbabilityDistribution
+			# which we convert to
+			#    ProbabilityDistribution + 0
+			# in __radd__
+			if other is 0:
+				return self
+			raise TypeError(f"Unsupported operation '+' for ProbabilityDistribution and {type(other)}")
+
+		pd = other
 
 		new_prob_points = self.prob_points.copy()
 		for prob_point in pd.prob_points:
@@ -40,8 +50,14 @@ class ProbabilityDistribution:
 
 		new_prob_ranges = self.merge_prob_ranges(self.prob_ranges, pd.prob_ranges)
 
-		new_pd = ProbabilityDistribution({**new_prob_points, **new_prob_ranges})
+		new_pd = ProbabilityDistribution({**new_prob_points, **new_prob_ranges}, normalize=False)
 		return new_pd
+
+	def __radd__(self, other):
+		# Required for sum() to work,
+		# since that will start with
+		#    0 + ProbabilityDistribution + ...
+		return self + other
 
 	def __mul__(self, other):
 		if type(other) not in [int, float]:

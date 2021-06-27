@@ -12,6 +12,7 @@ class TestProbabilityUtils(unittest.TestCase):
 			2: 0.3,
 			3: 0.3,
 			4: 0.1
+			# mean: 2.1
 		}
 		self.p1 = ProbabilityDistribution(self.p1_dict)
 
@@ -19,6 +20,7 @@ class TestProbabilityUtils(unittest.TestCase):
 			(1, 2): 0.5,
 			4: 0.2,
 			(4, 5): 0.3
+			# mean: 2.9
 		}
 		self.p2 = ProbabilityDistribution(self.p2_dict)
 
@@ -75,7 +77,7 @@ class TestProbabilityUtils(unittest.TestCase):
 	def test_can_add_distributions(self):
 		p3 = self.p1 + self.p2
 		self.assertEqual(type(p3), ProbabilityDistribution)
-		# Automatically normalized.
+		p3.normalize()
 		self.assertEqual(p3.mean, 2.5)
 		self.assertAlmostEqual(p3.p(4), 0.15)
 
@@ -91,7 +93,7 @@ class TestProbabilityUtils(unittest.TestCase):
 			# mean: 4.25
 			})
 		p6 = p4 + p5
-		# Automatically normalized.
+		p6.normalize()
 		self.assertEqual(p6.mean, 3.75)
 		self.assertEqual(p6.p((2, 3)), 0.25)
 
@@ -107,7 +109,7 @@ class TestProbabilityUtils(unittest.TestCase):
 			(3, 9): 0.5 # intersects all ranges
 			})
 		p6 = p4 + p5
-		# Automatically normalized.
+		p6.normalize()
 		p6_prob_ranges_expected = {
 			(0, 1): 0.05,
 			(1, 2): 0.1,
@@ -123,6 +125,17 @@ class TestProbabilityUtils(unittest.TestCase):
 		for key in p6.prob_ranges.keys():
 			# need AlmostEqual for floats
 			self.assertAlmostEqual(p6.prob_ranges[key], p6_prob_ranges_expected[key])
+
+	def test_can_sum_distributions(self):
+		p3 = ProbabilityDistribution({
+			1: 0.5,
+			2: 0.5
+			# mean: 1.5
+			})
+		p4 = sum([self.p1, self.p2, p3])
+		p4.normalize()
+		# mean: (2.1 + 2.9 + 1.5) / 3 = 2 1/6
+		self.assertAlmostEqual(p4.mean, 2 + 1/6)
 
 	def test_raises_when_adding_not_distribution(self):
 		try:
