@@ -2,13 +2,30 @@ import math
 
 class ProbabilityDistribution:
 
-	def __init__(self, probability_dict):
-		self.prob_points = {
-			key: val for (key, val) in probability_dict.items() if type(key) != tuple
-		}
-		self.prob_ranges = {
-			key: val for (key, val) in probability_dict.items() if type(key) == tuple
-		}
+	def __init__(self, prob_dist, normalize=True):
+		if type(prob_dist) == dict:
+			prob_dist = prob_dist.items()
+		elif type(prob_dist) in [list, tuple]:
+			pass
+		else:
+			raise ValueError(f'ProbabilityDistribution does not support type {type(prob_dist)} as prob_dist.')
+
+		self.prob_points = {}
+		self.prob_ranges = {}
+
+		for (key, val) in prob_dist:
+			if type(key) == tuple:
+				self.add_range_to_ranges(self.prob_ranges, {key: val})
+			else:
+				if key in self.prob_points:
+					self.prob_points[key] += val
+				else:
+					self.prob_points[key] = val
+
+		# Only when multiplying a ProbabilityDistribution with
+		# a number we explicitly do not normalize.
+		if normalize:
+			self.normalize()
 
 	def __add__(self, pd):
 		if type(pd) != ProbabilityDistribution:
@@ -37,10 +54,53 @@ class ProbabilityDistribution:
 			new_prob_points[key] *= other
 
 		probability_dict = {**new_prob_points, **new_prob_ranges}
-		return ProbabilityDistribution(probability_dict)
+		# We shouldn't normalize, since then we revert exactly the
+		# multiplications that we tried to effect.
+		return ProbabilityDistribution(probability_dict, normalize=False)
 
 	def __rmul__(self, other):
 		return self * other
+
+	def get_cum_p(self):
+		'''
+		Gets the total amount of probability assigned.
+		Is 1 for normalized distributions.
+		'''
+		cum_p_points = sum(self.prob_points.values())
+		cum_p_ranges = sum(self.prob_ranges.values())
+		return cum_p_points + cum_p_ranges
+
+	def normalize(self):
+		'''
+		Normalizes the distribution so all probabilities
+		sum up to 1.
+		'''
+		cum_p = self.get_cum_p()
+		# Normalize by dividing by total p-values.
+		self.prob_points = {
+			point: p_val / cum_p
+			for (point, p_val)
+			in self.prob_points.items()
+		}
+		self.prob_ranges= {
+			range_: p_val / cum_p
+			for (range_, p_val)
+			in self.prob_ranges.items()
+		}
+		self._normalize = True
+
+	@property
+	def is_normalized(self):
+		'''
+		Indicates whether all probabilities
+		sum up to 1 (normalized).
+		'''
+		if getattr(self, '_normalized', None) is None:
+			if math.isclose(self.get_cum_p(), 1):
+				self._normalized = True
+			else:
+				self._normalized = False
+		return self._normalized
 
 	def p(self, value):
 		'''
@@ -75,12 +135,15 @@ class ProbabilityDistribution:
 
 	@property
 	def mean(self):
-		mean = 0
-		for value, p in self.prob_points.items():
-			mean += p * value
-		for value, p in self.prob_ranges.items():
-			mean += (value[0] + value[1]) / 2 * p
-		return mean
+		if not (self.is_normalized):
+			return None
+		else:
+			mean = 0
+			for value, p in self.prob_points.items():
+				mean += p * value
+			for value, p in self.prob_ranges.items():
+				mean += (value[0] + value[1]) / 2 * p
+			return mean
 
 	def interval(self, confidence_value):
 		'''
@@ -88,6 +151,10 @@ class ProbabilityDistribution:
 		'confidence_value'. We try to make
 		a symmetric interval (as much probability outside left as outside right).
 		'''
+
+		if not (self.is_normalized):
+			raise ValueError('Cannot compute interval() for the ProbabilityDistribution since it is not normalized.')
+
 		if not (0 < confidence_value <= 1):
 			raise ValueError(f'Confidence value for interval should be in (0, 1] but was {confidence_value}')
 

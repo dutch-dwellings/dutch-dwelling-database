@@ -24,7 +24,7 @@ class TestProbabilityUtils(unittest.TestCase):
 
 	def test_can_get_probability(self):
 		prob = self.p1.p(0)
-		self.assertEqual(prob, 0.1)
+		self.assertAlmostEqual(prob, 0.1)
 
 	def test_can_get_probability_outside_definition(self):
 		prob = self.p1.p(10)
@@ -41,7 +41,7 @@ class TestProbabilityUtils(unittest.TestCase):
 		self.assertRaisesRegex(ValueError, 'Expected length of interval to be 2, but length is', self.p1.p, [0, 1, 3])
 
 	def test_can_get_mean(self):
-		self.assertEqual(self.p1.mean, 2.1)
+		self.assertAlmostEqual(self.p1.mean, 2.1)
 
 	def test_can_get_interval(self):
 		interval = self.p1.interval(0.95)
@@ -75,9 +75,9 @@ class TestProbabilityUtils(unittest.TestCase):
 	def test_can_add_distributions(self):
 		p3 = self.p1 + self.p2
 		self.assertEqual(type(p3), ProbabilityDistribution)
-		# this is not a true ProbabilityDistribution, probabilities sum to 2
-		self.assertEqual(p3.mean, 5)
-		self.assertAlmostEqual(p3.p(4), 0.3)
+		# Automatically normalized.
+		self.assertEqual(p3.mean, 2.5)
+		self.assertAlmostEqual(p3.p(4), 0.15)
 
 	def test_can_add_distributions_with_intersection_ranges(self):
 		p4 = ProbabilityDistribution({
@@ -91,9 +91,9 @@ class TestProbabilityUtils(unittest.TestCase):
 			# mean: 4.25
 			})
 		p6 = p4 + p5
-		# this is not a true ProbabilityDistribution, probabilities sum to 2
-		self.assertEqual(p6.mean, 7.5)
-		self.assertEqual(p6.p((2, 3)), 0.5)
+		# Automatically normalized.
+		self.assertEqual(p6.mean, 3.75)
+		self.assertEqual(p6.p((2, 3)), 0.25)
 
 	def test_can_add_distributions_with_multiple_intersection_ranges(self):
 		p4 = ProbabilityDistribution({
@@ -107,15 +107,16 @@ class TestProbabilityUtils(unittest.TestCase):
 			(3, 9): 0.5 # intersects all ranges
 			})
 		p6 = p4 + p5
+		# Automatically normalized.
 		p6_prob_ranges_expected = {
-			(0, 1): 0.1,
-			(1, 2): 0.2,
-			(2, 3): 0.4,
-			(3, 4): 0.3/3 + 0.5/6,
-			(4, 6): 0.6 + 0.5/6*2,
-			(6, 7): 0.5/6,
-			(7, 8): 0.1 + 0.5/6,
-			(8, 9): 0.5/6
+			(0, 1): 0.05,
+			(1, 2): 0.1,
+			(2, 3): 0.2,
+			(3, 4): (0.3/3 + 0.5/6)/2,
+			(4, 6): (0.6 + 0.5/6*2)/2,
+			(6, 7): (0.5/6)/2,
+			(7, 8): (0.1 + 0.5/6)/2,
+			(8, 9): (0.5/6)/2
 		}
 		# custom asserting since the dicts contain floats
 		self.assertEqual(set(p6.prob_ranges.keys()), set(p6_prob_ranges_expected.keys()))
@@ -133,33 +134,71 @@ class TestProbabilityUtils(unittest.TestCase):
 		else:
 			self.fail('Should have raised')
 
-	@unittest.skip('To implement')
-	def test_raises_when_initiating_distribution_with_intersection_ranges(self):
-		pass
-		# or more elegantly: find a way to generalize this solution and do the same when __add__ing distributions
+	def test_can_initiate_distribution_with_list_of_values(self):
+		prob_dist = [
+			(4, 0.5),
+			(5, 0.2),
+			((5, 6), 0.3)
+		]
+		try:
+			p = ProbabilityDistribution(prob_dist)
+		except AttributeError as e:
+			self.fail(f'Should not have raised error "{e}"')
+		self.assertAlmostEqual(p.p(4), 0.5)
+		self.assertAlmostEqual(p.p((5, 6)), 0.5)
+		self.assertAlmostEqual(p.p((5.5, 6)), 0.15)
+
+	def test_can_initiate_distribution_with_duplicate_entries(self):
+		prob_dist = [
+			(4, 0.5),
+			(4, 0.2),
+			(5, 0.3)
+		]
+		p = ProbabilityDistribution(prob_dist)
+		self.assertAlmostEqual(p.p(4), 0.7)
+
+	def test_can_initiate_distribution_with_intersecting_ranges(self):
+		prob_dist = [
+			((4, 7), 0.3),
+			((5, 8), 0.3),
+			((5, 6), 0.4),
+		]
+		p = ProbabilityDistribution(prob_dist)
+		self.assertAlmostEqual(p.p((5, 6)), 0.6)
+		self.assertAlmostEqual(p.interval(0.6)[0], 5 + 1/6)
+		self.assertAlmostEqual(p.interval(0.6)[1], 6.5)
 
 	def test_can_multiply_distribution_with_number(self):
 		p7 = self.p1 * 0.5
 		self.assertEqual(type(p7), ProbabilityDistribution)
 		# this is not a true ProbabilityDistribution, probabilities sum to 0.5
-		self.assertEqual(p7.mean, 1.05)
-		self.assertEqual(p7.p(4), 0.05)
+		self.assertAlmostEqual(p7.p(4), 0.05)
 
 	def test_can_multiply_distribution_left_hand(self):
 		p7 = 0.5 * self.p1
 		self.assertEqual(type(p7), ProbabilityDistribution)
 		# this is not a true ProbabilityDistribution, probabilities sum to 0.5
-		self.assertEqual(p7.mean, 1.05)
-		self.assertEqual(p7.p(4), 0.05)
+		self.assertAlmostEqual(p7.p(4), 0.05)
 
-	@unittest.skip('To implement')
-	def test_can_normalize_distribution_to_sum_to_1(self):
-		pass
+	def test_can_normalize_distribution(self):
+		p3 = ProbabilityDistribution({1: 1, (2, 3): 1})
+		p3.normalize()
+		self.assertAlmostEqual(p3.p(1), 0.5)
+		self.assertAlmostEqual(p3.mean, 1.75)
 
-	@unittest.skip('To implement')
-	def test_raises_valueerror_when_calculating_intervals_on_not_normalized_distribution(self):
-		pass
-		# and for p, etc.
+	def test_automatically_normalized_distribution_on_creation(self):
+		p3 = ProbabilityDistribution({1: 1, (2, 3): 1})
+		# No need to call .normalize() manually.
+		self.assertAlmostEqual(p3.p(1), 0.5)
+		self.assertAlmostEqual(p3.mean, 1.75)
+
+	def test_raises_ValueError_when_calculating_intervals_on_not_normalized_distribution(self):
+		p = ProbabilityDistribution({1: 0.5}, normalize=False)
+		self.assertRaisesRegex(ValueError, 'Cannot compute interval\(\) for the ProbabilityDistribution since it is not normalized', p.interval, 0.5)
+
+	def test_mean_is_None_for_not_normalized_distribution(self):
+		p = ProbabilityDistribution({1: 0.5}, normalize=False)
+		self.assertEqual(p.mean, None)
 
 	def test_add_range_to_ranges_raises_on_wrong_input(self):
 		# Get the function from an instance.
