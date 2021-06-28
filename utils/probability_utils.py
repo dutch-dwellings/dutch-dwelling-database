@@ -77,6 +77,36 @@ class ProbabilityDistribution:
 	def __rmul__(self, other):
 		return self * other
 
+	def __and__(self, other):
+
+		def add_prob_dists(pd1, pd2):
+			pd1_val = pd1[0]
+			pd1_p = pd1[1]
+			pd2_val = pd2[0]
+			pd2_p = pd2[1]
+
+			if (type(pd1_val) == tuple) and (type(pd2_val) == tuple):
+				raise NotImplementedError('Currently no support for adding uniform ranges, since the result is not a uniform range.')
+			elif (type(pd1_val) == tuple):
+				return (
+					(pd1_val[0] + pd2_val, pd1_val[1] + pd2_val),
+					pd1_p * pd2_p
+				)
+			elif (type(pd2_val) == tuple):
+				return (
+					(pd2_val[0] + pd1_val, pd2_val[1] + pd1_val),
+					pd1_p * pd2_p
+				)
+			else:
+				return (pd1_val + pd2_val, pd1_p * pd2_p)
+
+		new_pd = []
+		for pd1 in [*self.prob_points.items(), *self.prob_ranges.items()]:
+			for pd2 in [*other.prob_points.items(), *other.prob_ranges.items()]:
+				new_pd.append(add_prob_dists(pd1, pd2))
+
+		return ProbabilityDistribution(new_pd)
+
 	def get_cum_p(self):
 		'''
 		Gets the total amount of probability assigned.

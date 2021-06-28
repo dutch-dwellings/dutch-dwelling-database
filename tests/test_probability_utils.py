@@ -334,3 +334,58 @@ class TestProbabilityUtils(unittest.TestCase):
 			(5, 6): 0.5
 		}
 		self.assertEqual(merged_prob_ranges, merged_prob_ranges_expected)
+
+	def test_can_add_values(self):
+		# This is different from adding the distributions,
+		# but if
+		# X ~ pd_x, Y ~ pd_y
+		# and Z ~ pd_z,
+		# then pd_x & pd_y ~ pd_z.
+		# TODO: consider whether switching '+' and '&'
+		# makes more sense?
+
+		# flipping a coin
+		coin = ProbabilityDistribution({
+				0: 0.5,
+				1: 0.5
+			})
+		# flipping two
+		p4 = coin & coin
+		self.assertEqual(type(p4), ProbabilityDistribution)
+		self.assertEqual(p4.mean, 1)
+		self.assertEqual(p4.p(0), 0.25)
+		self.assertEqual(p4.p(0), 0.25)
+
+	def test_can_add_values_with_at_most_one_range(self):
+		# This is different from adding the distributions,
+		# but if
+		# X ~ pd_x, Y ~ pd_y
+		# and Z ~ pd_z,
+		# then pd_x & pd_y ~ pd_z.
+		# TODO: consider whether switching '+' and '&'
+		# makes more sense?
+
+		# flipping a coin
+		coin = ProbabilityDistribution({
+				0: 0.5,
+				1: 0.5
+			})
+		p3 = ProbabilityDistribution({
+				(0, 1): 0.5,
+				(2, 3): 0.5
+			})
+		p4 = coin & p3
+		self.assertEqual(type(p4), ProbabilityDistribution)
+		self.assertEqual(p4.mean, coin.mean + p3.mean)
+		self.assertEqual(p4.p(0), 0)
+		self.assertEqual(p4.p((0, 1)), 0.25)
+
+	def test_raises_NotImplementedError_when_adding_distributions_with_both_ranges(self):
+		p3 = ProbabilityDistribution({
+				(0, 1): 0.5,
+				(2, 3): 0.5
+			})
+		try:
+			p4 = p3 & p3
+		except NotImplementedError:
+			pass
