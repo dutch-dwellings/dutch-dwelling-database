@@ -179,6 +179,22 @@ class ProbabilityDistribution:
 				self._normalized = False
 		return self._normalized
 
+	def pad(self):
+		'''
+		Normalize the distribution
+		by adding or updating the probability
+		for '0'. This doesn't change the mean.
+		'''
+		cum_p = self.get_cum_p()
+		if cum_p >= 1:
+			pass
+		else:
+			if 0 in self.prob_points:
+				self.prob_points[0] += 1 - cum_p
+			else:
+				self.prob_points[0] = 1 - cum_p
+			self._normalized = True
+
 	def p(self, value):
 		'''
 		Get the probability of 'value':

@@ -406,3 +406,16 @@ class TestProbabilityUtils(unittest.TestCase):
 		self.assertEqual(p5.mean, p3.mean + 2)
 		self.assertEqual(p5.p(7), 0.2)
 		self.assertEqual(p5.p((4, 5)), 0.5)
+
+	def test_can_pad_with_zero(self):
+		# probability sums up to 0.7
+		p3 = ProbabilityDistribution({
+			1: 0.5,
+			2: 0.2
+			}, normalize=False)
+		# sanity check
+		self.assertAlmostEqual(p3.p(0), 0)
+		self.assertEqual(p3.mean, None)
+		p3.pad()
+		self.assertAlmostEqual(p3.p(0), 0.3)
+		self.assertEqual(p3.mean, 0.9)
