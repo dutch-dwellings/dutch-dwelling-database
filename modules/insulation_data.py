@@ -217,6 +217,8 @@ INSULATION_DATA = {
 	# Based on the BAG from 2021, without demolished buildings,
 	# so this misses some demolished buildings
 	'dwellings_n': {
+		1919: 605351,
+		1974: 3878416,
 		2000: 6591218,
 		2001: 6669286,
 		2002: 6739330,

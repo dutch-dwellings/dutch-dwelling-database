@@ -89,7 +89,7 @@ class InsulationModule(BaseModule):
 		]
 
 		measure_prob_multiplier = self.dwelling_type_multipliers[dwelling_type]
-		measures_prob = [
+		facade_measures_prob = [
 			# Calculate probability of a measure being taken for this dwelling in 'year':
 			# number of insulation measures divided by number of dwellings that
 			# could have taken the measure, multiplied by the dwelling type multiplier.
@@ -100,14 +100,20 @@ class InsulationModule(BaseModule):
 			in applicable_measure_years
 		]
 
-		p_no_measure = 1 - sum(measures_prob)
-		measures_dist = sum([
-				r_value * prob
-				for r_value in measures_r_values
-				for prob in measures_prob
-			])
+		if len(applicable_measure_years) == 0:
+			facade_measures_dist = ProbabilityDistribution({
+					0: 1
+				})
+		else:
+			facade_measures_dist = sum([
+					measures_r_values[i] * facade_measures_prob[i]
+					for i in range(len(measures_r_values))
+				])
+			facade_measures_dist.pad()
 
-		insulation_facade_r_dist = p_no_measure * facade_base_dist + measures_dist
+		# Add the increase of R-values in facade_measures_dist
+		# to the base distribution facade_base_dist.
+		insulation_facade_r_dist = facade_base_dist & facade_measures_dist
 
 		dwelling.attributes['insulation_facade_r_dist'] = insulation_facade_r_dist
 
