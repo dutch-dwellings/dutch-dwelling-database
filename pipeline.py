@@ -1,4 +1,5 @@
 import time
+import sys
 
 from psycopg2 import sql
 from psycopg2.extras import DictCursor
@@ -6,7 +7,7 @@ from psycopg2.extras import DictCursor
 from utils.database_utils import get_connection, get_bag_sample, get_neighbourhoods_sample, get_neighbourhoods_sample_UAE
 from utils.create_results_table import main as create_results_table
 
-from modules.classes import Dwelling
+from modules.classes import Dwelling, PlaceholderDwelling
 
 from modules.regions_module import RegionsModule
 from modules.energy_label_module import EnergyLabelModule, EnergyLabelRegionalModule
@@ -95,12 +96,13 @@ def main():
 	modules = [Module(connection, **kwargs) for Module in Modules]
 
 	# Querying BAG
+	print("Getting a BAG sample...")
 	cursor = connection.cursor(cursor_factory=DictCursor)
 	query = "SELECT * FROM bag ORDER BY buurt_id"
 	cursor.execute(query)
 
 	while i < dwelling_count:
-		print("Getting a BAG sample...")
+
 		sample = cursor.fetchmany(10000)
 
 		print("Processing entries...")
@@ -109,13 +111,20 @@ def main():
 
 			for module in modules:
 				module.process(dwelling)
-
 			dwelling.save()
+
+			# Memory cleanup unused regions
+			if all(isinstance(dwellings, Dwelling) for dwellings in dwelling.regions['pc6'].dwellings) is True:
+				del dwelling.regions['pc6']
+			if all(isinstance(dwellings, Dwelling) for dwellings in dwelling.regions['buurt'].dwellings) is True:
+				del dwelling.regions['buurt']
+
 			i += 1
 			if i % 100 == 0:
 				print(f'   processed dwelling: {i}', end='\r')
 			if i % 10000 == 0:
 				connection.commit()
+
 
 	print("\nCommiting and closing...")
 	cursor.close()
