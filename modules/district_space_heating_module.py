@@ -63,8 +63,12 @@ class DistrictSpaceHeatingRegionalModule(BaseRegionalModule):
 		WHERE area_code = %s
 		'''
 		cursor.execute(total_percentage_query, (buurt_id,))
-		total_percentage = cursor.fetchone()[0]
-		probability_modifier = 99 / total_percentage
+		total_percentage = cursor.fetchone()
+		total_percentage = self.handle_null_data(total_percentage)
+		if total_percentage != 0:
+			probability_modifier = 99 / total_percentage
+		else:
+			probability_modifier = 1
 		buurt.attributes['probability_modifier'] = probability_modifier
 
 	def add_installation_type_shares(self, buurt):
