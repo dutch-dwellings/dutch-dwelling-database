@@ -71,7 +71,7 @@ class ProbabilityDistribution:
 		for key in new_prob_points:
 			new_prob_points[key] *= other
 		for key in new_prob_ranges:
-			new_prob_points[key] *= other
+			new_prob_ranges[key] *= other
 
 		probability_dict = {**new_prob_points, **new_prob_ranges}
 		# We shouldn't normalize, since then we revert exactly the

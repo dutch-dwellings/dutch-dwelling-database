@@ -181,11 +181,16 @@ class TestProbabilityUtils(unittest.TestCase):
 		self.assertAlmostEqual(p.interval(0.6)[0], 5 + 1/6)
 		self.assertAlmostEqual(p.interval(0.6)[1], 6.5)
 
-	def test_can_multiply_distribution_with_number(self):
+	def test_can_multiply_distribution_by_number(self):
 		p7 = self.p1 * 0.5
 		self.assertEqual(type(p7), ProbabilityDistribution)
 		# this is not a true ProbabilityDistribution, probabilities sum to 0.5
 		self.assertAlmostEqual(p7.p(4), 0.05)
+
+	def test_can_multiply_distributions_with_ranges(self):
+		p3 = ProbabilityDistribution({(0.5, 0.625): 1.0})
+		p4 = p3 * 3
+		self.assertAlmostEqual(p4.p((0.5, 0.625)), 3)
 
 	def test_can_multiply_distribution_left_hand(self):
 		p7 = 0.5 * self.p1
