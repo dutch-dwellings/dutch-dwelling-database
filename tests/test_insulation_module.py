@@ -82,7 +82,8 @@ class TestDistrictSpaceHeatingModule(unittest.TestCase):
 		self.assertAlmostEqual(dwelling.attributes['insulation_roof_r_dist'].mean, expected_roof_mean)
 		self.assertAlmostEqual(dwelling.attributes['insulation_roof_r_dist'].p(2.5), 1 - p_roof_measure)
 
-	def test_uses_woon_data_and_measures_for_buildings_before_2006_facade(self):
+	def test_uses_woon_data_and_measures_for_buildings_before_2006(self):
+		# no cavity wall
 		attributes = {
 			'bouwjaar': 1919,
 			'woningtype': 'vrijstaand'
@@ -95,12 +96,16 @@ class TestDistrictSpaceHeatingModule(unittest.TestCase):
 		p_multiplier = 1.98
 		# For dwellings built in or before 2000, all measure years
 		# from 2010 to 2019 are applicable.
-		p_measure_base_before_2000 = 35838 / 6591218 + 73097 / 6669286 + 76480 / 6739330 + 60548 / 6804459 + 84501 / 6870704 + 74448 / 6943943 + 75802 / 7027060 + 85442 / 7109692 + 100978 / 7189902 + 125197 / 7261671
-		p_measure = p_multiplier * p_measure_base_before_2000
+		p_facade_measure_base_before_2000 = 35838 / 6591218 + 73097 / 6669286 + 76480 / 6739330 + 60548 / 6804459 + 84501 / 6870704 + 74448 / 6943943 + 75802 / 7027060 + 85442 / 7109692 + 100978 / 7189902 + 125197 / 7261671
+		p_facade_measure = p_multiplier * p_facade_measure_base_before_2000
 
 		dwelling = Dwelling(attributes, self.mock_connection)
 		self.insulation_module.process(dwelling)
 
 		# R-value is 0.43 if it was 0.43 to begin with (p=0.075)
 		# and no measures were taken after that (p = 1 - p_measure).
-		self.assertAlmostEqual(dwelling.attributes['insulation_facade_r_dist'].p(0.43), 0.075 * (1 - p_measure))
+		self.assertAlmostEqual(dwelling.attributes['insulation_facade_r_dist'].p(0.43), 0.075 * (1 - p_facade_measure))
+
+		p_roof_measure_base_before_2000 = 115398 / 6591218 + 157347 / 6669286 + 195420 / 6739330 + 124267 / 6804459 + 155099 / 6870704 + 148447 / 6943943 + 148100 / 7027060 + 164024 / 7109692 + 199784 / 7189902 + 246325 / 7261671
+		p_roof_measure = p_multiplier * p_roof_measure_base_before_2000
+		self.assertAlmostEqual(dwelling.attributes['insulation_roof_r_dist'].p(0.39), 0.025 * (1 - p_roof_measure))

@@ -94,8 +94,9 @@ class InsulationModule(BaseModule):
 		return measures_p
 
 	def process(self, dwelling):
-		self.process_facade(dwelling)
-		self.process_roof(dwelling)
+		dwelling.attributes['insulation_facade_r_dist'] = self.process_insulation_type(dwelling, 'facade')
+
+		dwelling.attributes['insulation_roof_r_dist'] = self.process_insulation_type(dwelling, 'roof')
 
 	def get_building_code(self, construction_year):
 		'''
@@ -139,9 +140,9 @@ class InsulationModule(BaseModule):
 
 		return base_dist
 
-	def process_facade(self, dwelling):
+	def process_insulation_type(self, dwelling, insulation_type):
 
-		facade_base_dist = self.get_base_dist(dwelling)['facade']
+		base_dist = self.get_base_dist(dwelling)[insulation_type]
 
 		construction_year = dwelling.attributes['bouwjaar']
 		dwelling_type = dwelling.attributes['woningtype']
@@ -160,9 +161,9 @@ class InsulationModule(BaseModule):
 
 		measure_prob_multiplier = self.dwelling_type_multipliers[dwelling_type]
 
-		facade_measures_prob = [
+		measures_prob = [
 			measure_prob_multiplier *
-			self.insulation_measures_p[self.insulation_measures_p.year == year]['facade'].values[0]
+			self.insulation_measures_p[self.insulation_measures_p.year == year][insulation_type].values[0]
 			for year in applicable_measure_years
 			]
 
@@ -172,59 +173,19 @@ class InsulationModule(BaseModule):
 			# We need to set this case specifically,
 			# because else the sum() will return 0,
 			# which can't be .pad()-ded.
-			facade_measures_dist = ProbabilityDistribution({
+			measures_dist = ProbabilityDistribution({
 					0: 1
 				})
 		else:
-			facade_measures_dist = sum([
-					measures_r_values[i] * facade_measures_prob[i]
+			measures_dist = sum([
+					measures_r_values[i] * measures_prob[i]
 					for i in range(len(measures_r_values))
 				])
-			facade_measures_dist.pad()
+			measures_dist.pad()
 
 		# Add the increase of R-values in facade_measures_dist
 		# to the base distribution facade_base_dist.
-		insulation_facade_r_dist = facade_base_dist & facade_measures_dist
-
-		dwelling.attributes['insulation_facade_r_dist'] = insulation_facade_r_dist
-
-	def process_roof(self, dwelling):
-
-		roof_base_dist = self.get_base_dist(dwelling)['roof']
-
-		construction_year = dwelling.attributes['bouwjaar']
-		dwelling_type = dwelling.attributes['woningtype']
-
-		applicable_measure_years = range(max(2010, construction_year + self.MIN_YEAR_MEASURE_AFTER_CONSTRUCTION), 2019 + 1)
-
-		measures_r_values = [
-			self.insulation_measures_r_values[year]
-			for year
-			in applicable_measure_years
-		]
-
-		measure_prob_multiplier = self.dwelling_type_multipliers[dwelling_type]
-
-		roof_measures_prob = [
-			measure_prob_multiplier *
-			self.insulation_measures_p[self.insulation_measures_p.year == year]['roof'].values[0]
-			for year in applicable_measure_years
-			]
-
-		if len(applicable_measure_years) == 0:
-			roof_measures_dist = ProbabilityDistribution({
-					0: 1
-				})
-		else:
-			roof_measures_dist = sum([
-					measures_r_values[i] * roof_measures_prob[i]
-					for i in range(len(measures_r_values))
-				])
-			roof_measures_dist.pad()
-
-		insulation_roof_r_dist = roof_base_dist & roof_measures_dist
-
-		dwelling.attributes['insulation_roof_r_dist'] = insulation_roof_r_dist
+		return base_dist & measures_dist
 
 	# We assume no insulation measures will be taken
 	# in the first 10 years after construction.
