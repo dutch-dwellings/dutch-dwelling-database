@@ -138,6 +138,13 @@ class ProbabilityDistribution:
 	def __rand__(self, other):
 		return self & other
 
+	def __copy__(self):
+		probs = [*self.prob_points.items(), *self.prob_ranges.items()]
+		return ProbabilityDistribution(probs, normalize=False)
+
+	def copy(self):
+		return self.__copy__()
+
 	def get_cum_p(self):
 		'''
 		Gets the total amount of probability assigned.
@@ -164,7 +171,7 @@ class ProbabilityDistribution:
 			for (range_, p_val)
 			in self.prob_ranges.items()
 		}
-		self._normalize = True
+		self._normalized = True
 
 	@property
 	def is_normalized(self):

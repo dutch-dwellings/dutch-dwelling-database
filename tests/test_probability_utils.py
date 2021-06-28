@@ -194,8 +194,10 @@ class TestProbabilityUtils(unittest.TestCase):
 		self.assertAlmostEqual(p7.p(4), 0.05)
 
 	def test_can_normalize_distribution(self):
-		p3 = ProbabilityDistribution({1: 1, (2, 3): 1})
+		p3 = ProbabilityDistribution({1: 1, (2, 3): 1}, normalize=False)
+		self.assertFalse(p3.is_normalized)
 		p3.normalize()
+		self.assertTrue(p3.is_normalized)
 		self.assertAlmostEqual(p3.p(1), 0.5)
 		self.assertAlmostEqual(p3.mean, 1.75)
 
@@ -419,3 +421,22 @@ class TestProbabilityUtils(unittest.TestCase):
 		p3.pad()
 		self.assertAlmostEqual(p3.p(0), 0.3)
 		self.assertEqual(p3.mean, 0.9)
+
+	def test_can_copy(self):
+		p3 = ProbabilityDistribution({
+			1: 0.5,
+			2: 0.2
+		}, normalize=False)
+
+		p4 = p3.copy()
+
+		self.assertEqual(type(p4), ProbabilityDistribution)
+		self.assertNotEqual(id(p3), id(p4))
+
+		# Same as p3
+		self.assertEqual(p4.mean, None)
+		p4.normalize()
+		self.assertAlmostEqual(p4.mean, 0.9/0.7)
+
+		# Original object is unchanged.
+		self.assertEqual(p3.mean, None)
