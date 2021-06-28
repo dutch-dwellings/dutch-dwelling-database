@@ -23,13 +23,15 @@ class InsulationModule(BaseModule):
 	def __init__(self, connection, **kwargs):
 		super().__init__(self, **kwargs)
 
+		self.dwellings_n = INSULATION_DATA['dwellings_n']
 		self.dwelling_type_multipliers = INSULATION_DATA['dwelling_type_multipliers']
 
 		self.building_code_r_values = self.year_dict_to_dataframe(INSULATION_DATA['building_code_r_values'])
 
 		self.insulation_measures_r_values = INSULATION_DATA['insulation_measures_r_values']
+		self.glazing_r_values = INSULATION_DATA['glazing_r_values']
+
 		self.insulation_measures_n = self.year_dict_to_dataframe(INSULATION_DATA['insulation_measures_n'])
-		self.dwellings_n = INSULATION_DATA['dwellings_n']
 		self.insulation_measures_p = self.get_insulation_measures_p(self.insulation_measures_n)
 
 		self.base_r_values_1992_2005 = INSULATION_DATA['base_r_values_1992_2005']
@@ -98,6 +100,10 @@ class InsulationModule(BaseModule):
 
 		dwelling.attributes['insulation_roof_r_dist'] = self.process_insulation_type(dwelling, 'roof')
 
+		dwelling.attributes['insulation_floor_r_dist'] = self.process_insulation_type(dwelling, 'floor')
+
+		dwelling.attributes['insulation_window_r_dist'] = self.process_insulation_type(dwelling, 'window')
+
 	def get_building_code(self, construction_year):
 		'''
 		Get the building code applicable to buildings
@@ -153,11 +159,22 @@ class InsulationModule(BaseModule):
 		# after construction before a measure gets taken.
 		applicable_measure_years = range(max(2010, construction_year + self.MIN_YEAR_MEASURE_AFTER_CONSTRUCTION), 2019 + 1)
 
-		measures_r_values = [
-			self.insulation_measures_r_values[year]
-			for year
-			in applicable_measure_years
-		]
+		if insulation_type in ['facade', 'floor', 'roof']:
+			measures_r_values = [
+				self.insulation_measures_r_values[year]
+				for year
+				in applicable_measure_years
+			]
+		elif insulation_type == 'window':
+			# The info on measures that we have is on
+			# HR glazing.
+			measures_r_values = [
+				self.glazing_r_values['hr'].copy()
+				for _
+				in applicable_measure_years
+			]
+		else:
+			raise NotImplementedError
 
 		measure_prob_multiplier = self.dwelling_type_multipliers[dwelling_type]
 
@@ -181,11 +198,24 @@ class InsulationModule(BaseModule):
 					measures_r_values[i] * measures_prob[i]
 					for i in range(len(measures_r_values))
 				])
-			measures_dist.pad()
 
-		# Add the increase of R-values in facade_measures_dist
-		# to the base distribution facade_base_dist.
-		return base_dist & measures_dist
+		if insulation_type in ['facade', 'floor', 'roof']:
+			measures_dist.pad()
+			# Add the increase of R-values in measures_dist
+			# to the base distribution base_dist.
+			return base_dist & measures_dist
+
+		# With windows, the measure is not an addition to the
+		# existing insulation, but a replacement.
+		elif insulation_type == 'window':
+			p_measures = sum(measures_prob)
+			# 'measures_dist' already includes the absolute
+			# probability of the measures, so doesn't need to
+			# be multiplied by p_measures.
+			window_r_dist = (1 - p_measures) * base_dist + measures_dist
+			return window_r_dist
+		else:
+			raise NotImplementedError
 
 	# We assume no insulation measures will be taken
 	# in the first 10 years after construction.

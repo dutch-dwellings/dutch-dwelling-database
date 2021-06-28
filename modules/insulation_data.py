@@ -243,7 +243,24 @@ INSULATION_DATA = {
 					2.00: 0,
 					2.53: 0.967,
 					2.72: 0.033
-				})
+				}),
+			'floor': ProbabilityDistribution({
+					0.15: 0.005,
+					0.17: 0.093,
+					0.32: 0.086,
+					0.52: 0.093,
+					0.65: 0.133,
+					1.30: 0.047,
+					1.40: 0.042,
+					2.00: 0.093,
+					2.15: 0.128,
+					2.53: 0.277,
+					2.65: 0.005
+				}),
+			'window': ProbabilityDistribution({
+					# double glazing
+					0.333: 1
+				}),
 		}
 	},
 
@@ -270,8 +287,33 @@ INSULATION_DATA = {
 					2.00: 0.108,
 					2.53: 0.048,
 					2.72: 0.002
+				}),
+			'floor': ProbabilityDistribution({
+					0.15: 0.006,
+					0.17: 0.117,
+					0.32: 0.108,
+					0.52: 0.117,
+					0.65: 0.167,
+					1.30: 0.059,
+					1.40: 0.053,
+					2.00: 0.117,
+					2.15: 0.161,
+					2.53: 0.093,
+					2.65: 0.002
+				}),
+			'window': ProbabilityDistribution({
+					# double glazing
+					0.333: 1
 				})
 		}
+	},
+
+	'glazing_r_values': {
+		'single': ProbabilityDistribution({0.175: 1}),
+		'double': ProbabilityDistribution({0.333: 1}),
+		'hr': ProbabilityDistribution({(0.5, 0.625): 1}),
+		'hr+': ProbabilityDistribution({(0.625, 0.833): 1}),
+		'hr++': ProbabilityDistribution({0.833: 1})
 	}
 
 }
