@@ -27,6 +27,10 @@ class ProbabilityDistribution:
 		if normalize:
 			self.normalize()
 
+	def __str__(self):
+		probs = {**self.prob_points, **self.prob_ranges}
+		return f'ProbabilityDistribution({probs})'
+
 	def __add__(self, other):
 		if type(other) != ProbabilityDistribution:
 			# Special case, required for sum()
@@ -78,6 +82,24 @@ class ProbabilityDistribution:
 		return self * other
 
 	def __and__(self, other):
+		'''
+		Defines self & other.
+		other can either be a number
+		(shifts the whole distribution),
+		or another ProbabilityDistribution,
+		in which case it will get the probability
+		for the sum of independent 'draws'
+		from the distributions.
+		'''
+
+		def add_number(pd1, number):
+			if type(pd1[0]) == tuple:
+				return (
+					(pd1[0][0] + number, pd1[0][1] + number),
+					pd1[1]
+					)
+			else:
+				return (pd1[0] + number, pd1[1])
 
 		def add_prob_dists(pd1, pd2):
 			pd1_val = pd1[0]
@@ -101,11 +123,20 @@ class ProbabilityDistribution:
 				return (pd1_val + pd2_val, pd1_p * pd2_p)
 
 		new_pd = []
-		for pd1 in [*self.prob_points.items(), *self.prob_ranges.items()]:
-			for pd2 in [*other.prob_points.items(), *other.prob_ranges.items()]:
-				new_pd.append(add_prob_dists(pd1, pd2))
+
+		if type(other) in [float, int]:
+			for pd1 in [*self.prob_points.items(), *self.prob_ranges.items()]:
+				new_pd.append(add_number(pd1, other))
+
+		else:
+			for pd1 in [*self.prob_points.items(), *self.prob_ranges.items()]:
+				for pd2 in [*other.prob_points.items(), *other.prob_ranges.items()]:
+					new_pd.append(add_prob_dists(pd1, pd2))
 
 		return ProbabilityDistribution(new_pd)
+
+	def __rand__(self, other):
+		return self & other
 
 	def get_cum_p(self):
 		'''

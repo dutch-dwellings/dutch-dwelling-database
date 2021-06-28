@@ -389,3 +389,20 @@ class TestProbabilityUtils(unittest.TestCase):
 			p4 = p3 & p3
 		except NotImplementedError:
 			pass
+
+	def test_can_add_number(self):
+		p3 = ProbabilityDistribution({
+				5: 0.2,
+				(0, 1): 0.3,
+				(2, 3): 0.5
+			})
+		p4 = 2 & p3
+		self.assertEqual(type(p4), ProbabilityDistribution)
+		self.assertEqual(p4.mean, p3.mean + 2)
+		self.assertEqual(p4.p(7), 0.2)
+		self.assertEqual(p4.p((4, 5)), 0.5)
+		p5 = p3 & 2
+		self.assertEqual(type(p5), ProbabilityDistribution)
+		self.assertEqual(p5.mean, p3.mean + 2)
+		self.assertEqual(p5.p(7), 0.2)
+		self.assertEqual(p5.p((4, 5)), 0.5)
