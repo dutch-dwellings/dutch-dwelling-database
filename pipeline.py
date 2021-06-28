@@ -1,7 +1,7 @@
 import time
 
 from psycopg2 import sql
-
+from psycopg2.extras import DictCursor
 
 from utils.database_utils import get_connection, get_bag_sample, get_neighbourhoods_sample, get_neighbourhoods_sample_UAE
 from utils.create_results_table import main as create_results_table
@@ -34,14 +34,22 @@ def main():
 
 	connection = get_connection()
 
+	cursor = connection.cursor()
+
+	dwellings_count_query = "SELECT COUNT(vbo_id) FROM bag"
+	cursor.execute(dwellings_count_query)
+	dwelling_count = cursor.fetchone()[0]
+	cursor.close()
+
+
 	# Also deletes existing `results' table
 	print("Creating table 'results'...")
 	create_results_table()
 
-	print("Getting a BAG sample...")
-	#sample = get_bag_sample(connection, 1000)
+	# print("Getting a BAG sample...")
+	# sample = get_bag_sample(connection, 1000)
 	# sample = get_neighbourhoods_sample_UAE(connection)
-	sample = get_neighbourhoods_sample(connection, 'BU034405%', 100000000)
+	# sample = get_neighbourhoods_sample(connection, 'BU034405%', 100000000)
 
 	print("Initiating modules...")
 
@@ -86,19 +94,29 @@ def main():
 
 	modules = [Module(connection, **kwargs) for Module in Modules]
 
-	print("Processing entries...")
-	for entry in sample:
-		dwelling = Dwelling(dict(entry), connection)
+	# Querying BAG
+	cursor = connection.cursor(cursor_factory=DictCursor)
+	query = "SELECT * FROM bag ORDER BY buurt_id"
+	cursor.execute(query)
 
-		for module in modules:
-			module.process(dwelling)
+	while i < dwelling_count:
+		print("Getting a BAG sample...")
+		sample = cursor.fetchmany(100000)
 
-		dwelling.save()
-		i += 1
-		if i % 100 == 0:
-			print(f'   processed dwelling: {i}', end='\r')
+		print("Processing entries...")
+		for entry in sample:
+			dwelling = Dwelling(dict(entry), connection)
+
+			for module in modules:
+				module.process(dwelling)
+
+			dwelling.save()
+			i += 1
+			if i % 100 == 0:
+				print(f'   processed dwelling: {i}', end='\r')
 
 	print("\nCommiting and closing...")
+	cursor.close()
 	connection.commit()
 	connection.close()
 

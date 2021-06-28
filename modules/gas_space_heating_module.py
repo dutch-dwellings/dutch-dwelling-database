@@ -78,7 +78,12 @@ class GasSpaceHeatingRegionalModule(BaseModule):
 			AND type_verwarmingsinstallatie = 'A050112'
 			AND woningen IS NOT null'''
 		cursor.execute(query_boiler_heating, (buurt_id,))
-		buurt.attributes['gas_boiler_heating_share'] = cursor.fetchone()[0]
+
+
+		gas_boiler_heating_share = cursor.fetchone()
+		gas_boiler_heating_share = self.handle_null_data(gas_boiler_heating_share)
+
+		buurt.attributes['gas_boiler_heating_share'] = gas_boiler_heating_share
 
 		# Add percentage of dwellings with block heating in neighbourhood to dict
 		# A050113 is the code for a block heating
@@ -90,7 +95,11 @@ class GasSpaceHeatingRegionalModule(BaseModule):
 			AND type_verwarmingsinstallatie = 'A050113'
 			AND woningen IS NOT null'''
 		cursor.execute(query_block_heating, (buurt_id,))
-		buurt.attributes['gas_block_heating_share'] = cursor.fetchone()[0]
+
+		gas_block_heating_share = cursor.fetchone()
+		gas_block_heating_share = self.handle_null_data(gas_block_heating_share)
+
+		buurt.attributes['gas_block_heating_share'] = gas_block_heating_share
 
 		cursor.close()
 

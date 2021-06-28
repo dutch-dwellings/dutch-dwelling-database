@@ -91,18 +91,18 @@ class SamplingModule(BaseModule):
 			tries = 0
 			# Sample until installation is assigned or assign gas after five failed attempts as it is the most common
 			while installations_amount == 0:
-				self.get_sampling_outputs_per_function(function, dwelling)
+				self.get_sampling_outputs_per_function(dwelling, function)
 				tries += 1
 				if tries >= 4:
 					if function == 'space':
 						dwelling.attributes['gas_boiler_space'] = True
 					if function == 'water':
 						dwelling.attributes['gas_boiler_water'] = True
-					if function == 'space':
+					if function == 'cooking':
 						dwelling.attributes['gas_cooking'] = True
 				installations_amount = self.count_installations(dwelling, function)
 
-	def get_sampling_outputs_per_function(self, function, dwelling):
+	def get_sampling_outputs_per_function(self, dwelling, function):
 		for name, options in dwelling.outputs.items():
 			if options.get('sampling', False) == True and options.get('function', False) == function:
 					distribution_value = dwelling.attributes[options['distribution']]

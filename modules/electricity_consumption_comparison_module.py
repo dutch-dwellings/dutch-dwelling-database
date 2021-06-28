@@ -194,12 +194,7 @@ class ElectricityConsumptionComparisonRegionalModule(BaseRegionalModule):
 			AND pc6 = %s'''
 		cursor.execute(query, (pc6.attributes['pc6'],))
 		avg_electricity_use = cursor.fetchone()
-		if avg_electricity_use is None:
-			avg_electricity_use = 0
-		elif avg_electricity_use[0] is None:
-			avg_electricity_use = 0
-		else:
-			avg_electricity_use = avg_electricity_use[0]
+		avg_electricity_use = self.handle_null_data(avg_electricity_use)
 		number_of_dwellings = pc6.attributes['number_of_dwellings']
 		pc6.attributes['total_elec_use'] = avg_electricity_use * number_of_dwellings
 		cursor.close()
@@ -215,12 +210,7 @@ class ElectricityConsumptionComparisonRegionalModule(BaseRegionalModule):
 			AND pc6 = %s'''
 		cursor.execute(query, (pc6.attributes['pc6'],))
 		household_size = cursor.fetchone()
-		if household_size is None:
-			household_size = 0
-		elif household_size[0] is None:
-			household_size = 0
-		else:
-			household_size = household_size[0]
+		household_size = self.handle_null_data(household_size)
 		pc6.attributes['household_size'] = household_size
 		cursor.close()
 

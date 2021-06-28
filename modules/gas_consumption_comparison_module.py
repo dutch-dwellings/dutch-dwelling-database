@@ -193,12 +193,7 @@ class GasConsumptionComparisonRegionalModule(BaseRegionalModule):
 			AND pc6 = %s'''
 		cursor.execute(gas_consumption_query, (pc6.attributes['pc6'],))
 		avg_gas_use = cursor.fetchone()
-		if avg_gas_use is None:
-			avg_gas_use = 0
-		elif avg_gas_use[0] is None:
-			avg_gas_use = 0
-		else:
-			avg_gas_use = avg_gas_use[0]
+		avg_gas_use = self.handle_null_data(avg_gas_use)
 
 		number_of_dwellings_query = '''
 		SELECT COUNT(vbo_id)
@@ -207,12 +202,7 @@ class GasConsumptionComparisonRegionalModule(BaseRegionalModule):
 			pc6 = %s'''
 		cursor.execute(number_of_dwellings_query,(pc6.attributes['pc6'],))
 		number_of_dwellings = cursor.fetchone()
-		if number_of_dwellings is None:
-			number_of_dwellings = 0
-		elif number_of_dwellings[0] is None:
-			number_of_dwellings = 0
-		else:
-			number_of_dwellings = number_of_dwellings[0]
+		number_of_dwellings = self.handle_null_data(number_of_dwellings)
 
 		pc6.attributes['number_of_dwellings'] = number_of_dwellings
 		pc6.attributes['total_gas_use'] = avg_gas_use * number_of_dwellings

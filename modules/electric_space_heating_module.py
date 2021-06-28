@@ -138,7 +138,11 @@ class ElectricSpaceHeatingRegionalModule(BaseModule):
 			AND type_verwarmingsinstallatie = 'A050117'
 			AND woningen IS NOT null'''
 		cursor.execute(query_hybrid_heat_pumps, (buurt_id,))
-		buurt.attributes['elec_high_gas_share'] = cursor.fetchone()[0]
+
+		elec_high_gas_share = cursor.fetchone()
+		elec_high_gas_share = self.handle_null_data(elec_high_gas_share)
+
+		buurt.attributes['elec_high_gas_share'] = elec_high_gas_share
 
 		# Add share of dwellings with electric heating and low gas use
 		# A050118 is the code for electric heating with low gas use
@@ -150,7 +154,12 @@ class ElectricSpaceHeatingRegionalModule(BaseModule):
 			AND type_verwarmingsinstallatie = 'A050118'
 			AND woningen IS NOT null'''
 		cursor.execute(query_low_gas, (buurt_id,))
-		buurt.attributes['elec_low_gas_share'] = cursor.fetchone()[0]
+
+		elec_low_gas_share = cursor.fetchone()
+		elec_low_gas_share = self.handle_null_data(elec_low_gas_share)
+
+		buurt.attributes['elec_low_gas_share'] = elec_low_gas_share
+
 
 		# Add share of dwellings with electric heating and no gas use
 		# A050119 is the code for electric heating with no gas use
@@ -162,7 +171,13 @@ class ElectricSpaceHeatingRegionalModule(BaseModule):
 			AND type_verwarmingsinstallatie = 'A050119'
 			AND woningen IS NOT null'''
 		cursor.execute(query_no_gas, (buurt_id,))
-		buurt.attributes['elec_no_gas_share'] = cursor.fetchone()[0]
+
+		elec_no_gas_share = cursor.fetchone()
+		elec_no_gas_share = self.handle_null_data(elec_no_gas_share)
+
+		buurt.attributes['elec_no_gas_share'] = elec_no_gas_share
+
+
 
 		cursor.close()
 

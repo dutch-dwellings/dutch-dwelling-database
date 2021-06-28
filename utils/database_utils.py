@@ -252,11 +252,3 @@ def get_neighbourhoods_sample_UAE(connection):
 	sample = cursor.fetchall()
 	cursor.close()
 	return sample
-
-def get_neighbourhood_dwellings(connection, buurt_id):
-	cursor = connection.cursor(cursor_factory=DictCursor)
-	query = "SELECT * FROM bag WHERE buurt_id = %s AND bouwjaar IS NOT null"
-	cursor.execute(query, (buurt_id,))
-	dwellings = cursor.fetchall()
-	cursor.close()
-	return dwellings

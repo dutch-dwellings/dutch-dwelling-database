@@ -43,6 +43,15 @@ class BaseModule:
 			probability = probability - 2 * (probability) * (percentile - 0.5)
 		return probability
 
+	def handle_null_data(self, variable):
+		if variable is None:
+			variable = 0
+		elif variable[0] is None:
+			variable = 0
+		else:
+			variable = variable[0]
+		return float(variable)
+
 	def process(self, dwelling):
 		# Check whether this module has already processed
 		# this dwelling.
@@ -69,6 +78,15 @@ class BaseRegionalModule:
 	def __init__(self, connection):
 		print(f'   Initiating regional module {self.__class__.__name__}')
 		self.connection = connection
+
+	def handle_null_data(self, variable):
+		if variable is None:
+			variable = 0
+		elif variable[0] is None:
+			variable = 0
+		else:
+			variable = variable[0]
+		return float(variable)
 
 	# Indicates support for different regional types.
 	# Current options: ['pc6'], ['buurt'].
