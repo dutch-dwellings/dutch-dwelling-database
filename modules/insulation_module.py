@@ -96,7 +96,9 @@ class InsulationModule(BaseModule):
 		return measures_p
 
 	def process(self, dwelling):
-		dwelling.attributes['insulation_facade_r_dist'] = self.process_insulation_type(dwelling, 'facade')
+		# combines the R-values for the facade itself,
+		# and optional increase of cavity wall insulation.
+		dwelling.attributes['insulation_facade_r_dist'] = self.process_insulation_type(dwelling, 'facade') & self.process_insulation_type(dwelling, 'cavity wall')
 
 		dwelling.attributes['insulation_roof_r_dist'] = self.process_insulation_type(dwelling, 'roof')
 
@@ -118,7 +120,7 @@ class InsulationModule(BaseModule):
 			'roof': ProbabilityDistribution({building_code['roof']: 1}),
 			'wall': ProbabilityDistribution({building_code['wall']: 1}),
 			'floor': ProbabilityDistribution({building_code['floor']: 1}),
-			'window': ProbabilityDistribution({building_code['window']: 1}),
+			'window': ProbabilityDistribution({building_code['window']: 1})
 		}
 
 	def get_base_dist(self, dwelling):
@@ -144,6 +146,10 @@ class InsulationModule(BaseModule):
 		else:
 			base_dist = self.base_r_values_before_1920[dwelling_type]
 
+		# We start all distributions off, pretending there is no
+		# cavity wall insulation at all.
+		base_dist['cavity wall'] = ProbabilityDistribution({0: 1})
+
 		return base_dist
 
 	def process_insulation_type(self, dwelling, insulation_type):
@@ -153,11 +159,21 @@ class InsulationModule(BaseModule):
 		construction_year = dwelling.attributes['bouwjaar']
 		dwelling_type = dwelling.attributes['woningtype']
 
-		# We only have data available for 2010 to 2019,
-		# and we assume a waiting period of
-		# MIN_YEAR_MEASURE_AFTER_CONSTRUCTION
-		# after construction before a measure gets taken.
-		applicable_measure_years = range(max(2010, construction_year + self.MIN_YEAR_MEASURE_AFTER_CONSTRUCTION), 2019 + 1)
+		if insulation_type == 'cavity wall':
+			# Only buildings between 1920 and 1974
+			# are eligible for cavity wall insulation upgrade:
+			# older buildings have no cavity wall,
+			# newer buildings already have an insulated cavity wall.
+			if 1920 <= construction_year <= 1974:
+				applicable_measure_years = range(2010, 2019 + 1)
+			else:
+				applicable_measure_years = []
+		else:
+			# We only have data available for 2010 to 2019,
+			# and we assume a waiting period of
+			# MIN_YEAR_MEASURE_AFTER_CONSTRUCTION
+			# after construction before a measure gets taken.
+			applicable_measure_years = range(max(2010, construction_year + self.MIN_YEAR_MEASURE_AFTER_CONSTRUCTION), 2019 + 1)
 
 		if insulation_type in ['facade', 'floor', 'roof']:
 			measures_r_values = [
@@ -170,6 +186,13 @@ class InsulationModule(BaseModule):
 			# HR glazing.
 			measures_r_values = [
 				self.glazing_r_values['hr'].copy()
+				for _
+				in applicable_measure_years
+			]
+		elif insulation_type == 'cavity wall':
+			measures_r_values = [
+				# TODO: get better values!
+				ProbabilityDistribution({1.3: 1})
 				for _
 				in applicable_measure_years
 			]
@@ -214,6 +237,10 @@ class InsulationModule(BaseModule):
 			# be multiplied by p_measures.
 			window_r_dist = (1 - p_measures) * base_dist + measures_dist
 			return window_r_dist
+		elif insulation_type == 'cavity wall':
+			measures_dist.pad()
+			# This comes as an addon to regular facade insulation.
+			return measures_dist
 		else:
 			raise NotImplementedError
 
