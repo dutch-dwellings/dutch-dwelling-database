@@ -95,6 +95,7 @@ class InsulationModule(BaseModule):
 
 	def process(self, dwelling):
 		self.process_facade(dwelling)
+		self.process_roof(dwelling)
 
 	def get_building_code(self, construction_year):
 		'''
@@ -186,6 +187,44 @@ class InsulationModule(BaseModule):
 		insulation_facade_r_dist = facade_base_dist & facade_measures_dist
 
 		dwelling.attributes['insulation_facade_r_dist'] = insulation_facade_r_dist
+
+	def process_roof(self, dwelling):
+
+		roof_base_dist = self.get_base_dist(dwelling)['roof']
+
+		construction_year = dwelling.attributes['bouwjaar']
+		dwelling_type = dwelling.attributes['woningtype']
+
+		applicable_measure_years = range(max(2010, construction_year + self.MIN_YEAR_MEASURE_AFTER_CONSTRUCTION), 2019 + 1)
+
+		measures_r_values = [
+			self.insulation_measures_r_values[year]
+			for year
+			in applicable_measure_years
+		]
+
+		measure_prob_multiplier = self.dwelling_type_multipliers[dwelling_type]
+
+		roof_measures_prob = [
+			measure_prob_multiplier *
+			self.insulation_measures_p[self.insulation_measures_p.year == year]['roof'].values[0]
+			for year in applicable_measure_years
+			]
+
+		if len(applicable_measure_years) == 0:
+			roof_measures_dist = ProbabilityDistribution({
+					0: 1
+				})
+		else:
+			roof_measures_dist = sum([
+					measures_r_values[i] * roof_measures_prob[i]
+					for i in range(len(measures_r_values))
+				])
+			roof_measures_dist.pad()
+
+		insulation_roof_r_dist = roof_base_dist & roof_measures_dist
+
+		dwelling.attributes['insulation_roof_r_dist'] = insulation_roof_r_dist
 
 	# We assume no insulation measures will be taken
 	# in the first 10 years after construction.

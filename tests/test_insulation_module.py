@@ -16,20 +16,20 @@ class TestDistrictSpaceHeatingModule(unittest.TestCase):
 		self.mock_connection = get_mock_connection()
 		self.insulation_module = InsulationModule(self.mock_connection, silent=True)
 
-	def test_uses_building_code_for_new_buildings_facade(self):
+	def test_uses_building_code_for_new_buildings(self):
 		attributes = {
 			'bouwjaar': 2020,
 			'woningtype': 'vrijstaand'
 		}
 		dwelling = Dwelling(attributes, self.mock_connection)
 		self.insulation_module.process(dwelling)
-		self.assertEqual(dwelling.attributes['insulation_facade_r_dist'].p(4.5), 1)
 
-		# self.assertEqual(dwelling.attributes['insulation_roof_r_dist'].p(6), 1)
+		self.assertEqual(dwelling.attributes['insulation_facade_r_dist'].p(4.5), 1)
+		self.assertEqual(dwelling.attributes['insulation_roof_r_dist'].p(6), 1)
 		# self.assertEqual(dwelling.attributes['insulation_wall_r_dist'].p(3.5), 1)
 		# self.assertEqual(dwelling.attributes['insulation_window_r_dist'].p(1/1.65), 1)
 
-	def test_uses_building_code_and_measures_for_buildings_after_2006_facade(self):
+	def test_uses_building_code_and_measures_for_buildings_after_2006(self):
 		# From 2006 and onwards,
 		# we don't have the WoON data anymore,
 		# so we use the building code.
@@ -56,20 +56,31 @@ class TestDistrictSpaceHeatingModule(unittest.TestCase):
 		#	2019 measures: 125197
 		#	dwellings until 2008: 7189902
 		#	dwellings until 2009: 7261671
-		p_measure_2018 = 1.98 * 100978 / 7189902 # ~ 2.8%
-		p_measure_2019 = 1.98 * 125197 / 7261671 # ~ 3.4%
-		p_measure = p_measure_2018 + p_measure_2019
+		p_facade_measure_2018 = 1.98 * 100978 / 7189902 # ~ 2.8%
+		p_facade_measure_2019 = 1.98 * 125197 / 7261671 # ~ 3.4%
+		p_facade_measure = p_facade_measure_2018 + p_facade_measure_2019
 
 		p_r_29 = 11.4 / (11.4 + 14.5)
 		p_r_34 = 14.5 / (11.4 + 14.5)
 		p_r_33 = 10.2 / (10.2 + 11.8)
 		p_r_38 = 11.8 / (10.2 + 11.8)
 
-		expected_mean = 2.5 + p_measure_2018 * (2.9 * p_r_29 + 3.4 * p_r_34) + p_measure_2019 * (3.3 * p_r_33 + 3.8 * p_r_38)
+		expected_facade_mean = 2.5 + p_facade_measure_2018 * (2.9 * p_r_29 + 3.4 * p_r_34) + p_facade_measure_2019 * (3.3 * p_r_33 + 3.8 * p_r_38)
+
 		dwelling = Dwelling(attributes, self.mock_connection)
 		self.insulation_module.process(dwelling)
-		self.assertAlmostEqual(dwelling.attributes['insulation_facade_r_dist'].mean, expected_mean)
-		self.assertAlmostEqual(dwelling.attributes['insulation_facade_r_dist'].p(2.5), 1 - p_measure)
+
+		self.assertAlmostEqual(dwelling.attributes['insulation_facade_r_dist'].mean, expected_facade_mean)
+		self.assertAlmostEqual(dwelling.attributes['insulation_facade_r_dist'].p(2.5), 1 - p_facade_measure)
+
+		p_roof_measure_2018 = 1.98 * 199784 / 7189902
+		p_roof_measure_2019 = 1.98 * 246325 / 7261671
+		p_roof_measure = p_roof_measure_2018 + p_roof_measure_2019
+
+		expected_roof_mean = 2.5 + p_roof_measure_2018 * (2.9 * p_r_29 + 3.4 * p_r_34) + p_roof_measure_2019 * (3.3 * p_r_33 + 3.8 * p_r_38)
+
+		self.assertAlmostEqual(dwelling.attributes['insulation_roof_r_dist'].mean, expected_roof_mean)
+		self.assertAlmostEqual(dwelling.attributes['insulation_roof_r_dist'].p(2.5), 1 - p_roof_measure)
 
 	def test_uses_woon_data_and_measures_for_buildings_before_2006_facade(self):
 		attributes = {
