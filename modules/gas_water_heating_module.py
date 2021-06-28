@@ -21,7 +21,7 @@ class GasWaterHeatingModule(BaseModule):
 		district_high_gas_p = dwelling.attributes['district_high_gas_p']
 		elec_high_gas_p = dwelling.attributes['elec_high_gas_p']
 		elec_low_gas_p = dwelling.attributes['elec_low_gas_p']
-		block_heating_space_p = dwelling.attributes['block_heating_space_p']
+		block_heating_space_p = dwelling.attributes['block_heating_space_p_base']
 
 		# Individual gas boiler
 		gas_boiler_water_p = boiler_heating_space_p + elec_high_gas_p + elec_low_gas_p + 0.5 * block_heating_space_p + 0.5 * district_low_gas_p + 0.5 * district_high_gas_p # 0.5 could be improved by looking for literature

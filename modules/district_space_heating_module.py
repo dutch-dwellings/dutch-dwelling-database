@@ -49,13 +49,29 @@ class DistrictSpaceHeatingModule(BaseModule):
 class DistrictSpaceHeatingRegionalModule(BaseRegionalModule):
 
 	def process_buurt(self, buurt):
+		self.calculate_probability_modifier(buurt)
 		self.add_installation_type_shares(buurt)
+
+	def calculate_probability_modifier(self, buurt):
+		buurt_id = buurt.attributes['buurt_id']
+
+		cursor = self.connection.cursor()
+		# Calcultae total percentage of dwelling in neighbourhood with
+		total_percentage_query='''
+		SELECT SUM(woningen)
+		FROM cbs_84983ned_woningen_hoofdverwarmings_buurt_2019_typed
+		WHERE area_code = %s
+		'''
+		cursor.execute(total_percentage_query, (buurt_id,))
+		total_percentage = cursor.fetchone()[0]
+		probability_modifier = 100 / total_percentage
+		buurt.attributes['probability_modifier'] = probability_modifier
 
 	def add_installation_type_shares(self, buurt):
 
 		buurt_id = buurt.attributes['buurt_id']
 		cursor = self.connection.cursor()
-
+		probability_modifier = buurt.attributes['probability_modifier']
 		# Add percentage of dwellings with gas boiler in neighbourhood to dict
 		# A050114 is the code for district heating with high gas use
 		query_district_high_gas='''
@@ -70,7 +86,7 @@ class DistrictSpaceHeatingRegionalModule(BaseRegionalModule):
 		district_high_gas_share = cursor.fetchone()
 		district_high_gas_share = self.handle_null_data(district_high_gas_share)
 
-		buurt.attributes['district_high_gas_share'] = district_high_gas_share
+		buurt.attributes['district_high_gas_share'] = district_high_gas_share * probability_modifier
 		# Add percentage of dwellings with block heating in neighbourhood to dict
 		# A050115 is the code for district heating with low gas use
 		query_district_low_gas ='''
@@ -85,7 +101,7 @@ class DistrictSpaceHeatingRegionalModule(BaseRegionalModule):
 		district_low_gas_share = cursor.fetchone()
 		district_low_gas_share = self.handle_null_data(district_low_gas_share)
 
-		buurt.attributes['district_low_gas_share'] = district_low_gas_share
+		buurt.attributes['district_low_gas_share'] = district_low_gas_share * probability_modifier
 
 		# Add percentage of dwellings with block heating in neighbourhood to dict
 		# A050116 is the code for district heating with no gas use
@@ -100,7 +116,7 @@ class DistrictSpaceHeatingRegionalModule(BaseRegionalModule):
 		district_no_gas_share = cursor.fetchone()
 		district_no_gas_share = self.handle_null_data(district_no_gas_share)
 
-		buurt.attributes['district_no_gas_share'] = district_no_gas_share
+		buurt.attributes['district_no_gas_share'] = district_no_gas_share  * probability_modifier
 
 		cursor.close()
 

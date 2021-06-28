@@ -28,7 +28,6 @@ class GasSpaceHeatingModule(BaseModule):
 		block_heating_space_p = self.modify_probability_up(block_heating_space_p, gas_use_percentile_neighbourhood)
 
 		dwelling.attributes['boiler_heating_space_p'] = boiler_heating_space_p
-		dwelling.attributes['district_high_space_p'] = district_high_space_p
 		dwelling.attributes['gas_boiler_space_p'] = gas_boiler_space_p
 		dwelling.attributes['block_heating_space_p'] = block_heating_space_p
 		dwelling.attributes['block_heating_space_p_base'] = block_heating_space_p_base
@@ -67,6 +66,7 @@ class GasSpaceHeatingRegionalModule(BaseModule):
 
 		buurt_id = buurt.attributes['buurt_id']
 		cursor = self.connection.cursor()
+		probability_modifier = buurt.attributes['probability_modifier']
 
 		# Add percentage of dwellings with gas boiler in neighbourhood to dict
 		# A050112 is the code for a gas boiler
@@ -83,7 +83,7 @@ class GasSpaceHeatingRegionalModule(BaseModule):
 		gas_boiler_heating_share = cursor.fetchone()
 		gas_boiler_heating_share = self.handle_null_data(gas_boiler_heating_share)
 
-		buurt.attributes['gas_boiler_heating_share'] = gas_boiler_heating_share
+		buurt.attributes['gas_boiler_heating_share'] = gas_boiler_heating_share * probability_modifier
 
 		# Add percentage of dwellings with block heating in neighbourhood to dict
 		# A050113 is the code for a block heating
@@ -99,7 +99,7 @@ class GasSpaceHeatingRegionalModule(BaseModule):
 		gas_block_heating_share = cursor.fetchone()
 		gas_block_heating_share = self.handle_null_data(gas_block_heating_share)
 
-		buurt.attributes['gas_block_heating_share'] = gas_block_heating_share
+		buurt.attributes['gas_block_heating_share'] = gas_block_heating_share * probability_modifier
 
 		cursor.close()
 

@@ -127,7 +127,7 @@ class ElectricSpaceHeatingRegionalModule(BaseModule):
 
 		buurt_id = buurt.attributes['buurt_id']
 		cursor = self.connection.cursor()
-
+		probability_modifier = buurt.attributes['probability_modifier']
 		# Add share of dwellings with hybrid heat pump
 		# A050117 is the code for a gas boiler
 		query_hybrid_heat_pumps = '''
@@ -142,7 +142,7 @@ class ElectricSpaceHeatingRegionalModule(BaseModule):
 		elec_high_gas_share = cursor.fetchone()
 		elec_high_gas_share = self.handle_null_data(elec_high_gas_share)
 
-		buurt.attributes['elec_high_gas_share'] = elec_high_gas_share
+		buurt.attributes['elec_high_gas_share'] = elec_high_gas_share * probability_modifier
 
 		# Add share of dwellings with electric heating and low gas use
 		# A050118 is the code for electric heating with low gas use
@@ -158,7 +158,7 @@ class ElectricSpaceHeatingRegionalModule(BaseModule):
 		elec_low_gas_share = cursor.fetchone()
 		elec_low_gas_share = self.handle_null_data(elec_low_gas_share)
 
-		buurt.attributes['elec_low_gas_share'] = elec_low_gas_share
+		buurt.attributes['elec_low_gas_share'] = elec_low_gas_share * probability_modifier
 
 
 		# Add share of dwellings with electric heating and no gas use
@@ -175,7 +175,7 @@ class ElectricSpaceHeatingRegionalModule(BaseModule):
 		elec_no_gas_share = cursor.fetchone()
 		elec_no_gas_share = self.handle_null_data(elec_no_gas_share)
 
-		buurt.attributes['elec_no_gas_share'] = elec_no_gas_share
+		buurt.attributes['elec_no_gas_share'] = elec_no_gas_share * probability_modifier
 
 
 
