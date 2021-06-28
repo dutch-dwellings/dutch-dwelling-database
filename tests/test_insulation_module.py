@@ -29,9 +29,13 @@ class TestDistrictSpaceHeatingModule(unittest.TestCase):
 		# self.assertEqual(dwelling.attributes['insulation_wall_r_dist'].p(3.5), 1)
 		# self.assertEqual(dwelling.attributes['insulation_window_r_dist'].p(1/1.65), 1)
 
-	def test_uses_building_code_and_measures_for_buildings_after_1992_facade(self):
+	def test_uses_building_code_and_measures_for_buildings_after_2006_facade(self):
+		# From 2006 and onwards,
+		# we don't have the WoON data anymore,
+		# so we use the building code.
+
 		# Easy example with just two applicable
-		# measure year.
+		# measure years (2018 and 2019).
 		attributes = {
 			'bouwjaar': 2008,
 			'woningtype': 'vrijstaand'
@@ -66,3 +70,26 @@ class TestDistrictSpaceHeatingModule(unittest.TestCase):
 		self.insulation_module.process(dwelling)
 		self.assertAlmostEqual(dwelling.attributes['insulation_facade_r_dist'].mean, expected_mean)
 		self.assertAlmostEqual(dwelling.attributes['insulation_facade_r_dist'].p(2.5), 1 - p_measure)
+
+	def test_uses_woon_data_and_measures_for_buildings_before_2006_facade(self):
+		attributes = {
+			'bouwjaar': 1919,
+			'woningtype': 'vrijstaand'
+		}
+		# FACADE
+		# Applicable WoON distribution:
+		# 	0.36: 0.3%
+		# 	0.43: 7.5%
+		# ...
+		p_multiplier = 1.98
+		# For dwellings built in or before 2000, all measure years
+		# from 2010 to 2019 are applicable.
+		p_measure_base_before_2000 = 35838 / 6591218 + 73097 / 6669286 + 76480 / 6739330 + 60548 / 6804459 + 84501 / 6870704 + 74448 / 6943943 + 75802 / 7027060 + 85442 / 7109692 + 100978 / 7189902 + 125197 / 7261671
+		p_measure = p_multiplier * p_measure_base_before_2000
+
+		dwelling = Dwelling(attributes, self.mock_connection)
+		self.insulation_module.process(dwelling)
+
+		# R-value is 0.43 if it was 0.43 to begin with (p=0.075)
+		# and no measures were taken after that (p = 1 - p_measure).
+		self.assertAlmostEqual(dwelling.attributes['insulation_facade_r_dist'].p(0.43), 0.075 * (1 - p_measure))

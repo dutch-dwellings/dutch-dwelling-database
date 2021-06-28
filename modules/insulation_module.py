@@ -27,6 +27,9 @@ class InsulationModule(BaseModule):
 		self.insulation_measures_r_values = INSULATION_DATA['insulation_measures_r_values']
 		self.insulation_measures_n = INSULATION_DATA['insulation_measures_n']
 		self.dwellings_n = INSULATION_DATA['dwellings_n']
+		self.base_r_values_1992_2005 = INSULATION_DATA['base_r_values_1992_2005']
+		self.base_r_values_1920_1991 = INSULATION_DATA['base_r_values_1920_1991']
+		self.base_r_values_before_1920 = INSULATION_DATA['base_r_values_before_1920']
 
 	def year_dict_to_dataframe(self, dict):
 		'''
@@ -69,12 +72,22 @@ class InsulationModule(BaseModule):
 		construction_year = dwelling.attributes['bouwjaar']
 		dwelling_type = dwelling.attributes['woningtype']
 
-		if construction_year >= 1992:
+		# From 2006 onwards, we don't have the WoON
+		# base distribution anymore,
+		# so we use the building code.
+		if construction_year >= 2006:
 			building_code = self.get_building_code(construction_year)
 			facade_r = building_code['facade']
 			facade_base_dist = ProbabilityDistribution({facade_r: 1})
+		# From 1992 onwards, we have the WoON distribution
+		# that we modified so it matches the building code.
+		elif construction_year >= 1992:
+			facade_base_dist = self.base_r_values_1992_2005[dwelling_type]['facade']
+		# Cutoff point: buildings from 1920 (usually) have cavity walls, so we modified the WoON base distributions for that.
+		elif construction_year >= 1920:
+			facade_base_dist = self.base_r_values_1920_1991[dwelling_type]['facade']
 		else:
-			raise NotImplementedError()
+			facade_base_dist = self.base_r_values_before_1920[dwelling_type]['facade']
 
 		# We only have data available for 2010 to 2019,
 		# and we assume a waiting period of

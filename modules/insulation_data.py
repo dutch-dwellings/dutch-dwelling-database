@@ -233,13 +233,31 @@ INSULATION_DATA = {
 	},
 
 	# TODO: fill the rest
-	'base_r_values_1992_2009': {
+	'base_r_values_1992_2005': {
 		'vrijstaand': {
 			'facade': ProbabilityDistribution({
 					2.53: 0.532,
 					2.86: 0.468
 				})
 		}
+	},
+
+	# TODO: fill the rest
+	'base_r_values_1920_1991': {
+		'vrijstaand': {
+			'facade': ProbabilityDistribution({
+					0.36: 0.003,
+					0.43: 0.075,
+					1.30: 0.032,
+					1.36: 0.000,
+					2.11: 0.514,
+					2.53: 0.200,
+					2.86: 0.176
+				})
+		}
 	}
 
 }
+
+# TODO: fill these in later after splitting the distributions.
+INSULATION_DATA['base_r_values_before_1920'] = INSULATION_DATA['base_r_values_1920_1991']
