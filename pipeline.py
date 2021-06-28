@@ -98,10 +98,7 @@ def main():
 	cursor = connection.cursor(cursor_factory=DictCursor)
 	query = "SELECT * FROM bag ORDER BY buurt_id"
 	cursor.execute(query)
-	sample = cursor.fetchmany(100000)
-	sample = cursor.fetchmany(100000)
-	sample = cursor.fetchmany(100000)
-	sample = cursor.fetchmany(80000)
+
 	while i < dwelling_count:
 		print("Getting a BAG sample...")
 		sample = cursor.fetchmany(100000)
