@@ -204,3 +204,22 @@ class TestInsulationModule(unittest.TestCase):
 		# R-value is 0.43 if it was 0.43 to begin with (p=0.075)
 		# and no measures were taken after that.
 		self.assertAlmostEqual(dwelling.attributes['insulation_facade_r_dist'].p(0.43), 0.075 * (1 - p_facade_measure) * (1-p_cavity_measure))
+
+	def test_saves_calculated_values(self):
+		attributes = {
+			'bouwjaar': 1920,
+			'woningtype': 'vrijstaand'
+		}
+		dwelling1 = Dwelling(attributes, self.mock_connection)
+		# identical dwelling
+		dwelling2 =  Dwelling(attributes, self.mock_connection)
+
+		self.insulation_module.process(dwelling1)
+		# We monkeypatch the method,
+		# to see if it is called.
+		# If it is, it will fail with a TypeError.
+		self.insulation_module.process_insulation_type = lambda x, y: None
+		try:
+			self.insulation_module.process(dwelling2)
+		except TypeError as e:
+			self.fail(f'Should not rise TypeError "{e}"')

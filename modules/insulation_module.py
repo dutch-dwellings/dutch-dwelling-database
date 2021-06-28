@@ -38,6 +38,8 @@ class InsulationModule(BaseModule):
 		self.base_r_values_1920_1991 = INSULATION_DATA['base_r_values_1920_1991']
 		self.base_r_values_before_1920 = INSULATION_DATA['base_r_values_before_1920']
 
+		self.cached_results = {}
+
 	def year_dict_to_dataframe(self, dict):
 		'''
 		Convert a dict of the form
@@ -96,15 +98,37 @@ class InsulationModule(BaseModule):
 		return measures_p
 
 	def process(self, dwelling):
+		construction_year = dwelling.attributes['bouwjaar']
+		dwelling_type = dwelling.attributes['woningtype']
+
+		# The only information from the dwelling that we require,
+		# are the construction year and the dwelling type,
+		# so we use that as a key in our cache.
+		key = (construction_year, dwelling_type)
+
+		if key not in self.cached_results:
+			# Save processing results in cache.
+			self.cached_results[key] = self._process(dwelling)
+
+		dwelling.attributes.update(self.cached_results[key])
+
+	def _process(self, dwelling):
 		# combines the R-values for the facade itself,
 		# and optional increase of cavity wall insulation.
-		dwelling.attributes['insulation_facade_r_dist'] = self.process_insulation_type(dwelling, 'facade') & self.process_insulation_type(dwelling, 'cavity wall')
+		insulation_facade_r_dist = self.process_insulation_type(dwelling, 'facade') & self.process_insulation_type(dwelling, 'cavity wall')
 
-		dwelling.attributes['insulation_roof_r_dist'] = self.process_insulation_type(dwelling, 'roof')
+		insulation_roof_r_dist = self.process_insulation_type(dwelling, 'roof')
 
-		dwelling.attributes['insulation_floor_r_dist'] = self.process_insulation_type(dwelling, 'floor')
+		insulation_floor_r_dist = self.process_insulation_type(dwelling, 'floor')
 
-		dwelling.attributes['insulation_window_r_dist'] = self.process_insulation_type(dwelling, 'window')
+		insulation_window_r_dist = self.process_insulation_type(dwelling, 'window')
+
+		return {
+			'insulation_facade_r_dist': insulation_facade_r_dist,
+			'insulation_roof_r_dist': insulation_roof_r_dist,
+			'insulation_floor_r_dist': insulation_floor_r_dist,
+			'insulation_window_r_dist': insulation_window_r_dist
+		}
 
 	def get_building_code(self, construction_year):
 		'''
