@@ -101,7 +101,7 @@ def main():
 
 	while i < dwelling_count:
 		print("Getting a BAG sample...")
-		sample = cursor.fetchmany(100000)
+		sample = cursor.fetchmany(10000)
 
 		print("Processing entries...")
 		for entry in sample:
@@ -114,6 +114,8 @@ def main():
 			i += 1
 			if i % 100 == 0:
 				print(f'   processed dwelling: {i}', end='\r')
+			if i % 10000 == 0:
+				connection.commit()
 
 	print("\nCommiting and closing...")
 	cursor.close()
