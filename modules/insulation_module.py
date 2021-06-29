@@ -99,14 +99,17 @@ class InsulationModule(BaseModule):
 		return measures_p
 
 	def process(self, dwelling):
+		continue_processing = super().process(dwelling)
+		# Dwelling has already been processed by this module
+		if not continue_processing:
+			return
+
 		construction_year = dwelling.attributes['bouwjaar']
 		dwelling_type = dwelling.attributes['woningtype']
-
 		# The only information from the dwelling that we require,
 		# are the construction year and the dwelling type,
 		# so we use that as a key in our cache.
 		key = (construction_year, dwelling_type)
-
 		if key not in self.cached_results:
 			# Save processing results in cache.
 			self.cached_results[key] = self._process(dwelling)

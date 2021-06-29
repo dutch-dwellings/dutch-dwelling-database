@@ -42,6 +42,7 @@ class SamplingModule(BaseModule):
 		for name, options in dwelling.outputs.items():
 			if options.get('sampling', False) == True:
 				distribution_value = dwelling.attributes[options['distribution']]
+
 				dwelling.attributes[name] = self.sample(distribution_value, options['type'], name)
 				self.check_water_space_dependency(dwelling, name)
 

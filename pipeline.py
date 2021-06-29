@@ -1,5 +1,7 @@
 import time
 import sys
+from pympler import muppy, summary
+import pandas as pd
 
 from psycopg2 import sql
 from psycopg2.extras import DictCursor
@@ -104,7 +106,7 @@ def main():
 	query = "SELECT * FROM bag ORDER BY buurt_id"
 	cursor.execute(query)
 
-	while i < dwelling_count:
+	while i < 10000:
 
 		print('\n Fetching new dwellings...')
 		sample = cursor.fetchmany(10000)
@@ -131,14 +133,12 @@ def main():
 			if i % 10000 == 0:
 				connection.commit()
 
-
 	print("\nCommiting and closing...")
 	cursor.close()
 	connection.commit()
 	connection.close()
 
 	print(f'Processed {i:,} records in {(time.time() - start_time):.2f} seconds.')
-
 
 if __name__ == "__main__":
 	main()
