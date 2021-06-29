@@ -21,7 +21,7 @@ class InsulationModule(BaseModule):
 	# - wall insulation
 
 	def __init__(self, connection, **kwargs):
-		super().__init__(self, **kwargs)
+		super().__init__(connection, **kwargs)
 
 		self.dwellings_n = INSULATION_DATA['dwellings_n']
 		self.dwelling_type_multipliers = INSULATION_DATA['dwelling_type_multipliers']
@@ -272,3 +272,46 @@ class InsulationModule(BaseModule):
 	# in the first 10 years after construction.
 	# TODO: Maybe this should be higher?
 	MIN_YEAR_MEASURE_AFTER_CONSTRUCTION = 10
+
+	outputs = {
+		'insulation_facade_r_mean': {
+			'type': 'double precision',
+			'sampling': True,
+			'distribution': 'insulation_facade_r_dist'
+		},
+		'insulation_facade_r_95': {
+			'type': 'numrange',
+			'sampling': True,
+			'distribution': 'insulation_facade_r_dist'
+		},
+		'insulation_roof_r_mean': {
+			'type': 'double precision',
+			'sampling': True,
+			'distribution': 'insulation_roof_r_dist'
+		},
+		'insulation_roof_r_95': {
+			'type': 'numrange',
+			'sampling': True,
+			'distribution': 'insulation_roof_r_dist'
+		},
+		'insulation_floor_r_mean': {
+			'type': 'double precision',
+			'sampling': True,
+			'distribution': 'insulation_floor_r_dist'
+		},
+		'insulation_floor_r_95': {
+			'type': 'numrange',
+			'sampling': True,
+			'distribution': 'insulation_floor_r_dist'
+		},
+		'insulation_window_r_mean': {
+			'type': 'double precision',
+			'sampling': True,
+			'distribution': 'insulation_window_r_dist'
+		},
+		'insulation_window_r_95': {
+			'type': 'numrange',
+			'sampling': True,
+			'distribution': 'insulation_window_r_dist'
+		}
+	}

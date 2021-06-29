@@ -13,7 +13,7 @@ from tests.utils import get_mock_connection
 class TestInsulationModule(unittest.TestCase):
 
 	def setUp(self):
-		self.mock_connection = get_mock_connection()
+		self.mock_connection = get_mock_connection(strict=False)
 		self.insulation_module = InsulationModule(self.mock_connection, silent=True)
 
 	def test_uses_building_code_for_new_buildings(self):
