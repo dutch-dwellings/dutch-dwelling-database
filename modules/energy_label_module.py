@@ -7,6 +7,7 @@ from psycopg2.extras import NumericRange
 # Required for relative imports to also work when called
 # from project root directory.
 sys.path.append(os.path.dirname(__file__))
+
 from base_module import BaseModule, BaseRegionalModule
 from utils.energy_label_utils import epi_to_label
 
@@ -73,6 +74,13 @@ class EnergyLabelModule(BaseModule):
 		vbo_id = dwelling.attributes['vbo_id']
 		energy_label = self.get_energy_label(vbo_id)
 		dwelling.attributes['energy_label'] = energy_label
+
+		# Hack: do not predict values for PlaceholderDwellings,
+		# since they don't need them and they don't have a dwelling type.
+		# TODO: do this more elegantly, for example by splitting up the
+		# predicting functionality into an EnergyLabelPredictModule.
+		if dwelling.__class__.__name__ == 'PlaceholderDwelling':
+			return
 
 		prediction, prediction_interval = self.predict_epi(dwelling)
 		dwelling.attributes['energy_label_epi_mean'] = prediction
