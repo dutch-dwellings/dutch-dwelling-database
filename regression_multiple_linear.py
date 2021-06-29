@@ -111,16 +111,16 @@ def process_regression_result(result, alpha=0.05):
 def compare_formulas(df):
 	formulas = [
 		# automatically codes 'woningtype'
-		'epi_imputed ~ bouwjaar + epi_pc6_average + woningtype'
+		'epi_imputed ~ bouwjaar + epi_pc6_average + woningtype',
 		# add oppervlakte, n_verdiepingen
-		'epi_imputed ~ bouwjaar + epi_pc6_average + woningtype + oppervlakte + nr_verdiepingen'
+		'epi_imputed ~ bouwjaar + epi_pc6_average + woningtype + oppervlakte + nr_verdiepingen',
 		# cutoff building year at 1900
-		'epi_imputed ~ np.maximum(bouwjaar, 1900) + epi_pc6_average + woningtype'
+		'epi_imputed ~ np.maximum(bouwjaar, 1900) + epi_pc6_average + woningtype',
 		# inverse
-		'I(1/epi_imputed) ~ np.maximum(bouwjaar, 1900) + I(1/epi_pc6_average) + woningtype'
-		'I(1/epi_imputed) ~ np.maximum(bouwjaar, 1900) + epi_inv_pc6_average + woningtype'
+		'I(1/epi_imputed) ~ np.maximum(bouwjaar, 1900) + I(1/epi_pc6_average) + woningtype',
+		'I(1/epi_imputed) ~ np.maximum(bouwjaar, 1900) + epi_inv_pc6_average + woningtype',
 		# log
-		'np.log(epi_imputed) ~ np.maximum(bouwjaar, 1900) + np.log(epi_pc6_average) + woningtype'
+		'np.log(epi_imputed) ~ np.maximum(bouwjaar, 1900) + np.log(epi_pc6_average) + woningtype',
 		'np.log(epi_imputed) ~ np.maximum(bouwjaar, 1900) + epi_log_pc6_average + woningtype'
 	]
 	for formula in formulas:
