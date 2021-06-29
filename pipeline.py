@@ -103,12 +103,14 @@ def main():
 
 	while i < dwelling_count:
 
+		print('\n Fetching new dwellings...')
 		sample = cursor.fetchmany(10000)
 
-		print("Processing entries...")
+		print(" Processing entries...")
 		for entry in sample:
 			dwelling = Dwelling(dict(entry), connection)
 
+			# Module processing
 			for module in modules:
 				module.process(dwelling)
 			dwelling.save()
@@ -118,6 +120,7 @@ def main():
 				del dwelling.regions['pc6']
 			if all(isinstance(dwellings, Dwelling) for dwellings in dwelling.regions['buurt'].dwellings) is True:
 				del dwelling.regions['buurt']
+			del dwelling
 
 			i += 1
 			if i % 100 == 0:
