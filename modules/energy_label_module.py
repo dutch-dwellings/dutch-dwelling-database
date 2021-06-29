@@ -64,7 +64,6 @@ class EnergyLabelPredictionModule(BaseModule):
 		dwelling_type = dwelling.attributes['woningtype']
 		construction_year = dwelling.attributes['bouwjaar']
 		pc6_log_avg = dwelling.regions['pc6'].attributes['energy_label_epi_log_avg']
-
 		if pc6_log_avg != None:
 			energy_label_epi_log_avg = pc6_log_avg
 		else:
@@ -87,7 +86,6 @@ class EnergyLabelPredictionModule(BaseModule):
 			max(construction_year, 1900),
 			energy_label_epi_log_avg
 		])
-
 		y_hat = np.dot(beta, x)
 
 		half_interval_size = calibration_factor * t_multiplier * np.sqrt(s_2 + x @ S @ x)
@@ -96,7 +94,6 @@ class EnergyLabelPredictionModule(BaseModule):
 		PI_max = y_hat + half_interval_size
 		# 95% Prediction Interval for epi
 		PI = (np.exp(PI_min), np.exp(PI_max))
-
 		return np.exp(y_hat), PI
 
 	def process(self, dwelling):
@@ -199,8 +196,10 @@ class EnergyLabelRegionalModule(BaseRegionalModule):
 			in buurt.dwellings
 			if dwelling.attributes['energy_label_epi'] is not None
 		]
-		epi_log_buurt_avg = np.average(epi_logs)
-
+		if epi_logs == []:
+			epi_log_buurt_avg = None
+		else:
+			epi_log_buurt_avg = np.average(epi_logs)
 		buurt.attributes['energy_label_epi_log_avg'] = epi_log_buurt_avg
 
 	supports = ['pc6', 'buurt']
