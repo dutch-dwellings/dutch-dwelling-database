@@ -8,9 +8,6 @@ from base_module import BaseModule
 
 class DistrictWaterHeatingModule(BaseModule):
 
-	def __init__(self, connection, **kwargs):
-		super().__init__(connection)
-
 	def process(self, dwelling):
 		continue_processing = super().process(dwelling)
 		# Dwelling has already been processed by this module

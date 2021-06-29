@@ -114,7 +114,6 @@ class TestInsulationModule(unittest.TestCase):
 		self.assertAlmostEqual(dwelling.attributes['insulation_window_r_dist'].mean, expected_window_mean)
 		self.assertAlmostEqual(dwelling.attributes['insulation_window_r_dist'].p(0.333), 1 - p_window_measure)
 
-
 	def test_uses_woon_data_and_measures_for_buildings_before_2006(self):
 		# no cavity wall
 		attributes = {

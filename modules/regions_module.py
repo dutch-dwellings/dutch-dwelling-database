@@ -13,8 +13,8 @@ class RegionsModule(BaseModule):
 	a dwelling.
 	'''
 
-	def __init__(self, connection, regional_modules):
-		super().__init__(connection)
+	def __init__(self, connection, regional_modules, **kwargs):
+		super().__init__(connection, **kwargs)
 		self.pc6s = {}
 		self.buurten = {}
 		self.regional_modules = {

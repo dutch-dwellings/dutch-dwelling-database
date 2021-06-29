@@ -20,7 +20,7 @@ class TestEnergyLabelModule(unittest.TestCase):
 			('SELECT energieklasse FROM energy_labels WHERE energieklasse IS NOT null AND vbo_id = %s', ('0003010000000001',)): []
 		}
 		self.connection = get_mock_connection(query_dict)
-		self.energy_label_module = EnergyLabelModule(self.connection)
+		self.energy_label_module = EnergyLabelModule(self.connection, silent=True)
 
 	def test_predicts_epi(self):
 		attributes = {
@@ -50,7 +50,7 @@ class TestEnergyLabelRegionalModule(unittest.TestCase):
 			('SELECT AVG(LN(epi_imputed)) FROM energy_labels WHERE pc6 = %s AND epi_imputed > 0', ('1000AA',)): [(0.5,)]
 		}
 		self.connection = get_mock_connection(query_dict)
-		self.energy_label_regional_module = EnergyLabelRegionalModule(self.connection)
+		self.energy_label_regional_module = EnergyLabelRegionalModule(self.connection, silent=True)
 		self.pc6 = PC6('1000AA', [self.energy_label_regional_module], self.connection)
 
 	def test_gets_average_log_of_epi_imputed(self):

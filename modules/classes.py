@@ -165,10 +165,8 @@ class Buurt(Region):
 		return placeholder_dwellings
 
 	def append_base_data(self, connection):
-		sys.stdout = open(os.devnull, 'w')
-		energy_label_module = EnergyLabelModule(connection)
-		base_bag_data_module = BaseBagDataModule(connection)
-		sys.stdout = sys.__stdout__
+		energy_label_module = EnergyLabelModule(connection, silent=True)
+		base_bag_data_module = BaseBagDataModule(connection, silent=True)
 		for placeholder in self.dwellings:
 			energy_label_module.process(placeholder)
 			base_bag_data_module.process(placeholder)

@@ -8,7 +8,7 @@ from utils.database_utils import add_column
 class BaseModule:
 
 	def __init__(self, connection, **kwargs):
-		if 'silent' not in kwargs or not kwargs['silent']:
+		if not kwargs.get('silent', False):
 			print(f'   Initiating module {self.__class__.__name__}')
 		self.connection = connection
 		self.create_required_columns()
@@ -75,8 +75,9 @@ class BaseModule:
 
 class BaseRegionalModule:
 
-	def __init__(self, connection):
-		print(f'   Initiating regional module {self.__class__.__name__}')
+	def __init__(self, connection, **kwargs):
+		if not kwargs.get('silent', False):
+			print(f'   Initiating regional module {self.__class__.__name__}')
 		self.connection = connection
 
 	def handle_null_data(self, variable):

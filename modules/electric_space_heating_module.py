@@ -10,7 +10,7 @@ from base_module import BaseModule
 class ElectricSpaceHeatingModule(BaseModule):
 
 	def __init__(self, connection, **kwargs):
-		super().__init__(connection)
+		super().__init__(connection, **kwargs)
 		self.electric_heat_pump_base_p = self.get_electric_heat_pump_base_p()
 
 	def get_electric_heat_pump_base_p(self):
@@ -176,8 +176,6 @@ class ElectricSpaceHeatingRegionalModule(BaseModule):
 		elec_no_gas_share = self.handle_null_data(elec_no_gas_share)
 
 		buurt.attributes['elec_no_gas_share'] = elec_no_gas_share * probability_modifier
-
-
 
 		cursor.close()
 

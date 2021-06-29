@@ -11,7 +11,7 @@ from classes import Dwelling
 class GasConsumptionComparisonModule(BaseModule):
 
 	def __init__(self, connection, **kwargs):
-		super().__init__(connection)
+		super().__init__(connection, **kwargs)
 		self.gas_benchmark_dict = {}
 
 	def neighbourhood_gas_use_comparison(self, buurt, pc6):

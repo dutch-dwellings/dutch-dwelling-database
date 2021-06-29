@@ -21,7 +21,6 @@ class TestBaseModule(unittest.TestCase):
 		self.dwelling = Dwelling(attributes, self.mock_connection)
 		self.base_module = BaseModule(self.mock_connection, silent=True)
 
-
 		class ChildrenModule(BaseModule):
 
 			def process(self, dwelling):

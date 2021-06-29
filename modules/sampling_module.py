@@ -13,8 +13,8 @@ from utils.probability_utils import ProbabilityDistribution
 
 class SamplingModule(BaseModule):
 
-	def __init__(self, connection, regional_modules):
-		super().__init__(connection)
+	def __init__(self, connection, **kwargs):
+		super().__init__(connection, **kwargs)
 		self.code_dict = {
 		'district_heating_space' : 'sh01',
 		'gas_boiler_space' : 'sh02',
