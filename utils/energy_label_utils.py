@@ -14,7 +14,6 @@ def label_to_epi(label):
 	 "A++++": 0.281, # actually the average for A++
 	  "A+++": 0.281, # actually the average for A++
 	   "A++": 0.281,
-	   "A++ or higher": 0.281,
 	    "A+": 0.635,
 	     "A": 0.938,
 	     "B": 1.200,
@@ -35,10 +34,14 @@ def epi_to_label(epi):
 	# Method adapted from https://stackoverflow.com/a/53138486/7770056.
 	# Limits are inclusive maximums for the corresponding value,
 	# e.g.
-	#	0.5 --> A++ or higher
+	#	0.5 --> A++
 	#	0.51 -> A+.
+	#
+	# Note: technically the category 'A++' is 'A++ or higher',
+	# but this eases further manipulations.
+
 	limits = [            0.5,  0.7, 1.05, 1.3, 1.6, 2.0, 2.4, 2.9     ]
-	values = ['A++ or higher', 'A+',  'A', 'B', 'C', 'D', 'E', 'F', 'G']
+	values = [          'A++', 'A+',  'A', 'B', 'C', 'D', 'E', 'F', 'G']
 
 	index = bisect.bisect_left(limits, epi)
 	return values[index]

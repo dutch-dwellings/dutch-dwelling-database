@@ -17,9 +17,9 @@ class TestEnergyLabelsUtils(unittest.TestCase):
 	def test_epi_to_label(self):
 		# check for within ranges
 		self.assertEqual(epi_to_label(0.938), 'A')
-		self.assertEqual(epi_to_label(0.281), 'A++ or higher')
+		self.assertEqual(epi_to_label(0.281), 'A++')
 		# check for extreme values
-		self.assertEqual(epi_to_label(-10), 'A++ or higher')
+		self.assertEqual(epi_to_label(-10), 'A++')
 		self.assertEqual(epi_to_label(10), 'G')
 		# check for boundaries
 		self.assertEqual(epi_to_label(1.3), 'B')
