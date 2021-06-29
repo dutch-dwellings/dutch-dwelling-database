@@ -3,10 +3,13 @@ import random
 import sys
 import collections
 
+from psycopg2.extras import NumericRange
+
 # Required for relative imports to also work when called
 # from project root directory.
 sys.path.append(os.path.dirname(__file__))
 from base_module import BaseModule
+from utils.probability_utils import ProbabilityDistribution
 
 class SamplingModule(BaseModule):
 
@@ -62,11 +65,15 @@ class SamplingModule(BaseModule):
 	def sample(self, value, output_type, name):
 		if output_type == 'boolean':
 			return self.sample_boolean(value, name)
+		elif output_type == 'double precision':
+			return self.sample_double_precision(value, name)
+		elif output_type == 'numrange':
+			return self.sample_numrange(value, name)
 		else:
 			raise NotImplementedError(f'SamplingModule has no sample method for output_type {output_type} yet')
 
 	def sample_boolean(self, value, name):
-		if type(value) != float:
+		if type(value) not in [float, int]:
 			raise ValueError(f"Expected type 'float' while sampling for boolean, but got: {type(value)}, for distribution: {name}")
 		if (value < 0) or (value > 1):
 			raise ValueError(f"Expected value between 0-1 while sampling for boolean, but got: {value}, for distribution: {name}")
@@ -76,6 +83,25 @@ class SamplingModule(BaseModule):
 			return False
 		else:
 			return True
+
+	def sample_double_precision(self, value, name):
+		'''
+		Gets the mean from a ProbabilityDistribution.
+		'''
+		if type(value) is not ProbabilityDistribution:
+			raise NotImplementedError(f'sample_double_precision() has not been implemented for type {type(value)}')
+		return value.mean
+
+	def sample_numrange(self, value, name):
+		'''
+		Gets the 95% interval from a ProbabilityDistribution.
+		'''
+		if type(value) is not ProbabilityDistribution:
+			raise NotImplementedError(f'sample_numrange() has not been implemented for type {type(value)}')
+		interval = value.interval(0.95)
+		# This is the Psycopg2 way to return a numrange.
+		# We round to 2 decimals for presentation.
+		return NumericRange(round(interval[0], 2), round(interval[1], 2), bounds='[]')
 
 	def count_installations(self, dwelling, function):
 		installations_amount = 0
