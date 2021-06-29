@@ -146,12 +146,12 @@ class TestPC6(unittest.TestCase):
 		self.mock_connection = get_mock_connection(query_dict)
 
 	def test_can_save_dwellings(self):
-		pc6 = PC6('1000AA', [], self.mock_connection)
+		pc6 = PC6('1000AA', self.mock_connection)
 		self.assertTrue(hasattr(pc6, 'dwellings'))
 		self.assertIsInstance(pc6.dwellings, list)
 
 	def test_populates_dwellings_with_placeholders(self):
-		pc6 = PC6('1000AA', [], self.mock_connection)
+		pc6 = PC6('1000AA', self.mock_connection)
 		self.assertTrue(len(pc6.dwellings) > 0)
 		dwelling = pc6.dwellings[0]
 		self.assertIsInstance(dwelling, PlaceholderDwelling)
@@ -163,22 +163,18 @@ class TestBuurt(unittest.TestCase):
 			("SELECT vbo_id FROM bag WHERE buurt_id = %s", ('BU00000000',)): [
 				("0363010000000006",),
 				("0363010000000007",),
-				("0363010000000008",),
-				("0363010000000009",),
-				("0363010000000010",)
+				("0363010000000008",)
 			]
 		}
 		self.mock_connection = get_mock_connection(query_dict)
 
-	@unittest.skip('Implementation changed')
 	def test_can_save_dwellings(self):
-		buurt = Buurt('BU00000000', [], self.mock_connection)
+		buurt = Buurt('BU00000000', self.mock_connection)
 		self.assertTrue(hasattr(buurt, 'dwellings'))
 		self.assertIsInstance(buurt.dwellings, list)
 
-	@unittest.skip('Implementation changed')
 	def test_populates_dwellings_with_placeholders(self):
-		buurt = Buurt('BU00000000', [], self.mock_connection)
+		buurt = Buurt('BU00000000', self.mock_connection)
 		self.assertTrue(len(buurt.dwellings) > 0)
 		dwelling = buurt.dwellings[0]
 		self.assertIsInstance(dwelling, PlaceholderDwelling)

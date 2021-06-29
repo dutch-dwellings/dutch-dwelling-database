@@ -30,7 +30,7 @@ class TestEnergyLabelModule(unittest.TestCase):
 		}
 		dwelling = Dwelling(attributes, self.connection)
 
-		pc6 = PC6('1000AA', [], self.connection)
+		pc6 = PC6('1000AA', self.connection)
 		pc6.attributes['epi_log_pc6_average'] = 0.1823215568
 		dwelling.regions['pc6'] = pc6
 
@@ -51,7 +51,7 @@ class TestEnergyLabelRegionalModule(unittest.TestCase):
 		}
 		self.connection = get_mock_connection(query_dict)
 		self.energy_label_regional_module = EnergyLabelRegionalModule(self.connection, silent=True)
-		self.pc6 = PC6('1000AA', [self.energy_label_regional_module], self.connection)
+		self.pc6 = PC6('1000AA', self.connection, pc6_modules=[self.energy_label_regional_module])
 
 	def test_gets_average_log_of_epi_imputed(self):
 		self.assertEqual(self.pc6.attributes['epi_log_pc6_average'], 0.5)

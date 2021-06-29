@@ -3,8 +3,6 @@ import sys
 import pprint
 from utils.database_utils import insert_dict
 from modules.base_module import BaseModule
-from modules.energy_label_module import EnergyLabelModule
-from modules.base_bag_data_module import BaseBagDataModule
 
 class Dwelling:
 
@@ -121,11 +119,20 @@ class Region:
 
 class PC6(Region):
 
-	def __init__(self, pc6, pc6_modules, connection):
+	def __init__(self, pc6, connection, **kwargs):
 		super().__init__()
+
 		self.attributes = {'pc6': pc6}
 		self.connection = connection
 		self.dwellings = self.get_placeholder_dwellings()
+
+		pc6_dwelling_modules = kwargs.get('pc6_dwelling_modules', [])
+		pc6_modules = kwargs.get('pc6_modules', [])
+
+		for module in pc6_dwelling_modules:
+			for dwelling in self.dwellings:
+				module.process(dwelling)
+
 		for module in pc6_modules:
 			module.process_pc6(self)
 
@@ -142,14 +149,22 @@ class PC6(Region):
 
 class Buurt(Region):
 
-	def __init__(self, buurt_id, buurt_modules, connection):
+	def __init__(self, buurt_id, connection, **kwargs):
 		super().__init__()
+
 		self.attributes = {'buurt_id': buurt_id}
 		self.connection = connection
 		self.dwellings = self.get_placeholder_dwellings()
 		self.gas_use = {}
 		self.elec_use = {}
-		self.append_base_data(connection)
+
+		buurt_dwelling_modules = kwargs.get('buurt_dwelling_modules', [])
+		buurt_modules = kwargs.get('buurt_modules', [])
+
+		for module in buurt_dwelling_modules:
+			for dwelling in self.dwellings:
+				module.process(dwelling)
+
 		for module in buurt_modules:
 			module.process_buurt(self)
 
@@ -163,10 +178,3 @@ class Buurt(Region):
 		in cursor.fetchall()
 		]
 		return placeholder_dwellings
-
-	def append_base_data(self, connection):
-		energy_label_module = EnergyLabelModule(connection, silent=True)
-		base_bag_data_module = BaseBagDataModule(connection, silent=True)
-		for placeholder in self.dwellings:
-			energy_label_module.process(placeholder)
-			base_bag_data_module.process(placeholder)

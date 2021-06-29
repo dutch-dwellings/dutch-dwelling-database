@@ -11,6 +11,8 @@ from utils.create_results_table import main as create_results_table
 
 from modules.classes import Dwelling, PlaceholderDwelling
 
+from modules.base_bag_data_module import BaseBagDataModule
+
 from modules.regions_module import RegionsModule
 from modules.energy_label_module import EnergyLabelModule, EnergyLabelRegionalModule
 from modules.gas_consumption_comparison_module import GasConsumptionComparisonModule, GasConsumptionComparisonRegionalModule
@@ -67,6 +69,12 @@ def main():
 		ElectricSpaceHeatingRegionalModule
 	]
 	regional_modules = [RegionalModule(connection) for RegionalModule in RegionalModules]
+	# Modules that will be ran on PlaceholderDwellings
+	# when instantiating a region. Specify only those
+	# that are required for the RegionalModules to do
+	# their job.
+	pc6_dwelling_modules = []
+	buurt_dwelling_modules = [EnergyLabelModule(connection), BaseBagDataModule(connection)]
 
 	Modules = [
 		# Create neccesary dwelling attributes.
@@ -95,7 +103,9 @@ def main():
 
 	# Optional variables that only some modules require.
 	kwargs = {
-		'regional_modules': regional_modules
+		'regional_modules': regional_modules,
+		'pc6_dwelling_modules': pc6_dwelling_modules,
+		'buurt_dwelling_modules': buurt_dwelling_modules
 	}
 
 	modules = [Module(connection, **kwargs) for Module in Modules]

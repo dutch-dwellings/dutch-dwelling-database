@@ -13,14 +13,17 @@ class RegionsModule(BaseModule):
 	a dwelling.
 	'''
 
-	def __init__(self, connection, regional_modules, **kwargs):
+	def __init__(self, connection, **kwargs):
 		super().__init__(connection, **kwargs)
+		regional_modules = kwargs.get('regional_modules', [])
 		self.pc6s = {}
 		self.buurten = {}
 		self.regional_modules = {
 			'pc6': [module for module in regional_modules if 'pc6' in module.supports],
 			'buurt': [module for module in regional_modules if 'buurt' in module.supports]
 		}
+		self.pc6_dwelling_modules = kwargs.get('pc6_dwelling_modules', [])
+		self.buurt_dwelling_modules = kwargs.get('buurt_dwelling_modules', [])
 
 	def process(self, dwelling):
 		continue_processing = super().process(dwelling)
@@ -36,8 +39,11 @@ class RegionsModule(BaseModule):
 		if pc6 in self.pc6s:
 			pc6_instance = self.pc6s[pc6]
 		else:
-			pc6_modules = self.regional_modules['pc6']
-			pc6_instance = PC6(pc6, pc6_modules, self.connection)
+			kwargs = {
+				'pc6_modules': self.regional_modules['pc6'],
+				'pc6_dwelling_modules': self.pc6_dwelling_modules
+			}
+			pc6_instance = PC6(pc6, self.connection, **kwargs)
 			self.pc6s[pc6] = pc6_instance
 
 		dwelling.regions['pc6'] = pc6_instance
@@ -49,8 +55,11 @@ class RegionsModule(BaseModule):
 		if buurt_id in self.buurten:
 			buurt_instance = self.buurten[buurt_id]
 		else:
-			buurt_modules = self.regional_modules['buurt']
-			buurt_instance = Buurt(buurt_id, buurt_modules, self.connection)
+			kwargs = {
+				'buurt_modules': self.regional_modules['buurt'],
+				'buurt_dwelling_modules': self.buurt_dwelling_modules
+			}
+			buurt_instance = Buurt(buurt_id, self.connection, **kwargs)
 			self.buurten[buurt_id] = buurt_instance
 
 		dwelling.regions['buurt'] = buurt_instance
