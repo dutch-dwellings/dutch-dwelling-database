@@ -6,6 +6,7 @@ import unittest
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from tests.utils import get_mock_connection, get_mock_cursor, mockProgrammingError
+from modules.base_module import BaseModule
 
 class TestTestUtils(unittest.TestCase):
 
@@ -78,3 +79,34 @@ class TestTestUtils(unittest.TestCase):
 		mock_cursor.execute('foo')
 
 		self.assertRaises(mockProgrammingError, mock_cursor.fetchone)
+
+	def test_cursor_has_option_to_accept_any_query(self):
+		mock_cursor = get_mock_cursor({}, strict=False)
+		try:
+			mock_cursor.execute('foo')
+		except NotImplementedError:
+			self.fail('Should not raise NotImplementedError when strict=False')
+
+	def test_connection_has_option_to_accept_any_query(self):
+		mock_connection = get_mock_connection(strict=False)
+		mock_cursor = mock_connection.cursor()
+		try:
+			mock_cursor.execute('foo')
+		except NotImplementedError:
+			self.fail('Should not raise NotImplementedError when strict=False')
+
+	def test_connection_can_be_used_in_modules_with_strict_false(self):
+		class TestModule(BaseModule):
+			outputs = {
+				'example': {
+					'type': 'float'
+				}
+			}
+
+		# Note the strict = False, required since else
+		# we get an undefined query.
+		mock_connection = get_mock_connection(strict=False)
+		try:
+			test_module = TestModule(mock_connection, silent=True)
+		except TypeError as e:
+			self.fail(f'Should not raise TypeError "{e}"')
