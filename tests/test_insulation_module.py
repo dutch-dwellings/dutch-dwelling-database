@@ -123,8 +123,8 @@ class TestInsulationModule(unittest.TestCase):
 		}
 		# FACADE
 		# Applicable WoON distribution:
-		# 	0.36: 0.3%
-		# 	0.43: 7.5%
+		#	0.36: 0.018,
+		#	0.43: 0.469,
 		# ...
 		p_multiplier = 1.98
 		# For dwellings built in or before 2000, all measure years
@@ -135,13 +135,13 @@ class TestInsulationModule(unittest.TestCase):
 		dwelling = Dwelling(attributes, self.mock_connection)
 		self.insulation_module.process(dwelling)
 
-		# R-value is 0.43 if it was 0.43 to begin with (p=0.075)
+		# R-value is 0.36 if it was 0.36 to begin with (p=0.469)
 		# and no measures were taken after that (p = 1 - p_measure).
-		self.assertAlmostEqual(dwelling.attributes['insulation_facade_r_dist'].p(0.43), 0.075 * (1 - p_facade_measure))
+		self.assertAlmostEqual(dwelling.attributes['insulation_facade_r_dist'].p(0.36), 0.018 * (1 - p_facade_measure), places=4)
 
 		p_roof_measure_base_before_2000 = 115398 / 6591218 + 157347 / 6669286 + 195420 / 6739330 + 124267 / 6804459 + 155099 / 6870704 + 148447 / 6943943 + 148100 / 7027060 + 164024 / 7109692 + 199784 / 7189902 + 246325 / 7261671
 		p_roof_measure = p_multiplier * p_roof_measure_base_before_2000
-		self.assertAlmostEqual(dwelling.attributes['insulation_roof_r_dist'].p(0.39), 0.025 * (1 - p_roof_measure))
+		self.assertAlmostEqual(dwelling.attributes['insulation_roof_r_dist'].p(0.39), 0.025 * (1 - p_roof_measure), places=4)
 
 	def test_cavity_walls(self):
 		# with cavity wall
@@ -158,7 +158,7 @@ class TestInsulationModule(unittest.TestCase):
 		measure_n = 76784 + 114914 + 117197 + 96150 + 131324 + 132769 + 159507 + 159080 + 214035 + 281276
 		p_measure = p_multiplier * measure_n / eligible_dwellings_cavity_wall_n
 
-		self.assertEqual(cavity_wall_dist.p(1.3), p_measure)
+		self.assertEqual(cavity_wall_dist.p((1.25, 2.175)), p_measure)
 
 		# without cavity wall
 		attributes = {
@@ -186,8 +186,7 @@ class TestInsulationModule(unittest.TestCase):
 		}
 		# FACADE
 		# Applicable WoON distribution:
-		# 	0.36: 0.3%
-		# 	0.43: 7.5%
+		# 	2.11: 0.548,
 		# ...
 		p_multiplier = 1.98
 		# For dwellings built in or before 2000, all measure years
@@ -202,9 +201,9 @@ class TestInsulationModule(unittest.TestCase):
 		dwelling = Dwelling(attributes, self.mock_connection)
 		self.insulation_module.process(dwelling)
 
-		# R-value is 0.43 if it was 0.43 to begin with (p=0.075)
+		# R-value is 2.11 if it was 2.11 to begin with (p=00.548)
 		# and no measures were taken after that.
-		self.assertAlmostEqual(dwelling.attributes['insulation_facade_r_dist'].p(0.43), 0.075 * (1 - p_facade_measure) * (1-p_cavity_measure))
+		self.assertAlmostEqual(dwelling.attributes['insulation_facade_r_dist'].p(2.11), 0.548 * (1 - p_facade_measure) * (1-p_cavity_measure))
 
 	def test_saves_calculated_values(self):
 		attributes = {

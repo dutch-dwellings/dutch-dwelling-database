@@ -1,9 +1,11 @@
+import copy
 import os
 import sys
 
 # Required for relative imports to also work when called
 # from project root directory.
 sys.path.append(os.path.dirname(__file__))
+sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
 from utils.probability_utils import ProbabilityDistribution
 
@@ -223,63 +225,202 @@ INSULATION_DATA = {
 					2.86: 0.468
 				}),
 			'roof': ProbabilityDistribution({
-					2.00: 0,
 					2.53: 0.967,
 					2.72: 0.033
 				}),
 			'floor': ProbabilityDistribution({
-					0.15: 0.005,
-					0.17: 0.093,
-					0.32: 0.086,
-					0.52: 0.093,
-					0.65: 0.133,
-					1.30: 0.047,
-					1.40: 0.042,
-					2.00: 0.093,
-					2.15: 0.128,
-					2.53: 0.277,
-					2.65: 0.005
+					2.53: 0.983,
+					2.65: 0.017
+				})
+		},
+		# Same for 'hoekwoning'
+		'twee_onder_1_kap': {
+			'facade': ProbabilityDistribution({
+					2.53: 0.538,
+					2.86: 0.462
+				}),
+			'roof': ProbabilityDistribution({
+					2.53: 0.945,
+					2.72: 0.055
+				}),
+			'floor': ProbabilityDistribution({
+					2.53: 0.951,
+					2.65: 0.049
+				})
+		},
+		'tussenwoning': {
+			'facade': ProbabilityDistribution({
+					2.53: 0.572,
+					2.86: 0.428
+				}),
+			'roof': ProbabilityDistribution({
+					2.53: 0.915,
+					2.72: 0.085
+				}),
+			'floor': ProbabilityDistribution({
+					2.53: 0.976,
+					2.65: 0.024
+				})
+		},
+		# Same for meergezinspand_laag_midden
+		'meergezinspand_hoog': {
+			'facade': ProbabilityDistribution({
+					2.53: 0.818,
+					2.86: 0.182
+				}),
+			'roof': ProbabilityDistribution({
+					2.53: 0.962,
+					2.72: 0.038
+				}),
+			'floor': ProbabilityDistribution({
+					2.53: 0.985,
+					2.65: 0.015
 				})
 		}
 	},
 
 	# Based on the WoON survey 2006
-	# TODO: fill the rest
 	'base_r_values_1920_1991': {
 		'vrijstaand': {
 			'facade': ProbabilityDistribution({
-					0.36: 0.003,
-					0.43: 0.075,
-					1.30: 0.032,
+					0.43: 0.000,
+					1.30: 0.000,
 					1.36: 0.000,
-					2.11: 0.514,
-					2.53: 0.200,
-					2.86: 0.176
+					2.11: 0.548,
+					2.53: 0.240,
+					2.86: 0.212
 				}),
 			'roof': ProbabilityDistribution({
-					0.22: 0,
+					0.22: 0.000,
 					0.39: 0.025,
-					0.86: 0.018,
-					0.97: 0.304,
+					0.86: 0.017,
+					0.97: 0.302,
 					1.22: 0.070,
-					1.30: 0.186,
-					1.97: 0.239,
-					2.00: 0.108,
-					2.53: 0.048,
+					1.30: 0.185,
+					1.97: 0.237,
+					2.00: 0.107,
+					2.53: 0.054,
 					2.72: 0.002
 				}),
 			'floor': ProbabilityDistribution({
 					0.15: 0.006,
-					0.17: 0.117,
+					0.17: 0.116,
 					0.32: 0.108,
-					0.52: 0.117,
-					0.65: 0.167,
-					1.30: 0.059,
-					1.40: 0.053,
-					2.00: 0.117,
-					2.15: 0.161,
-					2.53: 0.093,
+					0.52: 0.116,
+					0.65: 0.166,
+					1.30: 0.058,
+					1.40: 0.052,
+					2.00: 0.116,
+					2.15: 0.160,
+					2.53: 0.099,
 					2.65: 0.002
+				})
+			},
+		# Same for 'hoekwoning'
+		'twee_onder_1_kap': {
+			'facade': ProbabilityDistribution({
+					0.43: 0.040,
+					1.30: 0.022,
+					1.36: 0.000,
+					2.11: 0.690,
+					2.53: 0.134,
+					2.86: 0.115
+				}),
+			'roof': ProbabilityDistribution({
+					0.22: 0.000,
+					0.39: 0.021,
+					0.86: 0.060,
+					0.97: 0.272,
+					1.22: 0.048,
+					1.30: 0.257,
+					1.97: 0.196,
+					2.00: 0.110,
+					2.53: 0.034,
+					2.72: 0.002
+				}),
+			'floor': ProbabilityDistribution({
+					0.15: 0.004,
+					0.17: 0.209,
+					0.32: 0.095,
+					0.52: 0.134,
+					0.65: 0.123,
+					1.30: 0.132,
+					1.40: 0.022,
+					2.00: 0.125,
+					2.15: 0.089,
+					2.53: 0.064,
+					2.65: 0.003
+				})
+			},
+		'tussenwoning': {
+			'facade': ProbabilityDistribution({
+					0.43: 0.922,
+					1.30: 0.042,
+					1.36: 0.002,
+					2.11: 0.674,
+					2.53: 0.109,
+					2.86: 0.082
+				}),
+			'roof': ProbabilityDistribution({
+					0.22: 0.002,
+					0.39: 0.028,
+					0.86: 0.070,
+					0.97: 0.266,
+					1.22: 0.038,
+					1.30: 0.326,
+					1.97: 0.172,
+					2.00: 0.084,
+					2.53: 0.012,
+					2.72: 0.001
+				}),
+			'floor': ProbabilityDistribution({
+					0.15: 0.006,
+					0.17: 0.253,
+					0.32: 0.092,
+					0.52: 0.174,
+					0.65: 0.104,
+					1.30: 0.161,
+					1.40: 0.014,
+					2.00: 0.099,
+					2.15: 0.062,
+					2.53: 0.035,
+					2.65: 0.001
+				})
+			},
+		# Same for meergezinspand_laag_midden
+		'meergezinspand_hoog': {
+			'facade': ProbabilityDistribution({
+					0.43: 0.000,
+					1.30: 0.021,
+					1.36: 0.000,
+					2.11: 0.554,
+					2.53: 0.347,
+					2.86: 0.077
+				}),
+			'roof': ProbabilityDistribution({
+					0.22: 0.004,
+					0.39: 0.020,
+					0.86: 0.125,
+					0.97: 0.214,
+					1.22: 0.032,
+					1.30: 0.270,
+					1.97: 0.125,
+					2.00: 0.113,
+					2.53: 0.094,
+					2.72: 0.004
+				}),
+			'floor': ProbabilityDistribution({
+					0.15: 0.006,
+					0.17: 0.176,
+					0.32: 0.065,
+					0.52: 0.182,
+					0.65: 0.047,
+					1.30: 0.206,
+					1.40: 0.018,
+					2.00: 0.082,
+					2.15: 0.047,
+					2.53: 0.169,
+					2.65: 0.003
 				})
 			}
 	},
@@ -292,10 +433,40 @@ INSULATION_DATA = {
 		'hr++': ProbabilityDistribution({0.833: 1})
 	},
 
-	'cavity_wall_r_value': ProbabilityDistribution({1.3: 1})
-
+	'cavity_wall_r_value': ProbabilityDistribution({(1.25, 2.175): 1})
 }
 
-# Based on the WoON survey 2006
-# TODO: fill these in later after splitting the distributions.
-INSULATION_DATA['base_r_values_before_1920'] = INSULATION_DATA['base_r_values_1920_1991']
+# WoON survey 2006 only had 4 categories,
+# we extend it to the current 6 categories.
+INSULATION_DATA['base_r_values_1992_2005']['hoekwoning'] = INSULATION_DATA['base_r_values_1992_2005']['twee_onder_1_kap']
+INSULATION_DATA['base_r_values_1992_2005']['meergezinspand_laag_midden'] = INSULATION_DATA['base_r_values_1992_2005']['meergezinspand_hoog']
+
+INSULATION_DATA['base_r_values_1920_1991']['hoekwoning'] = INSULATION_DATA['base_r_values_1920_1991']['twee_onder_1_kap']
+INSULATION_DATA['base_r_values_1920_1991']['meergezinspand_laag_midden'] = INSULATION_DATA['base_r_values_1920_1991']['meergezinspand_hoog']
+
+# The data for before 1920 is almost the same,
+# except buildings before 1920 rarely have cavity walls,
+# therefor the facade insulation is worse.
+# We change only that part.
+# We need to deepcopy since we are going to change some values,
+# and we don't want them to end up in the 'base_r_values_1920_1991'.
+INSULATION_DATA['base_r_values_before_1920'] = copy.deepcopy(INSULATION_DATA['base_r_values_1920_1991'])
+INSULATION_DATA['base_r_values_before_1920']['vrijstaand']['facade'] = ProbabilityDistribution({
+		0.36: 0.018,
+		0.43: 0.469,
+		1.30: 0.197,
+		1.36: 0.000,
+		2.11: 0.315
+	})
+# automatically copies to 'hoekwoning'
+INSULATION_DATA['base_r_values_before_1920']['twee_onder_1_kap']['facade'] = ProbabilityDistribution({
+		0.43: 1
+	})
+INSULATION_DATA['base_r_values_before_1920']['tussenwoning']['facade'] = ProbabilityDistribution({
+		0.43: 1
+	})
+# automatically copies to 'meergezinspand_laag_midden'
+INSULATION_DATA['base_r_values_before_1920']['meergezinspand_hoog']['facade'] = ProbabilityDistribution({
+		0.43: 0.971,
+		1.30: 0.029
+	})
