@@ -129,6 +129,7 @@ class TestEnergyLabelRegionalModule(unittest.TestCase):
 			('SELECT AVG(LN(epi_imputed)) FROM energy_labels WHERE pc6 = %s AND epi_imputed > 0', ('1000AA',)): [(0.5,)],
 			('SELECT AVG(LN(epi_imputed)) FROM energy_labels WHERE pc6 = %s AND epi_imputed > 0', ('9999XX',)): [(None,)],
 			('SELECT vbo_id FROM bag WHERE buurt_id = %s', ('BU0000000',)): [('0003010000000001',), ('0003010000000002',), ('0003010000000003',)],
+			('SELECT vbo_id FROM bag WHERE buurt_id = %s', ('BU0000001',)): [],
 			('SELECT energieklasse, epi_imputed FROM energy_labels WHERE energieklasse IS NOT null AND epi_imputed > 0 AND vbo_id = %s', ('0003010000000001',)): [('A', 0.7)],
 			('SELECT energieklasse, epi_imputed FROM energy_labels WHERE energieklasse IS NOT null AND epi_imputed > 0 AND vbo_id = %s', ('0003010000000002',)): [('B', 1.2)],
 			('SELECT energieklasse, epi_imputed FROM energy_labels WHERE energieklasse IS NOT null AND epi_imputed > 0 AND vbo_id = %s', ('0003010000000003',)): []
@@ -145,3 +146,8 @@ class TestEnergyLabelRegionalModule(unittest.TestCase):
 		buurt = Buurt('BU0000000', self.connection, buurt_modules=[self.energy_label_regional_module], buurt_dwelling_modules=[self.energy_label_module])
 		expected_avg = (math.log(0.7) + math.log(1.2)) / 2
 		self.assertAlmostEqual(buurt.attributes['energy_label_epi_log_avg'], expected_avg)
+
+	def test_sets_buurt_avg_to_none_when_no_labels(self):
+		buurt = Buurt('BU0000001', self.connection, buurt_modules=[self.energy_label_regional_module], buurt_dwelling_modules=[self.energy_label_module])
+		self.assertEqual(buurt.attributes['energy_label_epi_log_avg'], None)
+

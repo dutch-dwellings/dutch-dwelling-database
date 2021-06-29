@@ -196,10 +196,14 @@ class EnergyLabelRegionalModule(BaseRegionalModule):
 			in buurt.dwellings
 			if dwelling.attributes['energy_label_epi'] is not None
 		]
-		if epi_logs == []:
+
+		if len(epi_logs) == 0:
+			# Should not take average() of empty list,
+			# will return NaN instead of None
 			epi_log_buurt_avg = None
 		else:
 			epi_log_buurt_avg = np.average(epi_logs)
+
 		buurt.attributes['energy_label_epi_log_avg'] = epi_log_buurt_avg
 
 	supports = ['pc6', 'buurt']
