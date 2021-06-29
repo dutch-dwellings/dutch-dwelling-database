@@ -47,7 +47,7 @@ class TestEnergyLabelRegionalModule(unittest.TestCase):
 	def setUp(self):
 		query_dict = {
 			('SELECT vbo_id FROM bag WHERE pc6 = %s', ('1000AA',)): [('0003010000000001',), ('0003010000000002',), ('0003010000000003',)],
-			('SELECT AVG(LN(epi_imputed)) FROM energy_labels WHERE pc6 = %s', ('1000AA',)): [(0.5,)]
+			('SELECT AVG(LN(epi_imputed)) FROM energy_labels WHERE pc6 = %s AND epi_imputed > 0', ('1000AA',)): [(0.5,)]
 		}
 		self.connection = get_mock_connection(query_dict)
 		self.energy_label_regional_module = EnergyLabelRegionalModule(self.connection)
