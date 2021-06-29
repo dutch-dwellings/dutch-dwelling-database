@@ -14,12 +14,12 @@ class ProbabilityDistribution:
 		self.prob_ranges = {}
 
 		for (key, val) in prob_dist:
-			if type(key) == tuple:
+			if type(key) == tuple and (val != 0):
 				self.add_range_to_ranges(self.prob_ranges, {key: val})
 			else:
 				if key in self.prob_points:
 					self.prob_points[key] += val
-				else:
+				elif (val != 0):
 					self.prob_points[key] = val
 
 		# Only when multiplying a ProbabilityDistribution with
@@ -28,8 +28,7 @@ class ProbabilityDistribution:
 			self.normalize()
 
 	def __str__(self):
-		probs = {**self.prob_points, **self.prob_ranges}
-		return f'ProbabilityDistribution({probs})'
+		return f'ProbabilityDistribution({self.get_sorted_probs()})'
 
 	def __add__(self, other):
 		if type(other) != ProbabilityDistribution:
@@ -244,6 +243,13 @@ class ProbabilityDistribution:
 			for value, p in self.prob_ranges.items():
 				mean += (value[0] + value[1]) / 2 * p
 			return mean
+
+	def get_sorted_probs(self):
+		values = {**self.prob_points, **self.prob_ranges}
+		# In recent Python, dicts will preserve their order on insertion,
+		# so we convert to items(), sort that, and then convert to dict again.
+		sorted_items = sorted(values.items(), key=lambda val: val[0][0] if type(val[0]) is tuple else val[0])
+		return dict(sorted_items)
 
 	def interval(self, confidence_value):
 		'''

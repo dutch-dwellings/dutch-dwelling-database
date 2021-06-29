@@ -445,3 +445,20 @@ class TestProbabilityUtils(unittest.TestCase):
 
 		# Original object is unchanged.
 		self.assertEqual(p3.mean, None)
+
+	def test_filters_out_p_0_values(self):
+		p3 = ProbabilityDistribution({
+			1: 1,
+			2: 0
+		})
+		self.assertEqual(list(p3.prob_points.keys()), [1])
+
+	def test_string_representation_sorts_keys(self):
+		p3 = ProbabilityDistribution({
+			2: 0.5,
+			1: 0.3,
+			(0, 1): 0.2
+		})
+		# Note that it should be sorted
+		expected_str = "ProbabilityDistribution({(0, 1): 0.2, 1: 0.3, 2: 0.5})"
+		self.assertEqual(str(p3), expected_str)
