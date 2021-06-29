@@ -106,6 +106,9 @@ class SamplingModule(BaseModule):
 		return NumericRange(round(interval[0], 2), round(interval[1], 2), bounds='[]')
 
 	def count_installations(self, dwelling, function):
+		'''
+		Counts number of installations for an energy function.
+		'''
 		installations_amount = 0
 		for name, options in dwelling.outputs.items():
 			if options.get('sampling', False) == True and options.get('function', False) == function and dwelling.attributes[name] == True:
@@ -113,6 +116,9 @@ class SamplingModule(BaseModule):
 		return installations_amount
 
 	def check_minimum_installations(self, dwelling):
+		'''
+		Makes sure at least one installation is present for each energy function.
+		'''
 		for function in self.functions:
 			# Check whether an installation has been assigned
 			installations_amount = self.count_installations(dwelling, function)
@@ -132,6 +138,9 @@ class SamplingModule(BaseModule):
 				installations_amount = self.count_installations(dwelling, function)
 
 	def get_sampling_outputs_per_function(self, dwelling, function):
+		'''
+		Sample probabilities per energy function.
+		'''
 		for name, options in dwelling.outputs.items():
 			if options.get('sampling', False) == True and options.get('function', False) == function:
 					distribution_value = dwelling.attributes[options['distribution']]
@@ -147,6 +156,9 @@ class SamplingModule(BaseModule):
 			dwelling.attributes['block_heating_water'] = False
 
 	def produce_output_code(self, dwelling):
+		'''
+		Converts boolean values for heating installations into output code.
+		'''
 		codes = collections.defaultdict(list)
 
 		for function in self.functions:

@@ -15,6 +15,9 @@ class GasConsumptionComparisonModule(BaseModule):
 		self.gas_benchmark_dict = {}
 
 	def neighbourhood_gas_use_comparison(self, buurt, pc6):
+		'''
+		Compares gas consumption of all dwellings in a neighbourhood to benchmark based on dwelling characteristics.
+		'''
 		# Create dictionary with vbo_ids : percentile of gas users
 		percentile_gas_use_dict = {}
 		# Get dwellings in neighbourhood
@@ -61,7 +64,9 @@ class GasConsumptionComparisonModule(BaseModule):
 		return(percentile_gas_use_dict)
 
 	def create_characteristics_tuple(self,dwelling):
-
+		'''
+		Creates tuple with dwelling characteristics used as keys in benchmark dict.
+		'''
 		# Get dwellings attributes which serve as CBS data lookup values
 		floor_space = dwelling.attributes['oppervlakte']
 		construction_year = dwelling.attributes['bouwjaar']
@@ -121,6 +126,9 @@ class GasConsumptionComparisonModule(BaseModule):
 		return dwelling_characteristics_tuple
 
 	def create_benchmark(self, dwelling_characteristics_tuple):
+		'''
+		Creates benchmark function based on dwelling characteristics.
+		'''
 		# Look up gas use data for building characteristics
 		cursor = self.connection.cursor()
 		query_statement = """
@@ -183,7 +191,9 @@ class GasConsumptionComparisonRegionalModule(BaseRegionalModule):
 		self.load_floor_space_data(pc6)
 
 	def load_gas_use_data(self, pc6):
-		# Compute total gas use of postal code
+		'''
+		Computes total gas use of postal code
+		'''
 		cursor = self.connection.cursor()
 		gas_consumption_query = '''
 		SELECT gemiddelde_aardgaslevering_woningen
@@ -209,7 +219,9 @@ class GasConsumptionComparisonRegionalModule(BaseRegionalModule):
 		cursor.close()
 
 	def load_floor_space_data(self, pc6):
-		# Compute total floor space in postal code
+		'''
+		Computes total floor space in postal code
+		'''
 		cursor = self.connection.cursor()
 		gas_consumption_query = '''
 		SELECT SUM(oppervlakte)

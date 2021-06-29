@@ -15,6 +15,9 @@ class ElectricityConsumptionComparisonModule(BaseModule):
 		self.elec_benchmark_dict = {}
 
 	def neighbourhood_elec_use_comparison(self, buurt, pc6):
+		'''
+		Compares electricity consumption of all dwellings in a neighbourhood to benchmark based on dwelling characteristics.
+		'''
 		# Create dictionary with vbo_ids : percentile of gas users
 		percentile_elec_use_dict = {}
 		# Get dwellings in neighbourhood
@@ -75,6 +78,9 @@ class ElectricityConsumptionComparisonModule(BaseModule):
 		return(percentile_elec_use_dict)
 
 	def create_characteristics_tuple(self, dwelling):
+		'''
+		Creates tuple with dwelling characteristics used as keys in benchmark dict.
+		'''
 		# Get dwellings attributes
 		floor_space = dwelling.attributes['oppervlakte']
 		building_type = dwelling.attributes['woningtype']
@@ -126,6 +132,9 @@ class ElectricityConsumptionComparisonModule(BaseModule):
 		return dwelling_characteristics_tuple
 
 	def create_benchmark(self, dwelling_characteristics_tuple):
+		'''
+		Creates benchmark function based on dwelling characteristics.
+		'''
 		# Look up electricity use data for dwellings characteristics
 		cursor = self.connection.cursor()
 		query_statement = """
@@ -184,7 +193,9 @@ class ElectricityConsumptionComparisonRegionalModule(BaseRegionalModule):
 		self.load_cbs_kerncijfers_data(pc6)
 
 	def load_elec_use_data(self, pc6):
-		# Compute
+		'''
+		Computes total electricity use in pc6
+		'''
 		cursor = self.connection.cursor()
 		query = '''
 		SELECT gemiddelde_elektriciteitslevering_woningen
@@ -200,7 +211,9 @@ class ElectricityConsumptionComparisonRegionalModule(BaseRegionalModule):
 		cursor.close()
 
 	def load_cbs_kerncijfers_data(self, pc6):
-		# Add average pc6 household size to dict
+		'''
+		Obtains average household size in pc6
+		'''
 		cursor = self.connection.cursor()
 		query = '''
 		SELECT gem_hh_gr

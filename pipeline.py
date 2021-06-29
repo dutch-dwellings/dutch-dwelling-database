@@ -1,5 +1,6 @@
 import time
 import pandas as pd
+from pympler import muppy, summary
 
 from psycopg2 import sql
 from psycopg2.extras import DictCursor
@@ -156,6 +157,13 @@ def main():
 	connection.close()
 
 	print(f'Processed {i:,} records in {(time.time() - start_time):.2f} seconds.')
+
+	# install muppy
+
+	all_objects = muppy.get_objects()
+	sum1 = summary.summarize(all_objects)# Prints out a summary of the large objects
+	summary.print_(sum1)
+
 
 if __name__ == "__main__":
 	main()

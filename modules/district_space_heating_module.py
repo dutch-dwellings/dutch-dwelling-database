@@ -53,10 +53,11 @@ class DistrictSpaceHeatingRegionalModule(BaseRegionalModule):
 		self.add_installation_type_shares(buurt)
 
 	def calculate_probability_modifier(self, buurt):
+		'''
+		Calculates probability modifier needed to correct for unknown installations.
+		'''
 		buurt_id = buurt.attributes['buurt_id']
-
 		cursor = self.connection.cursor()
-		# Calcultae total percentage of dwelling in neighbourhood with
 		total_percentage_query='''
 		SELECT SUM(woningen)
 		FROM cbs_84983ned_woningen_hoofdverwarmings_buurt_2019_typed
