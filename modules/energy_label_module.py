@@ -44,11 +44,11 @@ class EnergyLabelModule(BaseModule):
 
 		x = np.array([
 			1, # intercept
-			1 if dwelling_type == ' meergezinspand_hoog' else 0,
-			1 if dwelling_type == ' meergezinspand_laag_midden' else 0,
-			1 if dwelling_type == ' tussenwoning' else 0,
-			1 if dwelling_type == ' twee_onder_1_kap' else 0,
-			1 if dwelling_type == ' vrijstaand' else 0,
+			1 if dwelling_type == 'meergezinspand_hoog' else 0,
+			1 if dwelling_type == 'meergezinspand_laag_midden' else 0,
+			1 if dwelling_type == 'tussenwoning' else 0,
+			1 if dwelling_type == 'twee_onder_1_kap' else 0,
+			1 if dwelling_type == 'vrijstaand' else 0,
 			max(construction_year, 1900),
 			pc6.attributes['epi_log_pc6_average']
 		])

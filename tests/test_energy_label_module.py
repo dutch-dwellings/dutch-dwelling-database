@@ -20,7 +20,7 @@ class TestEnergyLabelModule(unittest.TestCase):
 			('SELECT energieklasse FROM energy_labels WHERE energieklasse IS NOT null AND vbo_id = %s', ('0003010000000001',)): []
 		}
 		self.connection = get_mock_connection(query_dict)
-		self.energy_label_module = EnergyLabelModule(self.connection, silent=True)
+		self.energy_label_module = EnergyLabelModule(self.connection)
 
 	def test_predicts_epi(self):
 		attributes = {
@@ -35,8 +35,10 @@ class TestEnergyLabelModule(unittest.TestCase):
 		dwelling.regions['pc6'] = pc6
 
 		self.energy_label_module.process(dwelling)
-		self.assertAlmostEqual(dwelling.attributes['energy_label_epi_mean'], 1.1123215698960702)
-		self.assertEqual(dwelling.attributes['energy_label_epi_95'], (0.7219813995163725, 1.7136996544299485))
+		self.assertAlmostEqual(dwelling.attributes['energy_label_epi_mean'], 1.1123215698958466, places=3)
+		epi_interval = dwelling.attributes['energy_label_epi_95']
+		self.assertAlmostEqual(epi_interval.lower, 0.7336717114532558)
+		self.assertAlmostEqual(epi_interval.upper, 1.6873401901864706)
 		self.assertEqual(dwelling.attributes['energy_label_class_mean'], 'B')
 		self.assertEqual(dwelling.attributes['energy_label_class_95'], ('A', 'D'))
 
@@ -48,7 +50,7 @@ class TestEnergyLabelRegionalModule(unittest.TestCase):
 			('SELECT AVG(LN(epi_imputed)) FROM energy_labels WHERE pc6 = %s', ('1000AA',)): [(0.5,)]
 		}
 		self.connection = get_mock_connection(query_dict)
-		self.energy_label_regional_module = EnergyLabelRegionalModule(self.connection, silent=True)
+		self.energy_label_regional_module = EnergyLabelRegionalModule(self.connection)
 		self.pc6 = PC6('1000AA', [self.energy_label_regional_module], self.connection)
 
 	def test_gets_average_log_of_epi_imputed(self):
