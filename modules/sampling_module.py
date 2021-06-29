@@ -37,9 +37,6 @@ class SamplingModule(BaseModule):
 		# Dwelling has already been processed by this module
 		if not continue_processing:
 			return
-		# print('\n\n')
-		#
-		# print(dwelling.attributes)
 
 		# First sampling
 		for name, options in dwelling.outputs.items():
@@ -102,11 +99,7 @@ class SamplingModule(BaseModule):
 		'''
 		if type(value) is not ProbabilityDistribution:
 			raise NotImplementedError(f'sample_numrange() has not been implemented for type {type(value)}')
-		# if name == 'insulation_window_r_95':
-			# print('\n')
-			# print(name)
-			# print(value)
-			# print('\n\n')
+
 		interval = value.interval(0.95)
 		# This is the Psycopg2 way to return a numrange.
 		# We round to 2 decimals for presentation.
