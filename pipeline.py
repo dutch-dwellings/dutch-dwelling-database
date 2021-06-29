@@ -12,7 +12,7 @@ from modules.classes import Dwelling, PlaceholderDwelling
 from modules.base_bag_data_module import BaseBagDataModule
 
 from modules.regions_module import RegionsModule
-from modules.energy_label_module import EnergyLabelModule, EnergyLabelRegionalModule
+from modules.energy_label_module import EnergyLabelModule, EnergyLabelPredictionModule, EnergyLabelRegionalModule
 from modules.gas_consumption_comparison_module import GasConsumptionComparisonModule, GasConsumptionComparisonRegionalModule
 from modules.electricity_consumption_comparison_module import ElectricityConsumptionComparisonModule, ElectricityConsumptionComparisonRegionalModule
 
@@ -59,6 +59,7 @@ Modules = [
 	# a RegionalModule works on regions.
 	RegionsModule,
 	EnergyLabelModule,
+	EnergyLabelPredictionModule,
 	GasConsumptionComparisonModule,
 	ElectricityConsumptionComparisonModule,
 	# Space heating

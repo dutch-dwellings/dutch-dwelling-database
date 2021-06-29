@@ -24,6 +24,18 @@ class EnergyLabelModule(BaseModule):
 		return results
 		cursor.close()
 
+	def process(self, dwelling):
+		continue_processing = super().process(dwelling)
+		# Dwelling has already been processed by this module
+		if not continue_processing:
+			return
+
+		vbo_id = dwelling.attributes['vbo_id']
+		energy_label = self.get_energy_label(vbo_id)
+		dwelling.attributes['energy_label'] = energy_label
+
+class EnergyLabelPredictionModule(BaseModule):
+
 	def predict_epi(self, dwelling):
 		'''
 		Predict the EPI (EnergiePrestatieIndex)
@@ -69,17 +81,6 @@ class EnergyLabelModule(BaseModule):
 		continue_processing = super().process(dwelling)
 		# Dwelling has already been processed by this module
 		if not continue_processing:
-			return
-
-		vbo_id = dwelling.attributes['vbo_id']
-		energy_label = self.get_energy_label(vbo_id)
-		dwelling.attributes['energy_label'] = energy_label
-
-		# Hack: do not predict values for PlaceholderDwellings,
-		# since they don't need them and they don't have a dwelling type.
-		# TODO: do this more elegantly, for example by splitting up the
-		# predicting functionality into an EnergyLabelPredictModule.
-		if dwelling.__class__.__name__ == 'PlaceholderDwelling':
 			return
 
 		prediction, prediction_interval = self.predict_epi(dwelling)
@@ -133,6 +134,21 @@ class EnergyLabelModule(BaseModule):
 		# prediction rights on Energy Label
 		# data set.
 		'calibration_factor': 1.1435939114804017
+	}
+
+	outputs = {
+		'energy_label_epi_mean': {
+			'type': 'double precision'
+		},
+		'energy_label_epi_95': {
+			'type': 'numrange'
+		},
+		'energy_label_class_mean': {
+			'type': 'energy_label_class'
+		},
+		'energy_label_class_95': {
+			'type': 'text'
+		}
 	}
 
 class EnergyLabelRegionalModule(BaseRegionalModule):
