@@ -16,13 +16,14 @@ class EnergyLabelModule(BaseModule):
 	def get_energy_label(self, vbo_id):
 		cursor = self.connection.cursor()
 		# Get energy label of dwelling
-		query = "SELECT energieklasse FROM energy_labels WHERE energieklasse IS NOT null AND vbo_id = %s"
+		query = "SELECT energieklasse, epi_imputed FROM energy_labels WHERE energieklasse IS NOT null AND epi_imputed > 0 AND vbo_id = %s"
 		cursor.execute(query, (vbo_id,))
 		results = cursor.fetchone()
-		if results is not None:
-			results = results[0]
-		return results
 		cursor.close()
+		if results == None:
+			return (None, None)
+		else:
+			return results
 
 	def process(self, dwelling):
 		continue_processing = super().process(dwelling)
@@ -31,8 +32,9 @@ class EnergyLabelModule(BaseModule):
 			return
 
 		vbo_id = dwelling.attributes['vbo_id']
-		energy_label = self.get_energy_label(vbo_id)
-		dwelling.attributes['energy_label'] = energy_label
+		energy_label_class, energy_label_epi = self.get_energy_label(vbo_id)
+		dwelling.attributes['energy_label_class'] = energy_label_class
+		dwelling.attributes['energy_label_epi'] = energy_label_epi
 
 class EnergyLabelPredictionModule(BaseModule):
 
@@ -53,7 +55,19 @@ class EnergyLabelPredictionModule(BaseModule):
 
 		dwelling_type = dwelling.attributes['woningtype']
 		construction_year = dwelling.attributes['bouwjaar']
-		pc6 = dwelling.regions['pc6']
+		pc6_log_avg = dwelling.regions['pc6'].attributes['energy_label_epi_log_avg']
+
+		if pc6_log_avg != None:
+			energy_label_epi_log_avg = pc6_log_avg
+		else:
+			# If the PC6 has no average (because there are no labels),
+			# we take the buurt average
+			buurt_log_avg = dwelling.regions['buurt'].attributes['energy_label_epi_log_avg']
+			if buurt_log_avg != None:
+				energy_label_epi_log_avg = buurt_log_avg
+			else:
+				# Fallback: use the national average
+				energy_label_epi_log_avg = 0.33275039659462347
 
 		x = np.array([
 			1, # intercept
@@ -63,7 +77,7 @@ class EnergyLabelPredictionModule(BaseModule):
 			1 if dwelling_type == 'twee_onder_1_kap' else 0,
 			1 if dwelling_type == 'vrijstaand' else 0,
 			max(construction_year, 1900),
-			pc6.attributes['epi_log_pc6_average']
+			energy_label_epi_log_avg
 		])
 
 		y_hat = np.dot(beta, x)
@@ -72,7 +86,7 @@ class EnergyLabelPredictionModule(BaseModule):
 		# 95% Prediction Interval for log(epi)
 		PI_min = y_hat - half_interval_size
 		PI_max = y_hat + half_interval_size
-		# 95% Prediction Interval for log(epi)
+		# 95% Prediction Interval for epi
 		PI = (np.exp(PI_min), np.exp(PI_max))
 
 		return np.exp(y_hat), PI
@@ -101,7 +115,7 @@ class EnergyLabelPredictionModule(BaseModule):
 			-0.004443, # twee_onder_1_kap
 			-0.014757, # vrijstaand
 			-0.001914, # max(bouwjaar, 1900)
-			 0.869052  # epi_log_pc6_average
+			 0.869052  # energy_label_epi_log_avg
 		]),
 
 		'S': np.array([
@@ -158,7 +172,27 @@ class EnergyLabelRegionalModule(BaseRegionalModule):
 		cursor = self.connection.cursor()
 		pc6_code = pc6.attributes['pc6']
 		cursor.execute(epi_log_pc6_average_query, (pc6_code,))
-		pc6.attributes['epi_log_pc6_average'] = cursor.fetchone()[0]
+
+		energy_label_epi_log_avg = cursor.fetchone()[0]
+		pc6.attributes['energy_label_epi_log_avg'] = energy_label_epi_log_avg
 		cursor.close()
 
-	supports = ['pc6']
+	def process_buurt(self, buurt):
+		# Since the EnergyLabelModule has already processed all the dwellings
+		# (or placeholders) in this 'buurt', we can use those epi's directly,
+		# instead of having to query. That is nice because then we don't have
+		# to do an expensive JOIN with the bag (energy_labels does not include
+		# buurt).
+		# The energy_label_epi is always bigger than 0 (EnergyLabelModule filters
+		# on that), so we can safely take the log.
+		epi_logs = [
+			np.log(dwelling.attributes['energy_label_epi'])
+			for dwelling
+			in buurt.dwellings
+			if dwelling.attributes['energy_label_epi'] is not None
+		]
+		epi_log_buurt_avg = np.average(epi_logs)
+
+		buurt.attributes['energy_label_epi_log_avg'] = epi_log_buurt_avg
+
+	supports = ['pc6', 'buurt']

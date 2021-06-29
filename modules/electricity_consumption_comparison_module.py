@@ -78,7 +78,7 @@ class ElectricityConsumptionComparisonModule(BaseModule):
 		# Get dwellings attributes
 		floor_space = dwelling.attributes['oppervlakte']
 		building_type = dwelling.attributes['woningtype']
-		energy_label = dwelling.attributes['energy_label']
+		energy_label = dwelling.attributes['energy_label_class']
 		household_size = dwelling.attributes['household_size']
 
 		# Harmonize building type terminology between bag and CBS

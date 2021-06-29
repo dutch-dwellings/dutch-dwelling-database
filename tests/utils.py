@@ -1,7 +1,7 @@
 from functools import partial
 from unittest.mock import Mock
 
-from psycopg2 import sql, extensions
+from psycopg2 import sql, extensions, ProgrammingError
 
 class mockProgrammingError(Exception):
 	pass
@@ -63,7 +63,7 @@ def get_mock_cursor(query_dict, strict=True):
 	def mock_cursor_fetchall():
 		results = mock_cursor.results
 		if results is None:
-			raise ProgrammingError('Mock ProgrammingError: ')
+			raise ProgrammingError('no results to fetch')
 		mock_cursor.results = []
 		return results
 

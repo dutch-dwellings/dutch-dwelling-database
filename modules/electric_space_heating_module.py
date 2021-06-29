@@ -46,7 +46,7 @@ class ElectricSpaceHeatingModule(BaseModule):
 			return
 
 		# Get dwelling attributes
-		energy_label = dwelling.attributes['energy_label']
+		energy_label = dwelling.attributes['energy_label_class']
 		gas_use_percentile_national = dwelling.attributes['gas_use_percentile_national']
 		gas_use_percentile_neighbourhood = dwelling.attributes['gas_use_percentile_neighbourhood']
 		elec_use_percentile_national = dwelling.attributes['elec_use_percentile_national']

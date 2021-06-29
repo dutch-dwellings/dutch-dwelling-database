@@ -66,7 +66,7 @@ class GasConsumptionComparisonModule(BaseModule):
 		floor_space = dwelling.attributes['oppervlakte']
 		construction_year = dwelling.attributes['bouwjaar']
 		building_type = dwelling.attributes['woningtype']
-		energy_label = dwelling.attributes['energy_label']
+		energy_label = dwelling.attributes['energy_label_class']
 
 		# Make energy labels searchable
 		for energy_label in ['A+++++', 'A++++', 'A+++', 'A++', 'A+']:
