@@ -22,7 +22,13 @@ psql (PostgreSQL) 12.6
 ### Install Python dependencies
 
 ```
-pip install python-dotenv psycopg2-binary requests scipy
+pip install python-dotenv psycopg2-binary requests cbsodata numpy pandas
+```
+
+For the analysis you might also need:
+
+```
+pip install scipy matplotlib scikit-learn seaborn statsmodels
 ```
 
 ## Downloading and loading the datasets
@@ -70,5 +76,5 @@ There are some unittests to test parts of the behaviour of the modules and the u
 To run all tests:
 
 ```
-python -m unittest -v
+python -m unittest
 ```
