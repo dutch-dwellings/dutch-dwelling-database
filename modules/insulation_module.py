@@ -272,10 +272,14 @@ class InsulationModule(BaseModule):
 		# existing insulation, but a replacement.
 		elif insulation_type == 'window':
 			p_measures = sum(measures_prob)
+
 			# 'measures_dist' already includes the absolute
 			# probability of the measures, so doesn't need to
 			# be multiplied by p_measures.
-			window_r_dist = (1 - p_measures) * base_dist + measures_dist
+			if p_measures != 0:
+				window_r_dist = (1 - p_measures) * base_dist + measures_dist
+			else:
+				window_r_dist = base_dist
 			return window_r_dist
 		elif insulation_type == 'cavity wall':
 			measures_dist.pad()

@@ -106,7 +106,7 @@ def main():
 	query = "SELECT * FROM bag ORDER BY buurt_id"
 	cursor.execute(query)
 
-	while i < 10000:
+	while i < 400000:
 
 		print('\n Fetching new dwellings...')
 		sample = cursor.fetchmany(10000)
