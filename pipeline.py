@@ -18,6 +18,8 @@ from modules.district_space_heating_module import DistrictSpaceHeatingModule, Di
 from modules.gas_space_heating_module import GasSpaceHeatingModule, GasSpaceHeatingRegionalModule
 from modules.electric_space_heating_module import ElectricSpaceHeatingModule, ElectricSpaceHeatingRegionalModule
 
+from modules.insulation_module import InsulationModule
+
 from modules.gas_water_heating_module import GasWaterHeatingModule
 from modules.electric_water_heating_module import ElectricWaterHeatingModule
 from modules.district_water_heating_module import DistrictWaterHeatingModule
@@ -77,6 +79,7 @@ def main():
 		DistrictSpaceHeatingModule,
 		GasSpaceHeatingModule,
 		ElectricSpaceHeatingModule,
+		InsulationModule,
 		# Water heating
 		DistrictWaterHeatingModule,
 		GasWaterHeatingModule,
