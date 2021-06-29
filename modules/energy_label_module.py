@@ -138,7 +138,7 @@ class EnergyLabelModule(BaseModule):
 class EnergyLabelRegionalModule(BaseRegionalModule):
 
 	def process_pc6(self, pc6):
-		epi_log_pc6_average_query = "SELECT AVG(LN(epi_imputed)) FROM energy_labels WHERE pc6 = %s"
+		epi_log_pc6_average_query = "SELECT AVG(LN(epi_imputed)) FROM energy_labels WHERE pc6 = %s AND epi_imputed > 0"
 		cursor = self.connection.cursor()
 		pc6_code = pc6.attributes['pc6']
 		cursor.execute(epi_log_pc6_average_query, (pc6_code,))
