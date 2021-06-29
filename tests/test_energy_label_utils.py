@@ -5,7 +5,7 @@ import unittest
 # Necessary to import modules from parent folder
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from analysis.energy_labels_utils import label_to_epi, epi_to_label
+from utils.energy_label_utils import label_to_epi, epi_to_label
 
 class TestEnergyLabelsUtils(unittest.TestCase):
 

@@ -5,7 +5,7 @@ import sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from utils.database_utils import get_connection
-from energy_labels_utils import label_to_epi
+from utils.energy_label_utils import label_to_epi
 
 def get_boundaries(cursor):
 
