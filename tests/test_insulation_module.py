@@ -104,14 +104,15 @@ class TestInsulationModule(unittest.TestCase):
 		self.insulation_module.process(dwelling)
 
 		# WINDOWS
-		# building code: 'window': 1/4.2
+		# base value: not from the building code,
+		# but for double glazing: 0.333
 		p_window_measure_2018 = 1.98 * 312337 / 7189902
 		p_window_measure_2019 = 1.98 * 376869 / 7261671
 		p_window_measure = p_window_measure_2018 + p_window_measure_2019
-		expected_window_mean = (1 - p_window_measure) * 1/4.2 + p_window_measure * (0.5 + 0.625)/2
+		expected_window_mean = (1 - p_window_measure) * 0.333 + p_window_measure * (0.5 + 0.625)/2
 
 		self.assertAlmostEqual(dwelling.attributes['insulation_window_r_dist'].mean, expected_window_mean)
-		self.assertAlmostEqual(dwelling.attributes['insulation_window_r_dist'].p(1/4.2), 1 - p_window_measure)
+		self.assertAlmostEqual(dwelling.attributes['insulation_window_r_dist'].p(0.333), 1 - p_window_measure)
 
 
 	def test_uses_woon_data_and_measures_for_buildings_before_2006(self):

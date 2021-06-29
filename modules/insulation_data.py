@@ -9,24 +9,7 @@ from utils.probability_utils import ProbabilityDistribution
 
 INSULATION_DATA = {
 
-	# Based on the WoON survey
-	# TODO: which ones are the correct values?
-	# DWELLING_TYPE_MULTIPLIERS = {
-	# 	"hoekwoning": 0.866707,
-	# 	"meergezinspand_hoog": 1.101116,
-	# 	"meergezinspand_laag_midden": 1.101116,
-	# 	"tussenwoning": 0.697829,
-	# 	"twee_onder_1_kap": 0.727686,
-	# 	"vrijstaand": 1.606662
-	# }
-	# DWELLING_TYPE_MULTIPLIERS = {
-	# 	"hoekwoning": 1.07438,
-	# 	"meergezinspand_hoog": 0.88004,
-	# 	"meergezinspand_laag_midden": 0.88004,
-	# 	"tussenwoning": 0.66413,
-	# 	"twee_onder_1_kap": 0.82645,
-	# 	"vrijstaand": 1.98384
-	# }
+	# Based on the WoON survey 2018
 	'dwelling_type_multipliers': {
 		"hoekwoning": 1.07,
 		"meergezinspand_hoog": 0.88,
@@ -232,7 +215,7 @@ INSULATION_DATA = {
 		2021: 7892928 # total
 	},
 
-	# TODO: fill the rest
+	# Based on the WoON survey 2006
 	'base_r_values_1992_2005': {
 		'vrijstaand': {
 			'facade': ProbabilityDistribution({
@@ -256,14 +239,11 @@ INSULATION_DATA = {
 					2.15: 0.128,
 					2.53: 0.277,
 					2.65: 0.005
-				}),
-			'window': ProbabilityDistribution({
-					# double glazing
-					0.333: 1
-				}),
+				})
 		}
 	},
 
+	# Based on the WoON survey 2006
 	# TODO: fill the rest
 	'base_r_values_1920_1991': {
 		'vrijstaand': {
@@ -300,12 +280,8 @@ INSULATION_DATA = {
 					2.15: 0.161,
 					2.53: 0.093,
 					2.65: 0.002
-				}),
-			'window': ProbabilityDistribution({
-					# double glazing
-					0.333: 1
 				})
-		}
+			}
 	},
 
 	'glazing_r_values': {
@@ -314,9 +290,12 @@ INSULATION_DATA = {
 		'hr': ProbabilityDistribution({(0.5, 0.625): 1}),
 		'hr+': ProbabilityDistribution({(0.625, 0.833): 1}),
 		'hr++': ProbabilityDistribution({0.833: 1})
-	}
+	},
+
+	'cavity_wall_r_value': ProbabilityDistribution({1.3: 1})
 
 }
 
+# Based on the WoON survey 2006
 # TODO: fill these in later after splitting the distributions.
 INSULATION_DATA['base_r_values_before_1920'] = INSULATION_DATA['base_r_values_1920_1991']

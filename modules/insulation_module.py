@@ -30,6 +30,7 @@ class InsulationModule(BaseModule):
 
 		self.insulation_measures_r_values = INSULATION_DATA['insulation_measures_r_values']
 		self.glazing_r_values = INSULATION_DATA['glazing_r_values']
+		self.cavity_wall_r_value = INSULATION_DATA['cavity_wall_r_value']
 
 		self.insulation_measures_n = self.year_dict_to_dataframe(INSULATION_DATA['insulation_measures_n'])
 		self.insulation_measures_p = self.get_insulation_measures_p(self.insulation_measures_n)
@@ -157,18 +158,31 @@ class InsulationModule(BaseModule):
 		if construction_year >= 2006:
 			base_dist = self.get_building_code(construction_year)
 
+			if construction_year < 2012:
+				# The building code before 2012 was not very good
+				# for windows, even though modern windows probably
+				# have double glazing.
+				base_dist['window'] = self.glazing_r_values['double']
+
 		# From 1992 onwards, we have the WoON distribution
 		# that we modified so it matches the building code.
 		elif construction_year >= 1992:
 			base_dist = self.base_r_values_1992_2005[dwelling_type]
+			base_dist['window'] = self.glazing_r_values['double']
 
 		# Cutoff point: buildings from 1920 (usually) have cavity walls, so we modified the WoON base distributions for that.
 		elif construction_year >= 1920:
 			base_dist = self.base_r_values_1920_1991[dwelling_type]
 
+			if construction_year >= 1974:
+				base_dist['window'] = self.glazing_r_values['double']
+			else:
+				base_dist['window'] = self.glazing_r_values['single']
+
 		# Buildings before 1920, they have no cavity walls
 		else:
 			base_dist = self.base_r_values_before_1920[dwelling_type]
+			base_dist['window'] = self.glazing_r_values['single']
 
 		# We start all distributions off, pretending there is no
 		# cavity wall insulation at all.
@@ -215,8 +229,7 @@ class InsulationModule(BaseModule):
 			]
 		elif insulation_type == 'cavity wall':
 			measures_r_values = [
-				# TODO: get better values!
-				ProbabilityDistribution({1.3: 1})
+				self.cavity_wall_r_value
 				for _
 				in applicable_measure_years
 			]
