@@ -68,6 +68,7 @@ class Region:
 
 	def __init__(self):
 		self.dwellings = []
+		self.n_placeholders = len(self.dwellings)
 
 	def add_dwelling(self, dwelling):
 		'''
@@ -92,6 +93,17 @@ class Region:
 				dwelling.attributes[key] = placeholder_dwelling.attributes[key]
 
 		dwelling.processed_by += [module for module in placeholder_dwelling.processed_by if module not in dwelling.processed_by]
+
+		self.n_placeholders -= 1
+		if self.n_placeholders == 0:
+			# They dwellings have had their purpose,
+			# and won't be used inside the Region.
+			# We can thus delete the references to the dwellings,
+			# which will allow for garbage collecting
+			# and thus lower memory usage.
+			# Reference to the dwelling can only be freed after all types
+			# of Regions (e.g.: PC6, Buurt) have deleted the reference.
+			del self.dwellings
 
 	def get_index_of_placeholder_dwelling(self, vbo_id):
 		'''
@@ -126,6 +138,7 @@ class PC6(Region):
 		self.attributes = {'pc6': pc6}
 		self.connection = connection
 		self.dwellings = self.get_placeholder_dwellings()
+		self.n_placeholders = len(self.dwellings)
 
 		pc6_dwelling_modules = kwargs.get('pc6_dwelling_modules', [])
 		pc6_modules = kwargs.get('pc6_modules', [])
@@ -156,6 +169,7 @@ class Buurt(Region):
 		self.attributes = {'buurt_id': buurt_id}
 		self.connection = connection
 		self.dwellings = self.get_placeholder_dwellings()
+		self.n_placeholders = len(self.dwellings)
 		self.gas_use = {}
 		self.elec_use = {}
 

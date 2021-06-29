@@ -105,7 +105,14 @@ def main():
 	modules = get_modules(connection, regional_modules)
 
 	print("Getting dwellings...")
-	cursor = connection.cursor()
+	# We create a named server-side cursor:
+	# https://www.psycopg.org/docs/usage.html#server-side-cursors
+	# This keeps the memory usage down
+	# since it will only fetch about 2000 (see cursor.itersize)
+	# rows at a time into the Python memory.
+	# You don't need to close() this cursor afterwards (in fact
+	# the cursor disappears after a commit).
+	cursor = connection.cursor(name='bag-query-cursor')
 	query = '''
 		SELECT
 			vbo_id, pc6, oppervlakte, bouwjaar, woningtype, buurt_id
@@ -113,12 +120,11 @@ def main():
 			bag
 		ORDER BY
 			buurt_id
-		LIMIT
-			10000000
 	'''
 	cursor.execute(query)
 
 	print('Starting processing...')
+	N = 10000 # set N = None to process full BAG.
 	i = 0
 	for (vbo_id, pc6, oppervlakte, bouwjaar, woningtype, buurt_id) in cursor:
 
@@ -137,21 +143,16 @@ def main():
 			module.process(dwelling)
 		dwelling.save()
 
-		# Memory cleanup unused regions
-		if all(isinstance(dwellings, Dwelling) for dwellings in dwelling.regions['pc6'].dwellings) is True:
-			del dwelling.regions['pc6']
-		if all(isinstance(dwellings, Dwelling) for dwellings in dwelling.regions['buurt'].dwellings) is True:
-			del dwelling.regions['buurt']
-		del dwelling
-
 		i += 1
 		if i % 100 == 0:
 			print(f'   processed dwelling: {i}', end='\r')
 		if i % 10000 == 0:
 			connection.commit()
 
+		if i == N:
+			break
+
 	print("\nCommiting and closing...")
-	cursor.close()
 	connection.commit()
 	connection.close()
 
