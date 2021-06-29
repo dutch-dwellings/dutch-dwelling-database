@@ -2,7 +2,7 @@ import os
 import sys
 
 import numpy as np
-from psycopg2.extras import NumericRange
+from psycopg2.extras import NumericRange, register_range
 
 # Required for relative imports to also work when called
 # from project root directory.
@@ -37,6 +37,14 @@ class EnergyLabelModule(BaseModule):
 		dwelling.attributes['energy_label_epi'] = energy_label_epi
 
 class EnergyLabelPredictionModule(BaseModule):
+
+	def __init__(self, connection, **kwargs):
+		super().__init__(connection, **kwargs)
+		# Create a new Range type for energy label classes.
+		# This is required for Psycopg2 to properly convert
+		# the range to the already existing Postgres type
+		# 'energy_label_class_range'.
+		self.EnergyLabelClassRange = register_range('energy_label_class_range', 'EnergyLabelClassRange', self.connection).range
 
 	def predict_epi(self, dwelling):
 		'''
@@ -101,7 +109,7 @@ class EnergyLabelPredictionModule(BaseModule):
 		dwelling.attributes['energy_label_epi_mean'] = prediction
 		dwelling.attributes['energy_label_epi_95'] = NumericRange(prediction_interval[0], prediction_interval[1], bounds='[]')
 		dwelling.attributes['energy_label_class_mean'] = epi_to_label(prediction)
-		dwelling.attributes['energy_label_class_95'] = (epi_to_label(prediction_interval[0]), epi_to_label(prediction_interval[1]))
+		dwelling.attributes['energy_label_class_95'] = self.EnergyLabelClassRange(epi_to_label(prediction_interval[1]), epi_to_label(prediction_interval[0]), bounds='[]')
 
 	# Coefficients for the multiple linear regression
 	# as applied in predict_epi()
@@ -161,7 +169,7 @@ class EnergyLabelPredictionModule(BaseModule):
 			'type': 'energy_label_class'
 		},
 		'energy_label_class_95': {
-			'type': 'text'
+			'type': 'energy_label_class_range'
 		}
 	}
 

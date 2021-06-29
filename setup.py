@@ -69,15 +69,25 @@ def create_types():
 	print('Adding new Postgres types...')
 
 	print("Creating type 'energy_label_class'...")
-	create_type_statement = '''
+	create_energy_label_class_statement = '''
 	CREATE TYPE energy_label_class
 	AS ENUM
 	('G', 'F', 'E', 'D', 'C', 'B', 'A', 'A+', 'A++', 'A+++', 'A++++', 'A+++++')
 	'''
 	try:
-		execute(create_type_statement)
+		execute(create_energy_label_class_statement)
 	except DuplicateObject:
 		print("\tType 'energy_label_class' already exists.")
+
+	print("Creating type 'energy_label_class_range'...")
+	create_energy_label_class_range_statement = '''
+	CREATE TYPE energy_label_class_range
+	AS RANGE (subtype=energy_label_class)
+	'''
+	try:
+		execute(create_energy_label_class_range_statement)
+	except DuplicateObject:
+		print("\tType 'energy_label_class_range' already exists.")
 
 def elec_consumption_households():
 	print('Creating table for household electricity consumption..')
