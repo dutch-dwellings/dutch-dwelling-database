@@ -14,7 +14,7 @@ from tests.utils import get_mock_connection
 class TestSamplingModule(unittest.TestCase):
 
 	def setUp(self):
-		self.mock_connection = get_mock_connection()
+		self.mock_connection = get_mock_connection(strict=False)
 		self.sampling_module = SamplingModule(self.mock_connection, silent=True)
 
 	def test_can_sample_boolean(self):
@@ -30,7 +30,6 @@ class TestSamplingModule(unittest.TestCase):
 				'distribution': 'example_p'
 			}
 		}
-
 		self.sampling_module.process(dwelling)
 		self.assertTrue(dwelling.attributes['example'])
 

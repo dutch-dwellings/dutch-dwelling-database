@@ -128,6 +128,7 @@ class SamplingModule(BaseModule):
 						dwelling.attributes['gas_boiler_water'] = True
 					if function == 'cooking':
 						dwelling.attributes['gas_cooking'] = True
+					return
 				installations_amount = self.count_installations(dwelling, function)
 
 	def get_sampling_outputs_per_function(self, dwelling, function):
