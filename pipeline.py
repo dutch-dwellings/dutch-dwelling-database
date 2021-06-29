@@ -114,7 +114,7 @@ def main():
 		ORDER BY
 			buurt_id
 		LIMIT
-			10000
+			10000000
 	'''
 	cursor.execute(query)
 

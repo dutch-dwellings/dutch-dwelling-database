@@ -36,8 +36,9 @@ class Dwelling:
 		into the 'results' database.
 		'''
 		cursor = self.connection.cursor()
-		
+
 		row_dict = self.get_output_attributes()
+		print(row_dict)
 		insert_dict(
 			table_name='results',
 			row_dict = row_dict,

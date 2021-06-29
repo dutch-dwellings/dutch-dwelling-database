@@ -14,6 +14,7 @@ def label_to_epi(label):
 	 "A++++": 0.281, # actually the average for A++
 	  "A+++": 0.281, # actually the average for A++
 	   "A++": 0.281,
+	   "A++ or higher": 0.281,
 	    "A+": 0.635,
 	     "A": 0.938,
 	     "B": 1.200,

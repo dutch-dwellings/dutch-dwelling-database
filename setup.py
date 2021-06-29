@@ -72,7 +72,7 @@ def create_types():
 	create_energy_label_class_statement = '''
 	CREATE TYPE energy_label_class
 	AS ENUM
-	('G', 'F', 'E', 'D', 'C', 'B', 'A', 'A+', 'A++', 'A+++', 'A++++', 'A+++++')
+	('G', 'F', 'E', 'D', 'C', 'B', 'A', 'A+', 'A++', 'A++ or higher', 'A+++', 'A++++', 'A+++++')
 	'''
 	try:
 		execute(create_energy_label_class_statement)
