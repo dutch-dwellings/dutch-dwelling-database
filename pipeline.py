@@ -1,6 +1,4 @@
 import time
-import sys
-from pympler import muppy, summary
 import pandas as pd
 
 from psycopg2 import sql
@@ -34,114 +32,122 @@ from modules.electric_cooking_module import ElectricCookingModule
 from modules.sampling_module import SamplingModule
 
 
+# Modules that will run on the Regions.
+RegionalModules = [
+	EnergyLabelRegionalModule,
+	GasConsumptionComparisonRegionalModule,
+	ElectricityConsumptionComparisonRegionalModule,
+	DistrictSpaceHeatingRegionalModule,
+	GasSpaceHeatingRegionalModule,
+	ElectricSpaceHeatingRegionalModule
+]
+
+# Modules that will run on PlaceholderDwellings
+# when instantiating a region. Specify only those
+# that are required for the RegionalModules to do
+# their job.
+PC6DwellingModules = []
+BuurtDwellingModules = [
+	EnergyLabelModule,
+	BaseBagDataModule
+]
+
+Modules = [
+	# Create neccesary dwelling attributes.
+	# RegionsModule should not be confused with a 'RegionalModule':
+	# RegionsModule adds regions, works on dwellings;
+	# a RegionalModule works on regions.
+	RegionsModule,
+	EnergyLabelModule,
+	GasConsumptionComparisonModule,
+	ElectricityConsumptionComparisonModule,
+	# Space heating
+	DistrictSpaceHeatingModule,
+	GasSpaceHeatingModule,
+	ElectricSpaceHeatingModule,
+	InsulationModule,
+	# Water heating
+	DistrictWaterHeatingModule,
+	GasWaterHeatingModule,
+	ElectricWaterHeatingModule,
+	# Cooking
+	GasCookingModule,
+	ElectricCookingModule,
+	# Sampling
+	SamplingModule
+]
+
+def get_regional_modules(connection):
+	return [RegionalModule(connection) for RegionalModule in RegionalModules]
+
+def get_modules(connection, regional_modules):
+	# Optional variables that only some modules require.
+	kwargs = {
+		'regional_modules': regional_modules,
+		'pc6_dwelling_modules': [Module(connection) for Module in PC6DwellingModules],
+		'buurt_dwelling_modules': [Module(connection) for Module in BuurtDwellingModules]
+	}
+	return [Module(connection, **kwargs) for Module in Modules]
+
 def main():
 
 	start_time = time.time()
-	i = 0
 
 	connection = get_connection()
-
-	cursor = connection.cursor()
-
-	dwellings_count_query = "SELECT COUNT(vbo_id) FROM bag"
-	cursor.execute(dwellings_count_query)
-	dwelling_count = cursor.fetchone()[0]
-	cursor.close()
-
 
 	# Also deletes existing `results' table
 	print("Creating table 'results'...")
 	create_results_table()
 
-	# print("Getting a BAG sample...")
-	# sample = get_bag_sample(connection, 1000)
-	# sample = get_neighbourhoods_sample_UAE(connection)
-	# sample = get_neighbourhoods_sample(connection, 'BU034405%', 100000000)
-
 	print("Initiating modules...")
+	regional_modules = get_regional_modules(connection)
+	modules = get_modules(connection, regional_modules)
 
-	RegionalModules = [
-		EnergyLabelRegionalModule,
-		GasConsumptionComparisonRegionalModule,
-		ElectricityConsumptionComparisonRegionalModule,
-		DistrictSpaceHeatingRegionalModule,
-		GasSpaceHeatingRegionalModule,
-		ElectricSpaceHeatingRegionalModule
-	]
-	regional_modules = [RegionalModule(connection) for RegionalModule in RegionalModules]
-	# Modules that will be ran on PlaceholderDwellings
-	# when instantiating a region. Specify only those
-	# that are required for the RegionalModules to do
-	# their job.
-	pc6_dwelling_modules = []
-	buurt_dwelling_modules = [EnergyLabelModule(connection), BaseBagDataModule(connection)]
-
-	Modules = [
-		# Create neccesary dwelling attributes.
-		# RegionsModule should not be confused with a 'RegionalModule':
-		# RegionsModule adds regions, works on dwellings;
-		# a RegionalModule works on regions.
-		RegionsModule,
-		EnergyLabelModule,
-		GasConsumptionComparisonModule,
-		ElectricityConsumptionComparisonModule,
-		# Space heating
-		DistrictSpaceHeatingModule,
-		GasSpaceHeatingModule,
-		ElectricSpaceHeatingModule,
-		InsulationModule,
-		# Water heating
-		DistrictWaterHeatingModule,
-		GasWaterHeatingModule,
-		ElectricWaterHeatingModule,
-		# Cooking
-		GasCookingModule,
-		ElectricCookingModule,
-		# Sampling
-		SamplingModule
-	]
-
-	# Optional variables that only some modules require.
-	kwargs = {
-		'regional_modules': regional_modules,
-		'pc6_dwelling_modules': pc6_dwelling_modules,
-		'buurt_dwelling_modules': buurt_dwelling_modules
-	}
-
-	modules = [Module(connection, **kwargs) for Module in Modules]
-
-	# Querying BAG
-	print("Getting a BAG sample...")
-	cursor = connection.cursor(cursor_factory=DictCursor)
-	query = "SELECT * FROM bag ORDER BY buurt_id"
+	print("Getting dwellings...")
+	cursor = connection.cursor()
+	query = '''
+		SELECT
+			vbo_id, pc6, oppervlakte, bouwjaar, woningtype, buurt_id
+		FROM
+			bag
+		ORDER BY
+			buurt_id
+		LIMIT
+			10000
+	'''
 	cursor.execute(query)
 
-	while i < 400000:
+	print('Starting processing...')
+	i = 0
+	for (vbo_id, pc6, oppervlakte, bouwjaar, woningtype, buurt_id) in cursor:
 
-		print('\n Fetching new dwellings...')
-		sample = cursor.fetchmany(10000)
+		attributes = {
+			'vbo_id': vbo_id,
+			'pc6': pc6,
+			'oppervlakte': oppervlakte,
+			'bouwjaar': bouwjaar,
+			'woningtype': woningtype,
+			'buurt_id': buurt_id
+		}
 
-		print(" Processing entries...")
-		for entry in sample:
-			dwelling = Dwelling(dict(entry), connection)
+		dwelling = Dwelling(attributes, connection)
 
-			# Module processing
-			for module in modules:
-				module.process(dwelling)
-			dwelling.save()
+		for module in modules:
+			module.process(dwelling)
+		dwelling.save()
 
-			# Memory cleanup unused regions
-			if all(isinstance(dwellings, Dwelling) for dwellings in dwelling.regions['pc6'].dwellings) is True:
-				del dwelling.regions['pc6']
-			if all(isinstance(dwellings, Dwelling) for dwellings in dwelling.regions['buurt'].dwellings) is True:
-				del dwelling.regions['buurt']
-			del dwelling
+		# Memory cleanup unused regions
+		if all(isinstance(dwellings, Dwelling) for dwellings in dwelling.regions['pc6'].dwellings) is True:
+			del dwelling.regions['pc6']
+		if all(isinstance(dwellings, Dwelling) for dwellings in dwelling.regions['buurt'].dwellings) is True:
+			del dwelling.regions['buurt']
+		del dwelling
 
-			i += 1
-			if i % 100 == 0:
-				print(f'   processed dwelling: {i}', end='\r')
-			if i % 10000 == 0:
-				connection.commit()
+		i += 1
+		if i % 100 == 0:
+			print(f'   processed dwelling: {i}', end='\r')
+		if i % 10000 == 0:
+			connection.commit()
 
 	print("\nCommiting and closing...")
 	cursor.close()
