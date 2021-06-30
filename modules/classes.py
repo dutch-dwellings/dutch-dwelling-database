@@ -36,9 +36,7 @@ class Dwelling:
 		into the 'results' database.
 		'''
 		cursor = self.connection.cursor()
-
 		row_dict = self.get_output_attributes()
-		print(row_dict)
 		insert_dict(
 			table_name='results',
 			row_dict = row_dict,
@@ -46,6 +44,9 @@ class Dwelling:
 		)
 
 		cursor.close()
+
+		for region in self.regions.values():
+			region.check_for_deletion()
 
 	# This defines the default outputs irrespective of which
 	# modules are active. Specify the outputs for specific modules
@@ -95,6 +96,8 @@ class Region:
 		dwelling.processed_by += [module for module in placeholder_dwelling.processed_by if module not in dwelling.processed_by]
 
 		self.n_placeholders -= 1
+
+	def check_for_deletion(self):
 		if self.n_placeholders == 0:
 			# They dwellings have had their purpose,
 			# and won't be used inside the Region.

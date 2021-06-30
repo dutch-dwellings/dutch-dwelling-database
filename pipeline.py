@@ -146,8 +146,6 @@ def main():
 		i += 1
 		if i % 100 == 0:
 			print(f'   processed dwelling: {i}', end='\r')
-		if i % 10000 == 0:
-			connection.commit()
 
 		if i == N:
 			break
