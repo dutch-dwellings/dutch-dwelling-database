@@ -12,7 +12,7 @@ from utils.database_utils import get_connection
 from energy_labels import energy_label_colours_improved2 as energy_label_colours
 from utils.file_utils import project_dir
 
-query = "SELECT energieprestatieindex, energieklasse, berekeningstype FROM energy_labels WHERE gebouwklasse = 'W' AND energieprestatieindex IS NOT NULL AND energieklasse is not NULL LIMIT 100000"
+query = "SELECT energieprestatieindex, energieklasse, berekeningstype FROM energy_labels WHERE energieprestatieindex IS NOT NULL AND energieklasse is not NULL ORDER BY energieklasse DESC"
 # query = "SELECT energieprestatieindex, energieklasse, berekeningstype FROM energy_labels WHERE gebouwklasse = 'W' AND energieprestatieindex IS NOT NULL AND energieklasse is not NULL ORDER BY energieklasse DESC"
 averages_query = "SELECT energieklasse, AVG(energieprestatieindex) FROM energy_labels WHERE energieprestatieindex IS NOT NULL GROUP BY energieklasse"
 
@@ -46,7 +46,7 @@ calculation_colours = {
 def matplot(df, title=None):
 	plt.clf()
 	print('Plotting...')
-	plt.scatter(df['epi'], df['label'], alpha=1/256, c=df['label'].map(energy_label_colours))
+	plt.scatter(df['Energieprestatieindex (EPI)'], df['Energy label class'], alpha=1/256, c=df['label'].map(energy_label_colours))
 	plt.xlim(-2.5, 7.5)
 	plt.title(title)
 	print('Showing...')
@@ -56,7 +56,7 @@ def matplot(df, title=None):
 
 def seaborn_scatter(df):
 	print("plotting seaborn")
-	sns.scatterplot(data=df, x='epi', y='label', alpha=0.01)
+	sns.scatterplot(data=df, x='Energieprestatieindex (EPI)', y='label', alpha=0.01)
 	# sns.violinplot(data=df, x='epi', y='label', hue='label', color=energy_label_colours)
 	print('show seaborn')
 	plt.show()
@@ -75,7 +75,7 @@ def seaborn_ridgeplot(df):
 	g.map(sns.kdeplot, "epi",
 		bw_adjust=.5, clip_on=False,
 		fill=True, alpha=1, linewidth=1.5)
-	g.map(sns.kdeplot, "epi", clip_on=False, color="w", lw=2, bw_adjust=.5)
+	g.map(sns.kdeplot, "Energieprestatieindex (EPI)", clip_on=False, color="w", lw=2, bw_adjust=.5)
 	g.map(plt.axhline, y=0, lw=2, clip_on=False)
 
 
@@ -85,7 +85,7 @@ def seaborn_ridgeplot(df):
 		ax.text(0, .2, label, fontweight="bold", color=color,
 			ha="left", va="center", transform=ax.transAxes)
 
-	g.map(label, "epi")
+	g.map(label, "Energieprestatieindex (EPI)")
 
 	# Set the subplots to overlap
 	g.fig.subplots_adjust(hspace=-.25)
@@ -99,9 +99,9 @@ def seaborn_ridgeplot(df):
 
 def densities_plot(df, common_norm=True):
 	print("Plotting kdeplot...")
-	sns.kdeplot(
+	p = sns.kdeplot(
 		data=df,
-		x="epi",
+		x="Energieprestatieindex (EPI)",
 		hue="label",
 		fill=True,
 		common_norm=common_norm,
@@ -114,7 +114,6 @@ def densities_plot(df, common_norm=True):
 	# g._legend.set_title(None)
 	print('Adjusting x-limits...')
 	plt.xlim(0, 4)
-	plt.xlabel('energieprestatieindex')
 	# get rid of plot frame
 	sns.despine()
 	print('Saving to file')
@@ -138,16 +137,22 @@ def calculation_types_plot_aggregated(df):
 	# df = df.sort_values('label')
 	print(df.head())
 	print('Plotting all calculation types in one plot...')
+	plt.rcParams.update({'font.family':'cmss10'})
 	g = sns.catplot(
 		data=df,
-		x='epi',
-		y='label',
-		hue='type',
+		x='Energieprestatieindex (EPI)',
+		y='Energy label class',
+		hue='Calculation type',
 		jitter=False,
 		dodge=True,
 		alpha=1/256,
-		palette=calculation_colours)
-	plt.xlim(0, 5)
+		palette=calculation_colours,
+		aspect=2,
+		legend=False)
+	plt.xlim(0, 4)
+	plt.legend(loc="lower right")
+	plt.xlabel('Energieprestatieindex (EPI)', fontweight='bold', fontsize=14)
+	plt.ylabel('Energy label class', fontweight='bold', fontsize=14) 
 
 	axes = g.axes.flat
 	print(axes)
@@ -156,18 +161,18 @@ def calculation_types_plot_aggregated(df):
 	# fig, ax = plt.subplots()
 	# print(dir(plt))
 	# print(dir(plt.Axes))
-	ax.set_xticks([0.6, 0.9, 1.2, 1.4, 1.8, 2.1, 2.4, 2.7], minor=False)
-	ax.xaxis.grid(True, which='major', linewidth=0.5)
+	ax.set_xticks([0, 0.5, 0.7, 1.05, 1.3, 1.6, 2.0, 2.4, 2.9], minor=False)
+	ax.xaxis.grid(True, which='major', linewidth=1, linestyle='dashed')
 
 	print('Saving plot...')
 	filename = 'energy_labels_epi_calculation_types.png'
 	path = os.path.join(project_dir, 'analysis', filename)
-	plt.savefig(path, dpi=300)
+	plt.savefig(path, dpi=300, bbox_inches='tight')
 
 def calculation_types_plots(df):
-	calculation_types = df['type'].unique()
+	calculation_types = df['Calculation type'].unique()
 	for calculation_type in calculation_types:
-		df_filtered = df[df['type'] == calculation_type]
+		df_filtered = df[df['Calculation type'] == calculation_type]
 		matplot(df_filtered, title=calculation_type)
 
 def main():
@@ -177,7 +182,7 @@ def main():
 
 	results = cursor.fetchall()
 	print("Converting to DataFrame...")
-	df = pd.DataFrame(results, columns=['epi', 'label', 'type'])
+	df = pd.DataFrame(results, columns=['Energieprestatieindex (EPI)', 'Energy label class', 'type'])
 
 	print('Replacing values in DataFrame...')
 	df = df.replace({
@@ -185,6 +190,13 @@ def main():
 		'Nader Voorschrift, versie 1.0, 1 februari 2014 met erratalijst, addendum 1 juli 2018': 'Nader Voorschrift (addendum)',
 		'Nader Voorschrift, versie 1.0, 1 februari 2014 met erratalijst dd 03-11-201': 'Nader Voorschrift'
 	})
+
+	# filter out those that get used in the U-sector,
+	# "ISSO75.3, versie 3.0, oktober 2011"
+	# "NEN 7120+C2:2012/C3:2013/C4,C5:2015"
+	# "NEN 7120+C2:2012/C3:2013/C4,C5:2015, addendum 1 juli 2018"
+	df = df[df.type.isin(['NTA-8800 (detailopname woningbouw)', 'NTA-8800 (basisopname woningbouw)', 'Rekenmethodiek', 'Nader Voorschrift (addendum)', 'Nader Voorschrift', 'ISSO 82.3', 'EPA', 'EP'])]
+	df.rename(columns = {'type':'Calculation type'}, inplace = True)
 
 	calculation_types_plot_aggregated(df)
 	# seaborn_kdeplot(df)
