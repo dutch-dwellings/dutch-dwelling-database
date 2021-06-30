@@ -1,5 +1,6 @@
 import os
 import sys
+import bisect
 from scipy.interpolate import interp1d
 
 # Required for relative imports to also work when called
@@ -92,34 +93,18 @@ class GasConsumptionComparisonModule(BaseModule):
 			building_type = 'Appartement'
 
 		# Make areas searchable
-		if floor_space < 50:
-			floor_space_string = '15 tot 50 m²'
-		elif floor_space >= 50 and floor_space < 75:
-			floor_space_string = '50 tot 75 m²'
-		elif floor_space >= 75 and floor_space < 100:
-			floor_space_string = '75 tot 100 m²'
-		elif floor_space >= 100 and floor_space < 150:
-			floor_space_string = '100 tot 150 m²'
-		elif floor_space >= 150 and floor_space < 250:
-			floor_space_string = '150 tot 250 m²'
-		elif floor_space >= 250:
-			floor_space_string = '250 tot 500 m²'
+		limits = [            50,             75,              100,              150,              250                  ]
+		values = ['15 tot 50 m²', '50 tot 75 m²',  '75 tot 100 m²', '100 tot 150 m²', '150 tot 250 m²', '250 tot 500 m²']
+
+		index = bisect.bisect_left(limits, floor_space)
+		floor_space_string = values[index]
 
 		# Make building years searchable
-		if construction_year < 1946:
-			construction_year_string = '1000 tot 1946'
-		elif construction_year >= 1946 and construction_year < 1965:
-			construction_year_string = '1946 tot 1965'
-		elif construction_year >= 1965 and construction_year < 1975:
-			construction_year_string = '1965 tot 1975'
-		elif construction_year >= 1975 and construction_year < 1992:
-			construction_year_string = '1975 tot 1992'
-		elif construction_year >= 1992 and construction_year < 2000:
-			construction_year_string = '1992 tot 2000'
-		elif construction_year >= 2000 and construction_year < 2014:
-			construction_year_string = '2000 tot 2014'
-		elif construction_year >= 2014:
-			construction_year_string = 'Vanaf 2014'
+		limits = [           1946,            1965,            1975,            1992,            2000,             2014              ]
+		values = ['1000 tot 1946', '1946 tot 1965', '1965 tot 1975', '1975 tot 1992', '1992 tot 2000',  '2000 tot 2014', 'Vanaf 2014']
+
+		index = bisect.bisect_left(limits, construction_year)
+		construction_year_string = values[index]
 
 		dwelling_characteristics_tuple = (energy_label, building_type, floor_space_string, construction_year_string)
 

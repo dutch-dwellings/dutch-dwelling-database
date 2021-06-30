@@ -1,5 +1,6 @@
 import os
 import sys
+import bisect
 from scipy.interpolate import interp1d
 
 # Required for relative imports to also work when called
@@ -102,30 +103,18 @@ class ElectricityConsumptionComparisonModule(BaseModule):
 			building_type = 'Appartement'
 
 		# Make floor areas searchable
-		if floor_space < 50:
-			floor_space_string = '15 tot 50 m²'
-		elif floor_space >= 50 and floor_space < 75:
-			floor_space_string = '50 tot 75 m²'
-		elif floor_space >= 75 and floor_space < 100:
-			floor_space_string = '75 tot 100 m²'
-		elif floor_space >= 100 and floor_space < 150:
-			floor_space_string = '100 tot 150 m²'
-		elif floor_space >= 150 and floor_space < 250:
-			floor_space_string = '150 tot 250 m²'
-		elif floor_space >= 250:
-			floor_space_string = '250 tot 500 m²'
+		limits = [            50,             75,              100,              150,              250                  ]
+		values = ['15 tot 50 m²', '50 tot 75 m²',  '75 tot 100 m²', '100 tot 150 m²', '150 tot 250 m²', '250 tot 500 m²']
+
+		index = bisect.bisect_left(limits, floor_space)
+		floor_space_string = values[index]
 
 		# Make household sizes searchable
-		if household_size == 1:
-			household_size_string = '1 persoon'
-		elif household_size == 2:
-			household_size_string = '2 personen'
-		elif household_size == 3:
-			household_size_string = '3 personen'
-		elif household_size == 4:
-			household_size_string = '4 personen'
-		elif household_size >= 5:
-			household_size_string = '5 personen of meer'
+		limits = [          1,            2,             3,            4                      ]
+		values = ['1 persoon', '2 personen',  '3 personen', '4 personen', '5 personen of meer']
+
+		index = bisect.bisect_left(limits, household_size)
+		household_size_string = values[index]
 
 		dwelling_characteristics_tuple = (building_type, floor_space_string, household_size_string)
 

@@ -124,7 +124,7 @@ def main():
 	cursor.execute(query)
 
 	print('Starting processing...')
-	N = 10000 # set N = None to process full BAG.
+	N = None # set N = None to process full BAG.
 	i = 0
 	for (vbo_id, pc6, oppervlakte, bouwjaar, woningtype, buurt_id) in cursor:
 
