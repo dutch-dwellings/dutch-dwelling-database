@@ -30,6 +30,14 @@ For the analysis you might also need:
 pip install scipy matplotlib scikit-learn seaborn statsmodels
 ```
 
+And for mapping purposes:
+
+```
+pip install pyproj==2.5.0 folium
+```
+
+We use pyproj 2.5.0 since there is [some kind of bug](https://stackoverflow.com/questions/64713759/how-to-install-geopandas-properly#comment114426803_64713759) with more recent version.
+
 ## Downloading and loading the datasets
 
 **First:** fill `.env` with the required values (see `.env.template` for the structure). You can get the required EP-Online API key with [this form from the RVO](https://epbdwebservices.rvo.nl/).
