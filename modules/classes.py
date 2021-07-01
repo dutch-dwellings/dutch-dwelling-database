@@ -93,6 +93,8 @@ class Region:
 			else:
 				dwelling.attributes[key] = placeholder_dwelling.attributes[key]
 
+		dwelling.outputs.update(placeholder_dwelling.outputs)
+
 		dwelling.processed_by += [module for module in placeholder_dwelling.processed_by if module not in dwelling.processed_by]
 
 		self.n_placeholders -= 1
