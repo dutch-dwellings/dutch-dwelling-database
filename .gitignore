@@ -12,5 +12,5 @@ energy_labels_epi_imputed_pc6_average.csv
 __pycache__
 *.pyc
 
-# resulting map
-index.html
+# resulting maps
+*.html

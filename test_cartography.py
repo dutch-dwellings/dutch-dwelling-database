@@ -1,14 +1,12 @@
-import folium
-from folium.plugins import BeautifyIcon
+import sys
 
+import folium
+from folium.plugins import BeautifyIcon, Fullscreen
+from psycopg2.extras import DictCursor
 from pyproj import Proj, transform
 
-from psycopg2.extras import DictCursor
-
 from utils.database_utils import get_connection
-
-VBO_ID = '0363010001957132'
-BUURT_ID = 'BU03638703'
+from pipeline import main as pipeline
 
 def parse_geometry(geometry):
 	y_str, x_str = geometry.replace('{', '').replace('}', '').split(', ')
@@ -26,50 +24,198 @@ def rijksdriehoek_to_wsg84(x, y):
 	lon, lat, z = transform(p1, p2, x, y, 0.0)
 	return (lat, lon)
 
-def get_results(cursor):
+def initiate_folium_map(lon, lat):
+	print('Creating map...')
+	return folium.Map(location=(lon, lat), tiles='cartodb positron', zoom_start=17)
+
+def get_buurt_results(buurt_id, cursor):
 
 	query = '''
-	SELECT vbo_id, geometry, oppervlakte, adres
-	FROM bag
-	WHERE buurt_id = %s
-	ORDER BY
-	RANDOM()
-	LIMIT 10
+	SELECT
+		*
+	FROM
+		bag, results
+	WHERE
+		results.vbo_id = bag.vbo_id
+		AND buurt_id = %s
 	'''
 
-	# query = '''
-	# SELECT *
-	# FROM bag, results
-	# WHERE
-	# bag.vbo_id = results.vbo_id
-	# AND results.vbo_id='0363010012156802'
-	# '''
-
-	print('Executing query...')
-	cursor.execute(query, (BUURT_ID,))
+	print('Executing buurt query...')
+	cursor.execute(query, (buurt_id,))
 	return cursor
 
-def add_results_to_map(m, cursor):
+def get_vbo_result(vbo_id, cursor):
+	query = '''
+	SELECT
+		*
+	FROM
+		bag, results
+	WHERE
+		results.vbo_id = bag.vbo_id
+		AND results.vbo_id = %s
+	'''
+
+	print('Executing vbo query...')
+	cursor.execute(query, (vbo_id,))
+	return cursor.fetchone()
+
+def get_energy_label_colour(dwelling):
+	# extracted from 'energielabel-voorbeeld-woningen.pdf'
+	energy_label_colours = {
+		'A+++++': '#009037', # dark green
+		 'A++++': '#009037', # dark green
+		  'A+++': '#009037', # dark green
+		   'A++': '#009037', # dark green
+		    'A+': '#009037', # dark green
+		     'A': '#009037', # dark green
+		     'B': '#55ab26', # green
+		     'C': '#c8d100', # light green
+		     'D': '#ffec00', # yellow
+		     'E': '#faba00', # orange
+		     'F': '#eb6909', # light red
+		     'G': '#e2001a'  # red
+	}
+	label_class = dwelling['energy_label_class']
+	if label_class is None:
+		label_class = dwelling['energy_label_class_mean']
+	return energy_label_colours[label_class]
+
+def add_markers_to_map(vbo_id, m, cursor):
 
 	print('Iterating through results...')
 	i = 0
 
-	for row in cursor:
-		dwelling = dict(row)
+	for dwelling in cursor:
 
-		icon = BeautifyIcon(
-			icon_shape='circle-dot',
-			border_color='red',
-			border_width=3,
-		)
+		if dwelling['vbo_id'] == vbo_id:
+			icon_type = 'house'
+		else:
+			icon_type = 'energy_label'
+
+		add_dwelling_marker_to_map(m, dwelling, icon_type)
 
 		i += 1
-		x, y = parse_geometry(dwelling['geometry'])
-		lon, lat = rijksdriehoek_to_wsg84(x, y)
-		folium.Marker((lon, lat),icon=icon).add_to(m)
 
-		print(f'\tprocessing: {i} ({dwelling["adres"]})', end='\r')
+		print(f'\tprocessed: {i} ({dwelling["adres"]}) {" "*20}', end='\r')
 	print('')
+
+def add_dwelling_marker_to_map(m, dwelling, icon_type):
+	x, y = parse_geometry(dwelling['geometry'])
+	lon, lat = rijksdriehoek_to_wsg84(x, y)
+
+	def percentage(key):
+		return f'{dwelling[key] * 100:.1f}%'
+
+	def numeric_range(key):
+		mean = dwelling[f'{key}_mean']
+		range_ = dwelling[f'{key}_95']
+
+		if type(range_) == str:
+			lower = range_.replace('[','').replace(']','').split(',')[0]
+			upper = range_.replace('[','').replace(']','').split(',')[1]
+			return f'{mean} (95%: {lower} to {upper})'
+		else:
+			lower = range_.lower
+			upper = range_.upper
+			return f'{mean:.1f} (95%: {lower:.1f} to {upper:.1f})'
+
+	results = {
+		'Base data': {
+			'vbo ID': f"<samp>{dwelling['vbo_id']}</samp>",
+			'coordinates': f'({lon:.2f}, {lat:.2f})',
+			'construction year': dwelling['bouwjaar'],
+			'surface area': f"{dwelling['oppervlakte']} m<sup>2</sup>",
+			'dwelling type': f"{dwelling['woningtype'].replace('_', ' ')}",
+			'neighbourhood ID': f"<samp>{dwelling['buurt_id']}</samp>"
+		},
+		'Energy label': {
+			'measured': dwelling['energy_label_class'],
+			'predicted': numeric_range('energy_label_class')
+		},
+
+		'Space heating': {
+			'district heating': percentage('district_heating_space_p'),
+			'block heating': percentage('block_heating_space_p'),
+			'gas boiler': percentage('gas_boiler_space_p'),
+			'electric boiler': percentage('elec_boiler_space_p'),
+			'hybrid heat pump': percentage('hybrid_heat_pump_p'),
+			'electric heat pump': percentage('electric_heat_pump_p')
+		},
+
+		'Water heating': {
+			'district heating': percentage('district_heating_water_p'),
+			'block heating': percentage('block_heating_water_p'),
+			'gas boiler': percentage('gas_boiler_water_p'),
+			'electric boiler': percentage('elec_boiler_water_p'),
+			'electric heat pump': percentage('electric_heat_pump_water_p')
+		},
+
+		'Cooking': {
+			'gas': percentage('gas_cooking_p'),
+			'electric': percentage('electric_cooking_p')
+		},
+
+		'Insulation': {
+			'facade R': numeric_range('insulation_facade_r'),
+			'roof R': numeric_range('insulation_roof_r'),
+			'floor R': numeric_range('insulation_floor_r'),
+			'windows R': numeric_range('insulation_window_r')
+		}
+	}
+
+	table = '<table>'
+	for key, val in results.items():
+
+		for index, (key_2, val_2) in enumerate(val.items()):
+			table += f'<tr class="{"new-cat" if index == 0 else ""}">\n'
+			table += f'\t<td>{key if index == 0 else ""}</td>\n'
+			table += f'\t<td>{key_2}</td>\n'
+			table += f'\t<td>{val_2}</td>\n'
+			table += '</tr>\n'
+	table += '</table>'
+
+	style = '''
+	<style>
+	* {
+		font-size: 16px;
+		font-family: -apple-system, BlinkMacSystemFont, sans-serif
+	}
+	td {
+		padding-top: 5px;
+		padding-right: 20px;
+	}
+	tr.new-cat > td {
+		padding-top: 15px
+	}
+	td:nth-child(1) { font-weight: bold }
+	td:nth-child(2) { font-weight: bold; text-align: right; }
+	td:nth-child(3) { }
+	</style>
+	'''
+
+	html = f'''
+	{style}
+	<div style="width: 45vw; height: 70vh; position: relative">
+		<div style="border-bottom: 2px solid #ddd; margin-bottom: 10px">
+			<h3>Dwelling: {dwelling['adres'].replace('_', ' ')}</h3>
+		</div>
+		<div style='overflow-y: auto; height: 90%'>
+			{table}
+		</div>
+	</div>
+	'''
+
+	my_popup =  folium.Popup(html)
+	if icon_type == 'house':
+		icon = folium.Icon(icon='home', prefix='fa')
+	else:
+		icon = BeautifyIcon(
+			icon_shape='circle-dot',
+			border_color=get_energy_label_colour(dwelling),
+			border_width=4,
+		)
+
+	folium.Marker((lon, lat), popup=my_popup, icon=icon).add_to(m)
 
 def parse_multipolygon(multipolygon):
 	coordinates_str = multipolygon.replace("MULTIPOLYGON (((", "").replace(")))", "").split(', ')
@@ -83,60 +229,58 @@ def parse_multipolygon(multipolygon):
 
 	return [parse_coordinate(coord_str) for coord_str in coordinates_str]
 
-def initiate_folium_map():
-	print('Creating map...')
-	return folium.Map(location=(52.34782062300883, 4.8370537819091695), tiles='cartodb positron', zoom_start=16)
-
-def get_warmtenetten(cursor):
-	print('Executing warmtenetten query...')
-	query = "SELECT fid, geometrie, percentage_stadsverwarming FROM rvo_warmtenetten WHERE gemeente_naam = 'Amsterdam' LIMIT 10"
-	cursor.execute(query)
-	print('Fetching results')
-	return cursor.fetchall()
-
-def add_warmtenet_to_map(m, warmtenet):
-	fid, geometrie, percentage_stadsverwarming = warmtenet
-	print(f'Parsing multipolygon for {fid}...')
-	polygon = parse_multipolygon(geometrie)
-
-	geo_json_template = '''
-	{{
-	"type": "FeatureCollection",
-	"features": [
-		{{
-			"type": "Feature",
-			"properties": {{}},
-			"geometry": {{
-				"type": "Polygon", 
-				"coordinates": [
-					{}
-				]
-			}}
-		}}
-	]
-	}}'''
-
-	geo_json_data = geo_json_template.format(polygon)
-	print(f'Adding {fid} to the map...')
-	folium.GeoJson(geo_json_data).add_to(m)
-
-def add_warmtenetten_to_map(m, warmtenetten):
-	print('Adding warmtenetten to the map...')
-	for warmtenet in warmtenetten:
-		add_warmtenet_to_map(m, warmtenet)
+def get_vbo_id_of_address(address, cursor):
+	print(f'Getting vbo_id for address {address}...')
+	query = '''
+	SELECT vbo_id
+	FROM bag
+	WHERE adres=%s
+	'''
+	cursor.execute(query, (address,))
+	results = cursor.fetchall()
+	if len(results) == 1:
+		vbo_id = results[0][0]
+		print(f'Found vbo_id: {vbo_id}')
+		return vbo_id
+	else:
+		return None
 
 def main():
 
 	connection = get_connection()
 	cursor = connection.cursor(cursor_factory=DictCursor)
 
-	m = initiate_folium_map()
+	if '--vbo_id' in sys.argv:
+		index = sys.argv.index('--vbo_id')
+		vbo_id = sys.argv[index + 1]
+	elif '--address' in sys.argv:
+		index = sys.argv.index('--address')
+		address = sys.argv[index + 1]
+		vbo_id = get_vbo_id_of_address(address, cursor)
+		if vbo_id == None:
+			print('No vbo_id found for the address, please check your address again. It should be of the form "1234AB_123".')
+			return
+	else:
+		raise ValueError('You should specify the dwelling using either the --vbo_id or the --address flag.')
 
-	cursor = get_results(cursor)
-	add_results_to_map(m, cursor)
+	pipeline('--vbo_id', vbo_id)
+	print('\n============\n')
+
+	dwelling = get_vbo_result(vbo_id, cursor)
+
+	buurt_id = dwelling['buurt_id']
+	x, y = parse_geometry(dwelling['geometry'])
+	lon, lat = rijksdriehoek_to_wsg84(x, y)
+
+	m = initiate_folium_map(lon, lat)
+	results_cursor = get_buurt_results(buurt_id, cursor)
+	add_markers_to_map(vbo_id, m, results_cursor)
+
+	fullscreen = Fullscreen()
+	fullscreen.add_to(m)
 
 	print('Saving map...')
-	m.save('index.html')
+	m.save(f"map-{dwelling['adres']}.html")
 
 if __name__ == '__main__':
 	main()
