@@ -32,7 +32,7 @@ def get_buurt_results(buurt_id, cursor):
 
 	query = '''
 	SELECT
-		bag.*, results.*, energy_labels.energieklasse as energy_label_class
+		bag.*, results.*, energy_labels.energieklasse as energy_label_class, wijken_en_buurten as buurt_name
 	FROM
 		results
 	LEFT JOIN
@@ -43,6 +43,10 @@ def get_buurt_results(buurt_id, cursor):
 		energy_labels
 	ON
 		energy_labels.vbo_id = bag.vbo_id
+	LEFT JOIN
+		cbs_84799ned_kerncijfers_wijken_en_buurten_2020
+	ON
+		bag.buurt_id = cbs_84799ned_kerncijfers_wijken_en_buurten_2020.area_code
 	WHERE
 		bag.buurt_id = %s
 	'''
@@ -132,7 +136,7 @@ def add_dwelling_marker_to_map(m, dwelling, icon_type):
 			'construction year': dwelling['bouwjaar'],
 			'surface area': f"{dwelling['oppervlakte']} m<sup>2</sup>",
 			'dwelling type': f"{dwelling['woningtype'].replace('_', ' ')}",
-			'neighbourhood ID': f"<samp>{dwelling['buurt_id']}</samp>"
+			'neighbourhood': f"{dwelling['buurt_name']} (<samp>{dwelling['buurt_id']}</samp>)"
 		},
 		'Energy label': {
 			'measured': dwelling['energy_label_class'],
