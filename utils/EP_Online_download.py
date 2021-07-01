@@ -30,11 +30,12 @@ def handle_request(r):
 	elif r.status_code == 401:
 		raise AuthenticationError(f"Status 401: Not authenticated for the EP-Online API. Check the EP_ONLINE_API_KEY in .env. API-key used: {env['EP_ONLINE_API_KEY']}.")
 	else:
-		raise Exception(f'Unexpected error trying to connect to EP-Online API. Status code: {r.status_code}.')
+		raise ConnectionError(f'Unexpected error trying to connect to EP-Online API. Status code: {r.status_code}.')
 
 def main():
 
 	r = requests.get(EP_ONLINE_API_MUTATIONFILE, headers={'Authorization': env['EP_ONLINE_API_KEY']})
+
 	filename, downloadUrl = handle_request(r)
 
 	prefix = 'EP_Online_'

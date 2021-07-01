@@ -7,6 +7,7 @@ import sys
 
 import cbsodata
 from psycopg2.errors import UndefinedColumn
+from requests.exceptions import ConnectionError
 
 # Required for relative imports to also work when called
 # from project root directory.
@@ -225,7 +226,12 @@ def load_cbs_table(table_id, typed_data_set=False):
 	downloads the data from CBS, and loads the data into
 	the Postgres table.
 	'''
-	table_name = get_sanitized_cbs_table_title(table_id, typed_data_set)
+	try:
+		table_name = get_sanitized_cbs_table_title(table_id, typed_data_set)
+	except ConnectionError as e:
+		print(f'\tERROR! Could not load CBS table due to a ConnectionError. Are you connected to the internet? Error:\n\t{e}')
+		# do not continue processing
+		return
 
 	print(f'Loading CBS table {table_name}')
 

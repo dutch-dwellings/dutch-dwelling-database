@@ -1,4 +1,5 @@
 from psycopg2.errors import DuplicateObject
+import requests
 
 from utils.database_utils import create_database, add_index, make_primary_key, rename_column, delete_column, execute, get_column_type
 
@@ -89,13 +90,6 @@ def create_types():
 	except DuplicateObject:
 		print("\tType 'energy_label_class_range' already exists.")
 
-def elec_consumption_households():
-	print('Creating table for household electricity consumption..')
-	create_elec_consumption_households_table()
-
-	print('Loading the data into Postgres...')
-	load_elec_consumption_households()
-
 def rvo_warmtenetten():
 	print('Creating table for RVO Warmtenetten...')
 	create_rvo_warmtenetten_table()
@@ -115,7 +109,16 @@ def energy_labels():
 	create_energy_labels_table()
 
 	print('Downloading the EP-Online database...')
-	download_energy_labels_data()
+	try:
+		download_energy_labels_data()
+	except requests.exceptions.ConnectionError as e:
+		print(f'\tERROR! Could not download EP-Online due to a ConnectionError. Are you connected to the internet? Error:\n\t{e}')
+		# do not process any further
+		return
+	except ConnectionError as e:
+		print(f'\tERROR! Could not download EP-Online due to a ConnectionError. Error:\n\t{e}')
+		# do not process any further
+		return
 
 	print('Loading the data into Postgres...')
 	load_energy_labels_data()
@@ -232,9 +235,6 @@ def main():
 
 	print('\n====== CBS Demographics ======')
 	CBS_kerncijfers()
-
-	print('\n====== Electricity consumption households ======')
-	elec_consumption_households()
 
 	print('\n====== WoON ======')
 	load_WoON()
