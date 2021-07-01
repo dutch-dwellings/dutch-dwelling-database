@@ -1,3 +1,4 @@
+import os
 import sys
 
 import folium
@@ -5,6 +6,8 @@ from folium.plugins import BeautifyIcon, Fullscreen
 from psycopg2.extras import DictCursor
 from pyproj import Proj, transform
 
+# Required to import from root directory
+sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 from utils.database_utils import get_connection
 from pipeline import main as pipeline
 
@@ -290,7 +293,10 @@ def main():
 	fullscreen.add_to(m)
 
 	print('Saving map...')
-	m.save(f"map-{dwelling['adres']}.html")
+	current_dir = os.path.dirname(os.path.realpath(__file__))
+	filename = f"map-{dwelling['adres']}.html"
+	path = os.path.join(current_dir, filename)
+	m.save(path)
 
 if __name__ == '__main__':
 	main()
