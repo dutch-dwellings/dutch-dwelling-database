@@ -9,7 +9,6 @@ Make sure you have Python3 and [PostgreSQL](https://www.postgresql.org/download/
 
 Make sure that `psql` is accessible in your terminal. If you used the installer on macOS you might need to [update your `PATH`](https://dba.stackexchange.com/a/3008) with e.g. `/Library/PostgreSQL/12/bin/`.
 
-
 To check installed versions (any later versions will probably work too):
 
 ```
@@ -37,17 +36,22 @@ pip install scipy matplotlib scikit-learn seaborn statsmodels
 
 ### Get required datasets
 
-We try to automatically download as many datasets as possible, but some you still need to put into `data` manually since these datasets are not easily/freely available:
+We try to automatically download as many datasets as possible. Only the BAG cannot be downloaded easily, so for that you will need to manually copy the file into the `data` folder:
 
-- WoON survey: `WoON2018energie_e_1.0.csv`
 - BAG (custom export enriched with dwelling types): `BAG_Invoer_RuimtelijkeData_BAG_vbo_woonfunctie_studiegebied_Export.csv`
 
+If you want to do analysis on the WoON survey, you also need to copy the WoON results to `data`, but it is not required for the pipeline:
+
+- WoON survey: `WoON2018energie_e_1.0.csv`
+
 ### Loading
-To download the rest of the data sets and load all of them, run the setup tool:
+To download the rest of the data sets and load all of them, make sure that you are connected to the internet and run the setup tool:
 
 ```
 python setup.py
 ```
+
+The setup tool should work idempotently: running it twice has the same effect of running it once (except when there are datasets missing in the first run of course). This means you can run it as often as you like (even though that should have no effect).
 
 ### CBS datasets
 
@@ -57,7 +61,7 @@ To manually download extra CBS-datasets for evaluation / exploration, get their 
 python utils/CBS_load_tables.py $tableID
 ```
 
-If these datasets are required for the pipeline to run, make sure to include them in the `cbs()` function within `setup.py` so these will download during the setup.
+If these datasets are required for the pipeline to run, make sure to include them in the `cbs()` function within `setup.py` so that they will be downloaded during the setup.
 
 ## Running the date pipeline
 
@@ -67,7 +71,10 @@ To run the data pipeline and populate the `results` table, first make sure that 
 python pipeline.py
 ```
 
-Currently, this only uses a small sample of the BAG, for testing purposes.
+This will run the pipeline on the whole BAG (~8M entries), so it can take while (up to a day or so). To process only a subset, use either the flags `--N <N>` to limit processing to N dwellings or `--vbo_id <vbo_id>` to process one specific dwelling and its neighbourhood.
+
+Results from previous runs are saved; new runs automatically exclude dwellings that have already been processed.
+To force a fresh run and delete all previous results, use the `--fresh` flag.
 
 ## Tests
 
@@ -76,5 +83,5 @@ There are some unittests to test parts of the behaviour of the modules and the u
 To run all tests:
 
 ```
-python -m unittest
+python -m unittest [-v]
 ```
