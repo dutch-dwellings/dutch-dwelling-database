@@ -32,27 +32,33 @@ def get_buurt_results(buurt_id, cursor):
 
 	query = '''
 	SELECT
-		*
+		bag.*, results.*, energy_labels.energieklasse as energy_label_class
 	FROM
-		bag, results
-	WHERE
+		results
+	LEFT JOIN
+		bag
+	ON
 		results.vbo_id = bag.vbo_id
-		AND buurt_id = %s
+	LEFT JOIN
+		energy_labels
+	ON
+		energy_labels.vbo_id = bag.vbo_id
+	WHERE
+		bag.buurt_id = %s
 	'''
 
 	print('Executing buurt query...')
 	cursor.execute(query, (buurt_id,))
 	return cursor
 
-def get_vbo_result(vbo_id, cursor):
+def get_bag_vbo(vbo_id, cursor):
 	query = '''
 	SELECT
 		*
 	FROM
-		bag, results
+		bag
 	WHERE
-		results.vbo_id = bag.vbo_id
-		AND results.vbo_id = %s
+		bag.vbo_id = %s
 	'''
 
 	print('Executing vbo query...')
@@ -266,7 +272,7 @@ def main():
 	pipeline('--vbo_id', vbo_id)
 	print('\n============\n')
 
-	dwelling = get_vbo_result(vbo_id, cursor)
+	dwelling = get_bag_vbo(vbo_id, cursor)
 
 	buurt_id = dwelling['buurt_id']
 	x, y = parse_geometry(dwelling['geometry'])
