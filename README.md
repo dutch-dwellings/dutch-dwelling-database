@@ -84,6 +84,16 @@ This will run the pipeline on the whole BAG (~8M entries), so it can take while 
 Results from previous runs are saved; new runs automatically exclude dwellings that have already been processed.
 To force a fresh run and delete all previous results, use the `--fresh` flag.
 
+## Maps
+
+You can make a map with the results for a specific dwelling and its neighbourhood:
+
+```
+python cartography/create_results_map { --vbo_id <vbo_id> | --address <address in 1234AB_123 format> }
+```
+
+This will generate the file `map-1234AB_123.html` in the folder `cartography`, which you can open with a browser (an internet connection is required for the map tiles to load). To generate the map, it is not required to have run the pipeline first: it will automatically process the required dwellings (but do follow the setup first).
+
 ## Tests
 
 There are some unittests to test parts of the behaviour of the modules and the utils. They do not rely on the database, so you can run these without having PostgreSQL installed or the databases loaded.
