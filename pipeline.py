@@ -1,10 +1,10 @@
+import sys
 import time
-import pandas as pd
 
 from psycopg2 import sql
 from psycopg2.extras import DictCursor
 
-from utils.database_utils import get_connection, get_bag_sample, get_neighbourhoods_sample, get_neighbourhoods_sample_UAE
+from utils.database_utils import get_connection, make_primary_key
 from utils.create_results_table import main as create_results_table
 
 from modules.classes import Dwelling, PlaceholderDwelling
@@ -90,21 +90,42 @@ def get_modules(connection, regional_modules):
 	}
 	return [Module(connection, **kwargs) for Module in Modules]
 
-def main():
+def get_rowcount_estimate(table_name, connection):
+	# adapted from https://stackoverflow.com/a/2611745/7770056
+	rowcount_estimate_query = '''
+	SELECT
+		reltuples::int
+	FROM
+		pg_class
+	WHERE
+		relname=%s
+	'''
+	cursor = connection.cursor()
+	cursor.execute(rowcount_estimate_query, (table_name,))
+	(result,) = cursor.fetchone()
+	cursor.close()
+	return result
+
+def pipeline(query, connection, fresh=False, N=None):
+	# set N = None to process full BAG.
+	# set fresh = True to delete previous results.
 
 	start_time = time.time()
 
-	connection = get_connection()
+	print(f'fresh: {fresh} (if True, previous results will be deleted)')
 
 	# Also deletes existing `results' table
-	print("Creating table 'results'...")
-	create_results_table()
+	print("\nCreating table 'results'...")
+	create_results_table(fresh)
 
-	print("Initiating modules...")
+	print("Adding primary key on vbo_id...")
+	make_primary_key('results', 'vbo_id')
+
+	print("\nInitiating modules...")
 	regional_modules = get_regional_modules(connection)
 	modules = get_modules(connection, regional_modules)
 
-	print("Getting dwellings...")
+	print("\nGetting dwellings...")
 	# We create a named server-side cursor:
 	# https://www.psycopg.org/docs/usage.html#server-side-cursors
 	# This keeps the memory usage down
@@ -112,19 +133,22 @@ def main():
 	# rows at a time into the Python memory.
 	# You don't need to close() this cursor afterwards (in fact
 	# the cursor disappears after a commit).
-	cursor = connection.cursor(name='bag-query-cursor')
-	query = '''
-		SELECT
-			vbo_id, pc6, oppervlakte, bouwjaar, woningtype, buurt_id
-		FROM
-			bag
-		ORDER BY
-			buurt_id
-	'''
+	cursor = connection.cursor(name='pipeline-cursor')
 	cursor.execute(query)
 
-	print('Starting processing...')
-	N = None # set N = None to process full BAG.
+	# import pdb
+	# pdb.set_trace()
+
+	bag_count = 7892928
+	results_count_estimate = get_rowcount_estimate('results', connection)
+
+	print(f'Batch statistics:')
+	print(f'   BAG entries: {bag_count}')
+	print(f'   estimate of current number of results (might be outdated): {results_count_estimate} ({results_count_estimate/bag_count*100:.2f}%)')
+	print(f'   this batch: {"no number specified" if N is None else N}')
+
+	print('\nStarting processing...')
+
 	i = 0
 	for (vbo_id, pc6, oppervlakte, bouwjaar, woningtype, buurt_id) in cursor:
 
@@ -150,11 +174,95 @@ def main():
 		if i == N:
 			break
 
-	print("\nCommiting and closing...")
+	print("\n\nCommiting and closing...")
 	connection.commit()
 	connection.close()
 
 	print(f'Processed {i:,} records in {(time.time() - start_time):.2f} seconds.')
+
+def main(*args):
+	'''
+	Options:
+		--fresh: delete previous results
+		--vbo_id {vbo_id}: process only the dwellings in the
+		same buurt as 'vbo_id'
+		--N {N}: limit pipeline to N dwellings (won't work
+		if --vbo_id also specified)
+	'''
+
+	print("\n=== DUTCH DWELLINGS PIPELINE ===\n")
+
+	# Makes the pipeline both callable from
+	# CLI and from other script.
+	if len(args) == 0:
+		args = sys.argv
+
+	connection = get_connection()
+
+	# Determines whether to delete existing results
+	if '--fresh' in args:
+		fresh = True
+	else:
+		fresh = False
+
+	# If you specify a vbo_id, we will get all the dwellings
+	# in the neighbourhood.
+	if '--vbo_id' in args:
+		index = args.index('--vbo_id')
+		vbo_id = args[index + 1]
+		print('processing buurt for one vbo')
+		print(f'   vbo_id: {vbo_id}')
+		buurt_id_query = '''
+		SELECT buurt_id
+		FROM bag
+		WHERE vbo_id = %s
+		'''
+		cursor = connection.cursor()
+		cursor.execute(buurt_id_query, (vbo_id,))
+		(buurt_id,) = cursor.fetchone()
+
+		print(f'   buurt_id: {buurt_id}')
+
+		query = '''
+			SELECT
+				vbo_id, pc6, oppervlakte, bouwjaar, woningtype, buurt_id
+			FROM
+				bag
+			WHERE
+				buurt_id = %s
+				AND
+				NOT EXISTS
+				(SELECT vbo_id
+				FROM results
+				WHERE results.vbo_id = bag.vbo_id
+				)
+		'''
+		query = cursor.mogrify(query, (buurt_id,))
+		N = None
+
+	else:
+		query = '''
+			SELECT
+				vbo_id, pc6, oppervlakte, bouwjaar, woningtype, buurt_id
+			FROM
+				bag
+			WHERE
+				NOT EXISTS
+				(SELECT vbo_id
+				FROM results
+				WHERE results.vbo_id = bag.vbo_id
+				)
+			ORDER BY
+				buurt_id
+		'''
+
+		if '--N' in args:
+			index = args.index('--N')
+			N = int(args[index + 1])
+		else:
+			N = None
+
+	pipeline(query, connection, fresh, N)
 
 if __name__ == "__main__":
 	main()
