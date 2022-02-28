@@ -1,6 +1,55 @@
 # Dutch Dwelling Database
 *A database of energy characteristics of individual Dutch dwellings*
 
+The goal of this project was to build a well-documented dataset on energy characteristics of all Dutch homes, on the level of individual dwellings.
+The project was an assignment of the [Netherlands Environmental Assessment Agency](https://www.pbl.nl/), and executed by students as part of the 2021 course 'Consultancy Project' at the Utrecht University.
+An explanation of the background and methodology is available in the resulting report ['Creating an energy characteristics database for individual dwellings in the Netherlands'](docs/creating_an_energy_characteristics_database-final_report.pdf).
+
+We'd be happy for anyone to use our work, so feel free to open an issue if there any questions.
+
+## Documentation
+
+The pipeline uses different 'modules', that can be turned off and on (although some modules depend on the results of previous modules). The general structure of the pipeline is visualized in the following diagram:
+
+![Visualization of the pipeline](docs/pipeline_diagram.png)
+
+See the report ['Creating an energy characteristics database for individual dwellings in the Netherlands'](docs/creating_an_energy_characteristics_database-final_report.pdf) for the background and methodology.
+
+### Output structure
+
+When all prerequisites have been met (see 'Installation'), running the pipeline will create a PostgreSQL table `results' that has the following structure:
+
+| Column | Description |
+| ------------- |-------------:|
+| `vbo_id` | dwelling identification (verblijfsobject identificatie) |
+| `energy_label_epi_mean` | Mean value of EPI distribution |
+| `energy_label_epi_95` | 95 percentile interval of EPI |
+| `energy_label_class_mean` | Energy label class |
+| `energy_label_class_95` | 95 percentile interval of energy label class |
+| `district_heating_space_p` | Prob. of dwelling using district heating for space heating |
+| `gas_boiler_space_p` | Prob. of dwelling using a gas boiler for space heating |
+| `block_heating_p` | Prob. of dwelling using block heating for space heating |
+| `hybrid_heat_pump_p` | Prob. of dwelling using a hybrid heat pump for space heating |
+| `electric_heat_pump_p` | Prob. of dwelling using an electric heat pump for space heating |
+| `elec_boiler_space_p` | Prob. of dwelling using an electric boiler for space heating |
+| `insulation_facade_r_mean` | Mean value of R-value distribution for the facade |
+| `insulation_facade_r_95` | 95 percentile interval for R-values for the facade |
+| `insulation_roof_r_mean` | Mean value of R-value distribution for the roof |
+| `insulation_roof_r_95` | 95 percentile interval for R-values for the roof |
+| `insulation_floor_r_mean` | Mean value of R-value distribution for the floor |
+| `insulation_floor_r_95` | 95 percentile interval for R-values for the floor |
+| `insulation_window_r_mean` | Mean value of R-value distribution for the windows |
+| `insulation_window_r_95` | 95 percentile interval for R-values for the windows |
+| `district_heating_water_p` | Prob. of dwelling using district heating for water heating |
+| `gas_boiler_water_p` | Prob. of dwelling using a gas boiler for water heating |
+| `block_heating_water_p` | Prob. of dwelling using block heating for water heating |
+| `elec_boiler_water_p` | Prob. of dwelling using district heating for water heating |
+| `electric_heat_pump_water_p` | Prob. of dwelling using district heating for water heating |
+| `gas_cooking_p` | Prob. of dwelling using gas for cooking |
+| `electric_cooking_p` | Prob. of dwelling using electricity for cooking |
+| `space_heating` | Code describing space heating installation(s) present |
+| `water_heating` | Code describing water heating installation(s) present |
+| `cooking` | Code describing cooking installation(s) present |
 
 ## Installation
 
@@ -89,10 +138,14 @@ To force a fresh run and delete all previous results, use the `--fresh` flag.
 You can make a map with the results for a specific dwelling and its neighbourhood:
 
 ```
-python cartography/create_results_map { --vbo_id <vbo_id> | --address <address in 1234AB_123 format> }
+python cartography/create_results_map.py { --vbo_id <vbo_id> | --address <address in 1234AB_123 format> }
 ```
 
 This will generate the file `map-1234AB_123.html` in the folder `cartography`, which you can open with a browser (an internet connection is required for the map tiles to load). To generate the map, it is not required to have run the pipeline first: it will automatically process the required dwellings (but do follow the setup first).
+
+Example for address `3583EP-50` (the [Rietveld Schröder House](https://en.wikipedia.org/wiki/Rietveld_Schr%C3%B6der_House)):
+
+![example interactive map for address 3583EP-50](docs/map-3583EP_50.png)
 
 ## Tests
 
@@ -103,3 +156,7 @@ To run all tests:
 ```
 python -m unittest [-v]
 ```
+
+## License
+
+This project is licensed under the terms of the [GNU General Public License v3.0](LICENSE).
