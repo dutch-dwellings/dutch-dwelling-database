@@ -17,7 +17,7 @@ See the report ['Creating an energy characteristics database for individual dwel
 
 ### Output structure
 
-When all prerequisites have been met (see 'Installation'), running the pipeline will create a PostgreSQL table `results' that has the following structure:
+When all prerequisites have been met (see 'Installation'), running the pipeline will create a PostgreSQL table `results` that has the following structure:
 
 | Column | Description |
 | ------------- |-------------:|
@@ -85,7 +85,7 @@ And for mapping purposes:
 pip install pyproj==2.5.0 folium
 ```
 
-We use pyproj 2.5.0 since there is [some kind of bug](https://stackoverflow.com/questions/64713759/how-to-install-geopandas-properly#comment114426803_64713759) with more recent version.
+We use pyproj 2.5.0 since there is [some kind of bug](https://stackoverflow.com/questions/64713759/how-to-install-geopandas-properly#comment114426803_64713759) with more recent versions.
 
 ## Downloading and loading the datasets
 
